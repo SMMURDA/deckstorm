@@ -1,274 +1,491 @@
-// Core game state & UI
+// ═══════════════ DECKSTORM — core game state & UI ═══════════════
+"use strict";
 const HAND_SIZE = 8, MAX_SELECT = 5, MAX_JOKERS = 5;
 const BASE_HANDS = 4, BASE_DISCARDS = 3;
 const ANTE_TARGETS = [300, 800, 2000, 5000, 11000, 20000, 35000, 50000];
 const BLINDS = [
-  { key: "small", name: "Small Blind", mult: 1, reward: 3 },
-  { key: "big", name: "Big Blind", mult: 1.5, reward: 4 },
-  { key: "boss", name: "Boss Blind", mult: 2, reward: 5 },
+  { name: "Small Blind", mult: 1,   reward: 3 },
+  { name: "Big Blind",   mult: 1.5, reward: 4 },
+  { name: "Boss Blind",  mult: 2,   reward: 5 },
 ];
-const REROLL_COST = 2;
+const SUIT_CLASS = { hearts: "red", diamonds: "red", spades: "black", clubs: "black" };
+const $ = s => document.querySelector(s);
 
-const S = {}; // game state
-const $ = sel => document.querySelector(sel);
+// ── pixel-art suits (grid → inline SVG, crisp pixels) ──
+const SUIT_PIXELS = {
+  hearts:   [".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."],
+  diamonds: ["...#...", "..###..", ".#####.", "#######", ".#####.", "..###..", "...#..."],
+  spades:   ["...#...", "..###..", ".#####.", "#######", "#######", "...#...", "..###.."],
+  clubs:    ["..###..", "..###..", "##.#.##", "##.#.##", "..###..", "...#...", "..###.."],
+};
+const STAR_PIXELS = ["...#...", "..###..", "#######", ".#####.", "..###..", ".#...#."];
+const SUIT_COLOR = { hearts: "#E23C50", diamonds: "#E23C50", spades: "#2B2B3A", clubs: "#2B2B3A" };
 
+function pixelSVG(grid, fill) {
+  const h = grid.length, w = grid[0].length;
+  let rects = "";
+  grid.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++)
+      if (row[x] === "#") rects += `<rect x='${x}' y='${y}' width='1' height='1'/>`;
+  });
+  return `<svg viewBox='0 0 ${w} ${h}' shape-rendering='crispEdges' fill='${fill}' aria-hidden='true'>${rects}</svg>`;
+}
+function suitSVG(suit) { return pixelSVG(SUIT_PIXELS[suit], SUIT_COLOR[suit]); }
+function starSVG(color) { return pixelSVG(STAR_PIXELS, color); }
+
+// ── settings (persisted) ──
+const settings = Object.assign({ sound: true, anim: true },
+  JSON.parse(localStorage.getItem("deckstorm.settings") || "{}"));
+function saveSettings() { localStorage.setItem("deckstorm.settings", JSON.stringify(settings)); }
+function applySettings() {
+  AudioFX.enabled = settings.sound;
+  document.body.classList.toggle("reduced", !settings.anim);
+  $("#set-sound").textContent = settings.sound ? "ON" : "OFF";
+  $("#set-sound").classList.toggle("off", !settings.sound);
+  $("#set-anim").textContent = settings.anim ? "ON" : "OFF";
+  $("#set-anim").classList.toggle("off", !settings.anim);
+}
+
+// ── state ──
+let S = null;
+let sortMode = "rank";
+
+// ── screen manager ──
+let currentScreen = "menu";
+function showScreen(name) {
+  currentScreen = name;
+  document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+  $("#screen-" + name).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+// ── run / round flow ──
 function newRun() {
-  S.ante = 1; S.blindIdx = 0;
-  S.money = 4;
-  S.jokers = [];
-  S.sortMode = "rank";
+  S = {
+    ante: 1, blindIndex: 0, money: 4, jokers: [], offers: [],
+    deck: [], hand: [], selected: new Set(), freshIds: new Set(),
+    handsLeft: 0, discardsLeft: 0, roundScore: 0,
+    phase: "play", animating: false, grosMichelGone: false,
+  };
+  sortMode = "rank";
   startBlind();
-  $("#gameover").hidden = true;
-  $("#win").hidden = true;
-  $("#shop").hidden = true;
-  $("#hud").hidden = false;
-  $("#start-screen").hidden = true;
-  renderAll();
 }
 
-function blindTarget() {
-  return Math.round(ANTE_TARGETS[S.ante - 1] * BLINDS[S.blindIdx].mult);
-}
+function blindTarget() { return Math.round(ANTE_TARGETS[S.ante - 1] * BLINDS[S.blindIndex].mult); }
 
 function startBlind() {
-  S.drawPile = shuffle(buildDeck());
+  S.phase = "play";
+  S.animating = false;
+  S.deck = shuffle(buildDeck());
   S.hand = [];
-  S.selected = new Set();
+  S.selected.clear();
+  S.freshIds.clear();
   S.handsLeft = BASE_HANDS;
   S.discardsLeft = BASE_DISCARDS;
   S.roundScore = 0;
-  S.phase = "play";
   drawUp();
+  $("#played-zone").innerHTML = "";
+  setPlayedInfo("");
+  showScreen("game");
+  renderAll();
 }
 
+function nextBlind() {
+  AudioFX.play("click");
+  if (S.blindIndex === 2) {
+    S.ante++;
+    S.blindIndex = 0;
+    if (S.ante > 8) return winRun();
+  } else {
+    S.blindIndex++;
+  }
+  startBlind();
+}
+
+// ── drawing / sorting ──
 function drawUp() {
-  while (S.hand.length < HAND_SIZE && S.drawPile.length) S.hand.push(S.drawPile.pop());
+  const need = HAND_SIZE - S.hand.length;
+  const drawn = S.deck.splice(0, need);
+  drawn.forEach(c => S.freshIds.add(c.id));
+  S.hand.push(...drawn);
   sortHand();
 }
-
 function sortHand() {
-  const suitOrder = { spades: 0, hearts: 1, diamonds: 2, clubs: 3 };
-  S.hand.sort((a, b) => S.sortMode === "rank"
+  const suitOrder = { spades: 0, hearts: 1, clubs: 2, diamonds: 3 };
+  S.hand.sort((a, b) => sortMode === "rank"
     ? b.rank - a.rank || suitOrder[a.suit] - suitOrder[b.suit]
     : suitOrder[a.suit] - suitOrder[b.suit] || b.rank - a.rank);
 }
 
-function selectedCards() { return S.hand.filter(c => S.selected.has(c.id)); }
-
+// ── scoring ──
 function liveEval() {
-  const sel = selectedCards();
-  return sel.length ? evaluateHand(sel) : null;
+  if (!S || S.selected.size === 0) return null;
+  return evaluateHand(S.hand.filter(c => S.selected.has(c.id)));
 }
 
-function toggleCard(id) {
-  if (S.phase !== "play") return;
-  if (S.selected.has(id)) S.selected.delete(id);
-  else if (S.selected.size < MAX_SELECT) S.selected.add(id);
-  renderHand(); renderPreview();
-}
+function scorePlayed() {
+  const played = S.hand.filter(c => S.selected.has(c.id));
+  const ev = evaluateHand(played);
+  let chips = ev.chips, mult = ev.mult;
+  played.forEach(c => { if (ev.scoringIds.has(c.id)) chips += cardChips(c); });
 
-function playHand() {
-  if (S.phase !== "play") return;
-  const sel = selectedCards();
-  if (!sel.length) return;
-  const ev = evaluateHand(sel);
-  const scoringCards = sel.filter(c => ev.scoringIds.has(c.id));
+  const ctx = () => ({
+    handName: ev.name, scoringCards: played.filter(c => ev.scoringIds.has(c.id)),
+    playedCards: played, discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
+  });
 
-  let chips = ev.chips + scoringCards.reduce((s, c) => s + cardChips(c), 0);
-  let mult = ev.mult;
-  const ctx = () => ({ handName: ev.name, scoringCards, playedCards: sel, discardsLeft: S.discardsLeft, handsLeft: S.handsLeft });
-  for (const j of S.jokers) {
-    const d = j.effect(ctx()) || {};
-    chips += d.chips || 0;
-    mult += d.mult || 0;
-    if (d.multTimes) mult *= d.multTimes;
+  const flashes = [];
+  let removeGros = false;
+  S.jokers.forEach((j, idx) => {
+    let label = null;
+    if (j.effect) {
+      const r = j.effect(ctx());
+      if (r && r.mult)  { mult += r.mult;   label = `+${r.mult} mult`; }
+      if (r && r.chips) { chips += r.chips; label = `+${r.chips} chips`; }
+    } else {
+      mult += 4; label = "+4 mult"; // base Joker
+    }
+    if (label) flashes.push({ idx, label });
+    if (j.id === "gros" && Math.random() < 1 / 6) removeGros = true;
+  });
+  if (removeGros) {
+    S.jokers = S.jokers.filter(j => j.id !== "gros");
+    S.grosMichelGone = true;
   }
-  const gained = chips * mult;
-  S.roundScore += gained;
+  return { ev, chips, mult, total: chips * mult, flashes };
+}
+
+// ── play / discard with animation ──
+function flipMove(el, parent) {
+  if (!settings.anim) { parent.appendChild(el); return; }
+  const first = el.getBoundingClientRect();
+  parent.appendChild(el);
+  const last = el.getBoundingClientRect();
+  el.style.transition = "none";
+  el.style.transform = `translate(${first.left - last.left}px, ${first.top - last.top}px)`;
+  requestAnimationFrame(() => {
+    el.style.transition = "transform .38s cubic-bezier(.22,1,.36,1)";
+    el.style.transform = "";
+  });
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, settings.anim ? ms : Math.min(ms, 30))); }
+
+async function playHand() {
+  if (!S || S.phase !== "play" || S.animating) return;
+  if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); return; }
+  S.animating = true;
+  refreshControls();
+  AudioFX.play("play");
+
+  const result = scorePlayed();
   S.handsLeft--;
 
-  flashScore(ev, chips, mult, gained);
+  // 1. move selected cards into the staging zone (FLIP animation)
+  const zone = $("#played-zone");
+  zone.innerHTML = "";
+  const els = [...document.querySelectorAll("#hand .card")].filter(el => S.selected.has(el.dataset.id));
+  els.forEach(el => { el.classList.remove("selected"); el.disabled = true; flipMove(el, zone); });
 
-  // remove played cards, redraw
+  const t = settings.anim;
+  await wait(t ? 400 : 30);
+
+  // 2. show hand breakdown
+  setPlayedInfo(`<span class="pi-name">${result.ev.name}</span><span class="pi-chips">${result.chips}</span> × <span class="pi-mult">${result.mult}</span>`);
+  AudioFX.play("score");
+  await wait(t ? 350 : 30);
+
+  // 3. flash contributing jokers one by one
+  for (const f of result.flashes) {
+    const tile = document.querySelectorAll("#jokers .joker")[f.idx];
+    if (tile) {
+      tile.classList.remove("flash");
+      void tile.offsetWidth;
+      tile.classList.add("flash");
+      const pop = document.createElement("span");
+      pop.className = "jpop";
+      pop.textContent = f.label;
+      tile.appendChild(pop);
+      setTimeout(() => pop.remove(), 950);
+      AudioFX.play("joker");
+    }
+    await wait(t ? 180 : 0);
+  }
+
+  // 4. score popup + count-up + progress bar
+  const prevScore = S.roundScore;
+  S.roundScore += result.total;
+  spawnScorePop(`+${result.total.toLocaleString()}`);
+  renderHud(true);
+  countUp($("#hud-score"), prevScore, S.roundScore, t ? 550 : 30);
+  await wait(t ? 600 : 30);
+
+  // 5. cleanup staging, redraw
+  els.forEach(el => el.classList.add("played-out"));
+  await wait(t ? 260 : 30);
+  zone.innerHTML = "";
+  setPlayedInfo("");
   S.hand = S.hand.filter(c => !S.selected.has(c.id));
   S.selected.clear();
   drawUp();
   renderAll();
+  S.animating = false;
+  refreshControls();
 
-  if (S.roundScore >= blindTarget()) return setTimeout(endRoundWin, 650);
-  if (S.handsLeft <= 0) return setTimeout(gameOver, 650);
+  if (S.roundScore >= blindTarget()) return setTimeout(endRoundWin, 500);
+  if (S.handsLeft <= 0) return setTimeout(gameOver, 500);
 }
 
-function discard() {
-  if (S.phase !== "play" || S.discardsLeft <= 0 || !S.selected.size) return;
-  S.hand = S.hand.filter(c => !S.selected.has(c.id));
-  S.selected.clear();
+async function discardHand() {
+  if (!S || S.phase !== "play" || S.animating) return;
+  if (S.selected.size === 0 || S.discardsLeft <= 0) { AudioFX.play("error"); return; }
+  S.animating = true;
+  refreshControls();
+  AudioFX.play("discard");
   S.discardsLeft--;
+
+  const els = [...document.querySelectorAll("#hand .card")].filter(el => S.selected.has(el.dataset.id));
+  els.forEach((el, i) => {
+    el.disabled = true;
+    el.style.animationDelay = (settings.anim ? i * 45 : 0) + "ms";
+    el.classList.add("discard-out");
+  });
+  await wait(settings.anim ? 300 + els.length * 45 : 30);
+
+  S.hand = S.hand.filter(c => !S.selected.has(c.id));
+  S.selected.clear();
   drawUp();
   renderAll();
+  S.animating = false;
+  refreshControls();
+  AudioFX.play("deal");
 }
 
+// ── shop ──
 function endRoundWin() {
-  S.phase = "shop";
-  const unused = S.handsLeft;
+  const blind = BLINDS[S.blindIndex];
   const interest = Math.min(Math.floor(S.money / 5), 5);
-  const reward = BLINDS[S.blindIdx].reward + unused + interest;
-  S.lastReward = { base: BLINDS[S.blindIdx].reward, unused, interest };
+  const reward = blind.reward + S.handsLeft + interest;
   S.money += reward;
-
-  // Gros Michel destruction check
-  const destroyed = [];
-  S.jokers = S.jokers.filter(j => {
-    if (j.endOfRoundDestroy && j.endOfRoundDestroy()) { destroyed.push(j.name); return false; }
-    return true;
-  });
-  S.lastDestroyed = destroyed;
-
-  openShop();
+  S.phase = "shop";
+  S.offers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
+  $("#shop-reward").textContent =
+    `+${blind.reward} blind  +${S.handsLeft} unused hands  +${interest} interest  =  $${reward}`;
+  AudioFX.play("coin");
+  showScreen("shop");
+  renderShop();
+  renderHud();
 }
 
-function openShop() {
-  S.shopOffers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
-  $("#shop").hidden = false;
-  renderShop(); renderAll();
+function renderShop() {
+  $("#shop-money").textContent = "$" + S.money;
+  $("#btn-reroll").disabled = S.money < 2;
+  const wrap = $("#shop-offers");
+  wrap.innerHTML = "";
+  if (S.jokers.length >= MAX_JOKERS) {
+    wrap.innerHTML = `<p class="shop-empty">Joker slots full (${MAX_JOKERS}/${MAX_JOKERS})</p>`;
+  } else if (S.offers.length === 0) {
+    wrap.innerHTML = `<p class="shop-empty">Sold out — reroll or move on!</p>`;
+  } else {
+    S.offers.forEach(j => wrap.appendChild(shopCard(j)));
+  }
 }
 
-function rerollShop() {
-  if (S.money < REROLL_COST) return;
-  S.money -= REROLL_COST;
-  S.shopOffers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
-  renderShop(); renderHud();
+function shopCard(j) {
+  const tile = jokerTile(j);
+  const btn = document.createElement("button");
+  btn.className = "btn";
+  btn.textContent = "Buy $" + j.cost;
+  btn.disabled = S.money < j.cost;
+  btn.onclick = () => {
+    if (S.money < j.cost) { AudioFX.play("error"); return; }
+    S.money -= j.cost;
+    S.jokers.push(j);
+    S.offers = S.offers.filter(o => o !== j);
+    tile.classList.add("sold");
+    AudioFX.play("coin");
+    renderShop();
+    renderHud();
+    renderJokers();
+  };
+  tile.appendChild(btn);
+  return tile;
 }
 
-function buyJoker(offerIdx) {
-  const j = S.shopOffers[offerIdx];
-  if (!j || S.money < j.cost || S.jokers.length >= MAX_JOKERS) return;
-  S.money -= j.cost;
-  S.jokers.push(j);
-  S.shopOffers.splice(offerIdx, 1);
-  renderShop(); renderHud(); renderJokers();
-}
-
-function nextBlind() {
-  $("#shop").hidden = true;
-  if (S.blindIdx === 2) {
-    if (S.ante === 8) return winRun();
-    S.ante++; S.blindIdx = 0;
-  } else S.blindIdx++;
-  startBlind();
-  renderAll();
-}
-
+// ── end screens ──
 function gameOver() {
   S.phase = "over";
-  $("#hud").hidden = true;
-  $("#shop").hidden = true;
   $("#final-ante").textContent = S.ante;
-  $("#final-blind").textContent = BLINDS[S.blindIdx].name;
+  $("#final-blind").textContent = BLINDS[S.blindIndex].name;
   $("#final-score").textContent = S.roundScore.toLocaleString();
   $("#final-target").textContent = blindTarget().toLocaleString();
-  $("#gameover").hidden = false;
+  AudioFX.play("lose");
+  showScreen("over");
 }
 
 function winRun() {
   S.phase = "win";
-  $("#hud").hidden = true;
-  $("#shop").hidden = true;
-  $("#win").hidden = false;
+  AudioFX.play("win");
+  showScreen("win");
 }
 
-// ---------- rendering ----------
-function renderHud() {
-  $("#hud-ante").textContent = S.ante;
-  $("#hud-blind").textContent = BLINDS[S.blindIdx].name;
-  $("#hud-target").textContent = blindTarget().toLocaleString();
-  $("#hud-score").textContent = S.roundScore.toLocaleString();
-  $("#hud-hands").textContent = S.handsLeft;
-  $("#hud-discards").textContent = S.discardsLeft;
-  $("#hud-money").textContent = "$" + S.money;
-  const pct = Math.min(100, (S.roundScore / blindTarget()) * 100);
-  $("#score-bar-fill").style.width = pct + "%";
-  $("#btn-discard").disabled = S.discardsLeft <= 0 || !S.selected.size;
-  $("#btn-play").disabled = !S.selected.size;
-}
-
-function renderPreview() {
-  const ev = liveEval();
-  $("#preview").textContent = ev ? `${ev.name} — ${ev.chips} chips × ${ev.mult} mult` : "Select up to 5 cards";
-  renderHud();
-}
-
+// ── rendering ──
 function cardEl(c) {
   const el = document.createElement("button");
-  el.className = "card" + (S.selected.has(c.id) ? " selected" : "") + ((c.suit === "hearts" || c.suit === "diamonds") ? " red" : "");
-  el.innerHTML = `<span class="card-rank">${rankLabel(c.rank)}</span><span class="card-suit">${c.symbol}</span>`;
-  el.onclick = () => toggleCard(c.id);
+  el.className = "card " + SUIT_CLASS[c.suit];
+  el.dataset.id = c.id;
+  const svg = suitSVG(c.suit);
+  el.innerHTML =
+    `<span class="c-rank">${rankLabel(c)}</span>` +
+    `<span class="c-suit">${svg}</span>` +
+    `<span class="c-big">${svg}</span>` +
+    `<span class="c-rank c-rank-b">${rankLabel(c)}</span>`;
+  el.onclick = () => toggleCard(c.id, el);
   return el;
+}
+
+function toggleCard(id, el) {
+  if (S.animating || S.phase !== "play") return;
+  if (S.selected.has(id)) {
+    S.selected.delete(id);
+    el.classList.remove("selected");
+    AudioFX.play("deselect");
+  } else if (S.selected.size < MAX_SELECT) {
+    S.selected.add(id);
+    el.classList.add("selected");
+    AudioFX.play("select");
+  } else {
+    AudioFX.play("error");
+  }
+  renderPreview();
+  refreshControls();
 }
 
 function renderHand() {
   const wrap = $("#hand");
   wrap.innerHTML = "";
-  for (const c of S.hand) wrap.appendChild(cardEl(c));
+  S.hand.forEach((c, i) => {
+    const el = cardEl(c);
+    if (S.selected.has(c.id)) el.classList.add("selected");
+    if (S.freshIds.has(c.id)) {
+      el.classList.add("deal-in");
+      el.style.animationDelay = (settings.anim ? i * 55 : 0) + "ms";
+    }
+    wrap.appendChild(el);
+  });
+  S.freshIds.clear();
   $("#hand-count").textContent = `${S.hand.length}/${HAND_SIZE}`;
+}
+
+function jokerTile(j) {
+  const tile = document.createElement("div");
+  tile.className = `joker j-${j.rarity}`;
+  const starColor = j.rarity === "uncommon" ? "#FC84FC" : "#C8C2DC";
+  tile.innerHTML =
+    `<div class="joker-head">${starSVG(starColor)}<b>${j.name}</b></div>` +
+    `<span class="jdesc">${j.desc}</span>`;
+  return tile;
 }
 
 function renderJokers() {
   const wrap = $("#jokers");
   wrap.innerHTML = "";
-  for (const j of S.jokers) {
-    const el = document.createElement("div");
-    el.className = "joker joker-" + j.rarity;
-    el.innerHTML = `<b>${j.name}</b><span>${j.desc}</span>`;
-    wrap.appendChild(el);
-  }
+  S.jokers.forEach(j => wrap.appendChild(jokerTile(j)));
   $("#joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
 }
 
-function renderShop() {
-  $("#shop-reward").textContent =
-    `Reward: $${S.lastReward.base} blind + $${S.lastReward.unused} unused hands + $${S.lastReward.interest} interest` +
-    (S.lastDestroyed.length ? ` — destroyed: ${S.lastDestroyed.join(", ")}` : "");
-  const wrap = $("#shop-offers");
-  wrap.innerHTML = "";
-  if (!S.shopOffers.length) wrap.innerHTML = '<p class="shop-empty">Sold out.</p>';
-  S.shopOffers.forEach((j, i) => {
-    const el = document.createElement("div");
-    el.className = "joker joker-" + j.rarity;
-    el.innerHTML = `<b>${j.name}</b><span>${j.desc}</span>`;
-    const btn = document.createElement("button");
-    btn.className = "btn btn-buy";
-    btn.textContent = `Buy $${j.cost}`;
-    btn.disabled = S.money < j.cost || S.jokers.length >= MAX_JOKERS;
-    btn.onclick = () => buyJoker(i);
-    el.appendChild(btn);
-    wrap.appendChild(el);
-  });
-  $("#btn-reroll").disabled = S.money < REROLL_COST;
-  $("#btn-reroll").textContent = `Reroll $${REROLL_COST}`;
+function renderHud(skipBar) {
+  $("#hud-ante").textContent = S.ante + "/8";
+  $("#hud-blind").textContent = BLINDS[S.blindIndex].name;
+  $("#hud-target").textContent = blindTarget().toLocaleString();
+  if (!skipBar) $("#hud-score").textContent = S.roundScore.toLocaleString();
+  $("#score-bar-fill").style.width = Math.min(100, S.roundScore / blindTarget() * 100) + "%";
+  $("#hud-hands").textContent = S.handsLeft;
+  $("#hud-discards").textContent = S.discardsLeft;
+  $("#hud-money").textContent = "$" + S.money;
 }
 
-let flashTimer;
-function flashScore(ev, chips, mult, gained) {
-  const el = $("#score-flash");
-  el.innerHTML = `<b>${ev.name}</b> · ${chips} × ${mult} = <b>${gained.toLocaleString()}</b>`;
-  el.classList.add("show");
-  clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => el.classList.remove("show"), 1200);
+function renderPreview() {
+  const ev = liveEval();
+  $("#preview-name").textContent = ev ? ev.name : "Select cards";
+  $("#preview-chips").textContent = ev ? ev.chips : 0;
+  $("#preview-mult").textContent = ev ? ev.mult : 0;
 }
 
-function renderAll() { renderHud(); renderHand(); renderJokers(); renderPreview(); }
+function refreshControls() {
+  const canAct = S && S.phase === "play" && !S.animating;
+  $("#btn-play").disabled = !canAct || S.selected.size === 0 || S.handsLeft <= 0;
+  $("#btn-discard").disabled = !canAct || S.selected.size === 0 || S.discardsLeft <= 0;
+  $("#btn-sort-rank").textContent = "Sort: Rank";
+  $("#btn-sort-suit").textContent = "Sort: Suit";
+}
 
+function renderAll() {
+  renderHand();
+  renderJokers();
+  renderHud();
+  renderPreview();
+  refreshControls();
+}
+
+// ── fx helpers ──
+function setPlayedInfo(html) {
+  const el = $("#played-info");
+  el.innerHTML = html;
+  el.classList.toggle("show", !!html);
+}
+
+function spawnScorePop(text) {
+  const zone = $("#played-zone").getBoundingClientRect();
+  const pop = document.createElement("div");
+  pop.className = "score-pop";
+  pop.textContent = text;
+  pop.style.left = (zone.left + zone.width / 2 - 40) + "px";
+  pop.style.top = (zone.top + 10) + "px";
+  $("#fx-layer").appendChild(pop);
+  setTimeout(() => pop.remove(), 1050);
+}
+
+function countUp(el, from, to, dur) {
+  const t0 = performance.now();
+  (function step(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    el.textContent = Math.round(from + (to - from) * p).toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+// ── bindings ──
+$("#btn-start").onclick = () => { AudioFX.play("click"); newRun(); };
+$("#btn-howto").onclick = () => { AudioFX.play("click"); showScreen("howto"); };
+$("#btn-settings").onclick = () => { AudioFX.play("click"); showScreen("settings"); };
 $("#btn-play").onclick = playHand;
-$("#btn-discard").onclick = discard;
-$("#btn-sort-rank").onclick = () => { S.sortMode = "rank"; sortHand(); renderHand(); };
-$("#btn-sort-suit").onclick = () => { S.sortMode = "suit"; sortHand(); renderHand(); };
-$("#btn-reroll").onclick = rerollShop;
+$("#btn-discard").onclick = discardHand;
+$("#btn-sort-rank").onclick = () => { sortMode = "rank"; sortHand(); renderHand(); AudioFX.play("click"); };
+$("#btn-sort-suit").onclick = () => { sortMode = "suit"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-next").onclick = nextBlind;
-$("#btn-start").onclick = newRun;
-$("#btn-retry").onclick = newRun;
-$("#btn-again").onclick = newRun;
+$("#btn-reroll").onclick = () => {
+  if (!S || S.money < 2) { AudioFX.play("error"); return; }
+  S.money -= 2;
+  S.offers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
+  AudioFX.play("click");
+  renderShop();
+  renderHud();
+};
+$("#btn-retry").onclick = () => { AudioFX.play("click"); newRun(); };
+$("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
+$("#btn-abandon").onclick = () => { AudioFX.play("click"); showScreen("menu"); };
+document.querySelectorAll("[data-back]").forEach(b =>
+  b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
+document.querySelectorAll("[data-menu]").forEach(b =>
+  b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 
-$("#start-screen").hidden = false;
-$("#hud").hidden = true;
-$("#shop").hidden = true;
+$("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
+$("#set-anim").onclick = () => { settings.anim = !settings.anim; saveSettings(); applySettings(); AudioFX.play("click"); };
+
+// menu floating cards: fill with pixel suits
+document.querySelectorAll(".float-card").forEach(el => {
+  el.innerHTML = suitSVG(el.dataset.suit);
+});
+
+applySettings();

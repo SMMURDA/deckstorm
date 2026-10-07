@@ -4,74 +4,177 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
-<meta name="description" content="A poker roguelike deckbuilder: beat the blinds, build your jokers, survive 8 antes.">
-<link rel="stylesheet" href="css/style.css">
+<meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261007-1">
 </head>
 <body>
-<main class="table">
+<div class="crt" aria-hidden="true"></div>
+<div id="fx-layer" aria-hidden="true"></div>
 
-  <section id="start-screen" class="overlay">
-    <h1>Deck<span>storm</span></h1>
-    <p>Beat the blinds with poker hands. Build your jokers. Survive 8 antes.</p>
-    <button id="btn-start" class="btn btn-primary">Start Run</button>
-  </section>
+<main id="app">
 
-  <section id="hud" hidden>
-    <div class="hud-top">
-      <div class="hud-box"><label>Ante</label><b id="hud-ante">1</b><span>/8</span></div>
-      <div class="hud-box hud-blind"><label id="hud-blind">Small Blind</label><b id="hud-target">300</b></div>
-      <div class="hud-box"><label>Money</label><b id="hud-money">$4</b></div>
+  <!-- ══ MAIN MENU ══ -->
+  <section id="screen-menu" class="screen active">
+    <div class="float-cards" aria-hidden="true">
+      <div class="float-card" style="--x:8%;  --r:-14deg; --d:0s"   data-suit="hearts"></div>
+      <div class="float-card" style="--x:24%; --r:10deg;  --d:1.4s" data-suit="spades"></div>
+      <div class="float-card" style="--x:46%; --r:-6deg;  --d:.7s"  data-suit="diamonds"></div>
+      <div class="float-card" style="--x:66%; --r:16deg;  --d:2s"   data-suit="clubs"></div>
+      <div class="float-card" style="--x:84%; --r:-10deg; --d:.3s"  data-suit="hearts"></div>
     </div>
-    <div class="score-bar"><div id="score-bar-fill"></div></div>
-    <div class="hud-sub">
-      <span>Score <b id="hud-score">0</b></span>
-      <span>Hands <b id="hud-hands">4</b></span>
-      <span>Discards <b id="hud-discards">3</b></span>
-    </div>
-
-    <div class="joker-row-head"><span>Jokers</span><span id="joker-count">0/5</span></div>
-    <div id="jokers" class="jokers"></div>
-
-    <div id="score-flash" aria-live="polite"></div>
-    <p id="preview" class="preview">Select up to 5 cards</p>
-
-    <div id="hand" class="hand"></div>
-    <div class="hand-meta"><span id="hand-count">8/8</span></div>
-
-    <div class="actions">
-      <button id="btn-play" class="btn btn-primary">Play Hand</button>
-      <button id="btn-discard" class="btn">Discard</button>
-      <button id="btn-sort-rank" class="btn btn-ghost">Sort: Rank</button>
-      <button id="btn-sort-suit" class="btn btn-ghost">Sort: Suit</button>
+    <div class="menu-inner">
+      <h1 class="logo">DECK<span>STORM</span></h1>
+      <p class="tagline">— a poker roguelike —</p>
+      <nav class="menu-nav">
+        <button id="btn-start" class="btn btn-primary btn-big">▶ Start Run</button>
+        <button id="btn-howto" class="btn btn-big">How to Play</button>
+        <button id="btn-settings" class="btn btn-big">Settings</button>
+      </nav>
+      <p class="menu-foot">v1.0 · beat 8 antes to win</p>
     </div>
   </section>
 
-  <section id="shop" class="overlay" hidden>
-    <h2>Blind Beaten!</h2>
-    <p id="shop-reward" class="shop-reward"></p>
-    <div id="shop-offers" class="shop-offers"></div>
-    <div class="actions">
-      <button id="btn-reroll" class="btn">Reroll $2</button>
-      <button id="btn-next" class="btn btn-primary">Next Blind →</button>
+  <!-- ══ HOW TO PLAY ══ -->
+  <section id="screen-howto" class="screen">
+    <div class="panel panel-wide">
+      <h2 class="panel-title">How to Play</h2>
+      <div class="howto-body">
+        <p><b class="c-pink">Goal:</b> beat each blind's score target before your hands run out.
+           Clear <b>Small → Big → Boss</b> blind, then the next <b>Ante</b> begins — harder targets.
+           Survive all <b>8 Antes</b> to win.</p>
+        <p><b class="c-pink">Scoring:</b> play up to 5 cards forming a poker hand.
+           Score = <b>chips × mult</b>. Scoring cards add chips (number = value, face = 10, ace = 11).
+           Only cards that form the hand score — kickers don't.</p>
+        <p><b class="c-pink">Money:</b> blind reward + $1 per unused hand + $1 interest per $5 banked.
+           Spend it in the <b>Shop</b> on Jokers (max 5) — passive effects that boost your score.</p>
+        <table class="hands-table">
+          <tr><th>Hand</th><th>Chips</th><th>Mult</th></tr>
+          <tr><td>High Card</td><td>5</td><td>×1</td></tr>
+          <tr><td>Pair</td><td>10</td><td>×2</td></tr>
+          <tr><td>Two Pair</td><td>20</td><td>×2</td></tr>
+          <tr><td>Three of a Kind</td><td>30</td><td>×3</td></tr>
+          <tr><td>Straight</td><td>30</td><td>×4</td></tr>
+          <tr><td>Flush</td><td>35</td><td>×4</td></tr>
+          <tr><td>Full House</td><td>40</td><td>×4</td></tr>
+          <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
+          <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
+          <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
+        </table>
+      </div>
+      <button class="btn btn-big btn-back" data-back>← Back</button>
     </div>
   </section>
 
-  <section id="gameover" class="overlay" hidden>
-    <h2>Run Over</h2>
-    <p>Ante <b id="final-ante"></b> — <b id="final-blind"></b><br>
-       Scored <b id="final-score"></b> of <b id="final-target"></b></p>
-    <button id="btn-retry" class="btn btn-primary">Try Again</button>
+  <!-- ══ SETTINGS ══ -->
+  <section id="screen-settings" class="screen">
+    <div class="panel">
+      <h2 class="panel-title">Settings</h2>
+      <div class="settings-rows">
+        <div class="setting-row"><span>Sound FX</span><button id="set-sound" class="btn btn-toggle">ON</button></div>
+        <div class="setting-row"><span>Animations</span><button id="set-anim" class="btn btn-toggle">ON</button></div>
+      </div>
+      <button class="btn btn-big btn-back" data-back>← Back</button>
+    </div>
   </section>
 
-  <section id="win" class="overlay" hidden>
-    <h2>You Beat Ante 8!</h2>
-    <p>The deck bows to you.</p>
-    <button id="btn-again" class="btn btn-primary">New Run</button>
+  <!-- ══ GAME ══ -->
+  <section id="screen-game" class="screen">
+    <div class="game-grid">
+
+      <aside class="sidebar">
+        <div class="panel side-panel">
+          <div class="ante-line"><span id="hud-blind">Small Blind</span><b class="c-pink" id="hud-ante">1/8</b></div>
+          <div class="target-line">score at least<b id="hud-target">300</b></div>
+          <div class="score-bar"><div id="score-bar-fill"></div></div>
+          <div class="round-score" id="hud-score">0</div>
+        </div>
+
+        <div class="panel side-panel preview-panel">
+          <div class="preview-name" id="preview-name">&nbsp;</div>
+          <div class="preview-score"><span id="preview-chips">0</span><span class="px-mult">×</span><span id="preview-mult">0</span></div>
+        </div>
+
+        <div class="panel side-panel stats-panel">
+          <div class="stat"><span>Hands</span><b id="hud-hands">4</b></div>
+          <div class="stat"><span>Discards</span><b id="hud-discards">3</b></div>
+          <div class="stat"><span>Money</span><b class="c-gold" id="hud-money">$4</b></div>
+        </div>
+        <button id="btn-abandon" class="btn btn-ghost btn-small">☰ Abandon Run</button>
+      </aside>
+
+      <div class="main-area">
+        <div class="joker-strip">
+          <div class="strip-label">Jokers <span id="joker-count">0/5</span></div>
+          <div id="jokers" class="jokers"></div>
+        </div>
+
+        <div id="played-zone" class="played-zone"></div>
+        <div id="played-info" class="played-info"></div>
+
+        <div class="hand-zone">
+          <div id="hand" class="hand"></div>
+          <div class="hand-meta"><span id="hand-count">8/8</span></div>
+        </div>
+
+        <div class="actions">
+          <button id="btn-play" class="btn btn-primary">Play Hand</button>
+          <button id="btn-discard" class="btn">Discard</button>
+          <button id="btn-sort-rank" class="btn btn-ghost btn-small">Sort: Rank</button>
+          <button id="btn-sort-suit" class="btn btn-ghost btn-small">Sort: Suit</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ SHOP ══ -->
+  <section id="screen-shop" class="screen">
+    <div class="panel panel-wide shop-panel">
+      <h2 class="panel-title">Blind Beaten!</h2>
+      <p id="shop-reward" class="shop-reward"></p>
+      <p class="shop-money">Money: <b class="c-gold" id="shop-money">$0</b></p>
+      <div id="shop-offers" class="shop-offers"></div>
+      <div class="actions">
+        <button id="btn-reroll" class="btn">Reroll $2</button>
+        <button id="btn-next" class="btn btn-primary">Next Blind →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ GAME OVER ══ -->
+  <section id="screen-over" class="screen">
+    <div class="panel">
+      <h2 class="panel-title c-red">Run Over</h2>
+      <p class="end-text">Ante <b id="final-ante"></b> — <b id="final-blind"></b><br>
+         Scored <b id="final-score"></b> of <b id="final-target"></b></p>
+      <div class="actions">
+        <button id="btn-retry" class="btn btn-primary btn-big">Try Again</button>
+        <button class="btn btn-big" data-menu>Main Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ WIN ══ -->
+  <section id="screen-win" class="screen">
+    <div class="panel">
+      <h2 class="panel-title c-gold">★ Ante 8 Beaten! ★</h2>
+      <p class="end-text">The deck bows to you.</p>
+      <div class="actions">
+        <button id="btn-again" class="btn btn-primary btn-big">New Run</button>
+        <button class="btn btn-big" data-menu>Main Menu</button>
+      </div>
+    </div>
   </section>
 
 </main>
-<script src="js/cards.js"></script>
-<script src="js/jokers.js"></script>
-<script src="js/game.js"></script>
+
+<script src="js/cards.js?v=20261007-1"></script>
+<script src="js/jokers.js?v=20261007-1"></script>
+<script src="js/audio.js?v=20261007-1"></script>
+<script src="js/game.js?v=20261007-1"></script>
 </body>
 </html>
