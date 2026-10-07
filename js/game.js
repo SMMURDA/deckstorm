@@ -1150,6 +1150,25 @@ $("#btn-next").onclick = nextBlind;
 $("#btn-menu").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
 const menuCompact = $("#btn-menu-compact");
 if (menuCompact) menuCompact.onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
+
+const orientToggle = $("#btn-orientation-toggle");
+if (orientToggle) {
+  orientToggle.onclick = () => {
+    AudioFX.play("click");
+    // Toggle forced orientation class on body
+    if (document.body.classList.contains("force-landscape")) {
+      document.body.classList.remove("force-landscape");
+      document.body.classList.add("force-portrait");
+      showToast("Portrait mode");
+    } else if (document.body.classList.contains("force-portrait")) {
+      document.body.classList.remove("force-portrait");
+      showToast("Auto orientation");
+    } else {
+      document.body.classList.add("force-landscape");
+      showToast("Landscape mode");
+    }
+  };
+}
 $("#nav-resume").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = true; };
 $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
 $("#nav-fullscreen").onclick = () => {

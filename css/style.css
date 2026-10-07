@@ -1023,31 +1023,35 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .round-score-row span { font-size: 9px !important; }
   .round-score-row b    { font-size: 20px !important; }
 
-  /* stats: Hands / Discards / Money as compact chips */
+  /* stats: 2×3 grid, all 6 stats visible */
   #screen-game .stats-panel {
     flex: 0 0 auto !important;
-    display: flex !important; flex-direction: row !important;
-    grid-template-columns: unset !important;
-    gap: 3px !important; padding: 3px 5px !important;
-    align-items: center !important; background: transparent !important;
-    border-bottom: none !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+    gap: 3px !important; padding: 4px 6px !important;
+    background: transparent !important;
+    border-bottom: none !important; border-right: none !important;
   }
-  .stat-box { padding: 3px 5px !important; gap: 1px !important; border-radius: 3px !important; flex: 0 0 auto !important; }
-  .stat-box span { font-size: 8px !important; }
-  .stat-box b    { font-size: 14px !important; }
-  .stat-box:nth-child(4),
-  .stat-box:nth-child(5),
-  .stat-box:nth-child(6) { display: none !important; }
+  .stat-box {
+    padding: 4px 3px !important; gap: 2px !important;
+    border-radius: 4px !important; flex: unset !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important;
+  }
+  .stat-box span { font-size: 7px !important; }
+  .stat-box b    { font-size: 13px !important; }
 
-  /* hide verbose sidebar buttons on portrait */
+  /* compact menu + orientation toggle */
   .btn-run, .btn-options { display: none !important; }
   #btn-menu { display: none !important; }
-  #btn-menu-compact { display: block !important; font-size: 8px !important; padding: 4px 7px !important; margin: 0 4px !important; flex: 0 0 auto !important; }
+  #btn-menu-compact,
+  #btn-orientation-toggle { display: block !important; font-size: 7px !important; padding: 4px 6px !important; margin: 0 3px !important; flex: 0 0 auto !important; }
 
   /* ── FELT ── */
   #screen-game .felt-table {
     flex: 1 1 0 !important; overflow: hidden !important;
-    gap: 3px !important; padding: 5px 7px 3px !important;
+    gap: 3px !important; padding: 4px 6px 2px !important;
   }
 
   /* joker/consumable strips: tiny horizontal */
@@ -1109,6 +1113,20 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
 
   /* deck pile hidden portrait */
   .deck-pile { display: none !important; }
+
+  /* ── SHOP SCREEN PORTRAIT ── */
+  #screen-shop.active {
+    padding: 50px 8px 8px !important;
+    overflow-y: auto !important;
+  }
+  .shop-header { font-size: 10px !important; margin-bottom: 6px !important; }
+  .shop-money { font-size: 18px !important; }
+  .shop-grid { gap: 6px !important; grid-template-columns: repeat(2, 1fr) !important; }
+  .shop-slot { min-height: 90px !important; }
+  .shop-actions { gap: 6px !important; flex-wrap: nowrap !important; margin-top: 8px !important; }
+  .shop-actions .btn { font-size: 9px !important; padding: 9px 8px !important; flex: 1 !important; }
+  #btn-next-blind { flex: 1.5 !important; }
+
 }
 
 /* ── LANDSCAPE MOBILE (height ≤ 480px) ── */
@@ -1151,3 +1169,91 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .deck-pile { bottom: 46px !important; right: 7px !important; width: 44px !important; height: 62px !important; }
   #deck-pile-count { font-size: 15px !important; }
 }
+
+/* ═══ FORCED ORIENTATION OVERRIDES (via toggle button) ═══ */
+body.force-landscape #screen-game .game-grid {
+  flex-direction: row !important;
+}
+body.force-landscape #screen-game .sidebar {
+  width: 155px !important; max-width: 155px !important;
+  height: 100% !important;
+  flex-direction: column !important; flex-wrap: nowrap !important;
+  border-right: 3px solid #000 !important; border-bottom: none !important;
+  overflow-y: auto !important;
+}
+body.force-landscape .blind-panel {
+  width: 100% !important; height: auto !important;
+  flex-direction: column !important;
+  border-right: none !important; border-bottom: 2px solid #000 !important;
+  padding: 6px 5px !important;
+}
+body.force-landscape #btn-menu-compact,
+body.force-landscape #btn-orientation-toggle {
+  display: none !important;
+}
+body.force-landscape .btn-run,
+body.force-landscape .btn-options {
+  display: block !important;
+}
+
+body.force-portrait #screen-game .game-grid {
+  flex-direction: column !important;
+}
+body.force-portrait #screen-game .sidebar {
+  flex-direction: row !important;
+  width: 100% !important; height: auto !important;
+  border-right: none !important; border-bottom: 2px solid #000 !important;
+}
+
+/* ═══ SHOP SCREEN — MOBILE PORTRAIT FIXES ═══ */
+@media (max-width: 680px) and (orientation: portrait) {
+  #screen-shop.active {
+    position: fixed !important; inset: 0 !important;
+    display: flex !important; flex-direction: column !important;
+    overflow-y: auto !important;
+    padding: 12px 10px 12px !important;
+    background: var(--canvas) !important;
+    z-index: 2 !important;
+  }
+  .shop-panel {
+    width: 100% !important; max-width: 100% !important;
+    padding: 12px 10px !important;
+    box-shadow: none !important;
+  }
+  .shop-panel .panel-title { font-size: 12px !important; margin-bottom: 8px !important; }
+  .shop-reward { font-size: 15px !important; }
+  .shop-money { font-size: 17px !important; }
+  .strip-label span { font-size: 7px !important; }
+  .shop-offers { gap: 8px !important; justify-content: flex-start !important; }
+  .shop-offers .joker { width: 100px !important; }
+  .shop-offers .joker .btn { font-size: 8px !important; padding: 6px 4px !important; }
+  /* Make sure actions/reroll+next are always visible */
+  .shop-panel .actions {
+    position: sticky !important; bottom: 0 !important;
+    background: var(--panel) !important;
+    padding: 8px 0 !important;
+    margin: 8px 0 0 !important;
+    gap: 8px !important; flex-wrap: nowrap !important;
+    z-index: 3 !important;
+  }
+  .shop-panel .actions .btn {
+    font-size: 9px !important; padding: 10px 8px !important; flex: 1 !important;
+  }
+  #btn-next { flex: 1.6 !important; }
+
+  /* Fullscreen + orientation buttons in settings screen */
+  #screen-settings .settings-rows .btn-fullscreen-mobile,
+  #screen-settings .settings-rows .btn-orient-mobile {
+    display: block !important;
+  }
+}
+
+/* ═══ ORIENTATION TOGGLE BTN — SVG icons ═══ */
+#btn-orientation-toggle::before {
+  content: "⬜";
+  font-size: 10px;
+}
+/* when portrait forced: show landscape icon */
+body.force-portrait #btn-orientation-toggle::before { content: "⬛"; }
+body.force-landscape #btn-orientation-toggle { display: block !important; }
+body.force-landscape #btn-orientation-toggle::before { content: "↕"; }
