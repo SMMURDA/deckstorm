@@ -3,7 +3,7 @@ const fs = require("fs");
 eval(fs.readFileSync("js/cards.js", "utf8"));
 eval(fs.readFileSync("js/jokers.js", "utf8") + ";globalThis.JOKERS=JOKERS;globalThis.EDITIONS=EDITIONS;globalThis.rollShopJokers=rollShopJokers;globalThis.rollEdition=rollEdition;globalThis.makeJoker=makeJoker;globalThis.sellValue=sellValue;");
 eval(fs.readFileSync("js/consumables.js", "utf8") + ";globalThis.PLANETS=PLANETS;globalThis.TAROTS=TAROTS;globalThis.VOUCHERS=VOUCHERS;globalThis.PACKS=PACKS;globalThis.BOSSES=BOSSES;");
-eval(fs.readFileSync("js/pixelart.js", "utf8") + ";globalThis.ICONS=ICONS;globalThis.iconSVG=iconSVG;globalThis.PAL=PAL;");
+eval(fs.readFileSync("js/pixelart.js", "utf8") + ";globalThis.ICONS=ICONS;globalThis.iconSVG=iconSVG;globalThis.PAL=PAL;globalThis.UI_ICONS=UI_ICONS;globalThis.uiIcon=uiIcon;");
 
 const C = (rank, suit, enhancement = null) => ({ rank, suit, enhancement, id: `${suit}-${rank}-${Math.random().toString(36).slice(2, 7)}` });
 let fails = 0;
@@ -192,6 +192,15 @@ Object.entries(ICONS).forEach(([id, grid]) => {
 });
 eq("all icons render to svg", needIcons.every(id => iconSVG(id).startsWith("<svg")), true);
 ["blind_small", "blind_big"].forEach(id => eq(`icon exists: ${id}`, !!ICONS[id], true));
+
+// ── UI button icons ──
+const needUi = ["play","discard","sortrank","sortsuit","next","reroll","info","gear","menu","skip"];
+needUi.forEach(id => eq(`ui icon exists: ${id}`, !!UI_ICONS[id], true));
+Object.entries(UI_ICONS).forEach(([id, grid]) => {
+  const w = grid[0].length;
+  if (grid.some(r => r.length !== w)) { fails++; console.log(`FAIL ui icon ${id}: ragged`); }
+});
+eq("ui icons render", needUi.every(id => uiIcon(id).startsWith("<svg")), true);
 
 console.log(fails ? `\n${fails} FAILURES` : "\nALL PASS");
 process.exit(fails ? 1 : 0);

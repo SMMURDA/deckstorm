@@ -132,6 +132,45 @@ DS.settings.sound = false;
   ok("joker sold", DS.S.jokers.length === 0);
   ok("sell paid money", DS.S.money > moneyBefore);
 
+  // 11c. UI button icons injected as inline SVG
+  ok("play button has pixel icon", !!document.querySelector("#btn-play .ico svg"));
+  ok("discard button has pixel icon", !!document.querySelector("#btn-discard .ico svg"));
+  ok("no literal emoji in action buttons", !$("#btn-play").textContent.includes("▶"));
+
+  // 11d. blind select + skip reward flow
+  DS.S.money = 40;
+  DS.showScreen("shop");
+  DS.renderShop();
+  DS.S.blindIndex = 0;
+  $("#btn-next").click();
+  await sleep(40);
+  ok("blind select screen opens", $("#screen-blind").classList.contains("active"));
+  ok("blind select shows target", $("#bs-target").textContent.length > 0);
+  ok("blind select shows reward", $("#bs-reward").textContent.startsWith("$"));
+  ok("skip button shows a tag", $("#btn-skip-blind .lbl").textContent.includes("Skip"));
+
+  // skip grants reward + advances blind
+  const moneyBeforeSkip = DS.S.money;
+  const consBeforeSkip = DS.S.consumables.length;
+  const jokersBeforeSkip = DS.S.jokers.length;
+  const handsBeforeSkip = DS.S.bonusHands || 0;
+  $("#btn-skip-blind").click();
+  await sleep(40);
+  const gainedTag = (DS.S.money > moneyBeforeSkip)
+    || (DS.S.consumables.length > consBeforeSkip)
+    || (DS.S.jokers.length > jokersBeforeSkip)
+    || ((DS.S.bonusHands || 0) > handsBeforeSkip);
+  ok("skip grants a tag reward", gainedTag);
+  ok("skip advances the blind", DS.S.blindIndex === 2);
+  ok("still on blind select after skip", $("#screen-blind").classList.contains("active"));
+
+  // play the selected blind starts the round
+  $("#btn-play-blind").click();
+  await sleep(40);
+  ok("play blind starts the game", $("#screen-game").classList.contains("active"));
+  ok("playing from select sets phase play", DS.S.phase === "play");
+  ok("cards dealt after play blind", $$("#hand .card").length === 8);
+
   // 12. booster pack flow
   DS.S.money = 99;
   DS.renderShop();
@@ -246,6 +285,8 @@ DS.settings.sound = false;
   $("#btn-hands-back").click();
 
   // 16. game over path (1 hand left, score stays 0 -> play fails to reach target)
+  DS.S.blindIndex = 0; DS.S.boss = null; DS.startBlind();
+  await sleep(40);
   DS.S.handsLeft = 1;
   DS.S.roundScore = 0;
   $$("#hand .card")[0].click();

@@ -107,6 +107,9 @@ function freshState() {
     rerollCost: 5,
     targetMode: null, // { cons } while selecting cards for a tarot
     packOpen: null,   // { pack, choices }
+    bonusHands: 0,    // from Handy Tag
+    pendingTag: null, // tag offered on the blind-select screen
+    gameWon: false,
   };
 }
 function handLevel(name) {
@@ -141,7 +144,7 @@ function serializeRun() {
     v: 3, sortMode,
     ante: S.ante, blindIndex: S.blindIndex, money: S.money,
     roundScore: S.roundScore, handsLeft: S.handsLeft, discardsLeft: S.discardsLeft,
-    phase: S.phase === "shop" ? "shop" : "play",
+    phase: (S.phase === "shop" || S.phase === "blindselect") ? S.phase : "play",
     rerollCost: S.rerollCost, deckTotal: S.deckTotal,
     deck: S.deck, hand: S.hand,
     handLevels: S.handLevels, stats: S.stats,
@@ -204,6 +207,9 @@ function loadGame() {
     renderShop();
     renderHud();
     renderJokers();
+  } else if (S.phase === "blindselect") {
+    renderHud();
+    showBlindSelect();
   } else {
     renderBossBanner();
     showScreen("game");
@@ -263,6 +269,7 @@ function startBlind() {
   if (S.blindIndex === 2) S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
 
   S.handsLeft = S.boss && S.boss.id === "needle" ? 1 : maxHands();
+  if (S.bonusHands) { S.handsLeft += S.bonusHands; S.bonusHands = 0; }
   S.discardsLeft = S.boss && S.boss.id === "water" ? 0 : maxDiscards();
 
   drawUp();
@@ -284,13 +291,77 @@ function startBlind() {
 
 function nextBlind() {
   AudioFX.play("click");
+  advanceBlindIndex();
+  if (S.gameWon) return; // winRun already fired
+  showBlindSelect();
+}
+
+function advanceBlindIndex() {
   if (S.blindIndex === 2) {
     S.ante++;
     S.blindIndex = 0;
-    if (S.ante > 8) return winRun();
+    if (S.ante > 8) { winRun(); return; }
   } else {
     S.blindIndex++;
   }
+}
+
+// ── blind select: play or skip for a tag ──
+const SKIP_TAGS = [
+  { id: "coin",    name: "Coin Tag",    desc: "+$5",                apply: () => { S.money += 5; return "+$5"; } },
+  { id: "charm",   name: "Charm Tag",   desc: "Free Tarot card",    apply: () => { if (S.consumables.length >= MAX_CONS) return null; const t = TAROTS[Math.floor(Math.random() * TAROTS.length)]; S.consumables.push({ ...t }); return t.name; } },
+  { id: "meteor",  name: "Meteor Tag",  desc: "Free Planet card",   apply: () => { if (S.consumables.length >= MAX_CONS) return null; const p = PLANETS[Math.floor(Math.random() * PLANETS.length)]; S.consumables.push({ ...p }); return p.name; } },
+  { id: "buffoon", name: "Buffoon Tag", desc: "Free Joker",         apply: () => { if (S.jokers.length >= MAX_JOKERS) return null; const pool = JOKERS.filter(j => !S.jokers.some(o => o.id === j.id)); if (!pool.length) return null; const j = makeJoker(pool[Math.floor(Math.random() * pool.length)]); S.jokers.push(j); return j.name; } },
+  { id: "handy",   name: "Handy Tag",   desc: "+1 Hand next round", apply: () => { S.bonusHands = (S.bonusHands || 0) + 1; return "+1 hand"; } },
+];
+
+function showBlindSelect() {
+  S.phase = "blindselect";
+  const kind = S.blindIndex === 0 ? "small" : S.blindIndex === 1 ? "big" : "boss";
+  if (kind === "boss") S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
+  else S.boss = null;
+
+  const badge = $("#bs-badge");
+  badge.className = "blind-select-badge blind-" + kind;
+  badge.innerHTML = iconSVG(kind === "boss" ? "death" : kind === "big" ? "blind_big" : "blind_small");
+  $("#bs-name").textContent = kind === "boss" ? S.boss.name : (kind === "big" ? "Big Blind" : "Small Blind");
+  $("#bs-target").textContent = blindTarget().toLocaleString();
+  $("#bs-reward").textContent = "$" + blindReward();
+  const bossEl = $("#bs-boss");
+  if (kind === "boss") { bossEl.hidden = false; bossEl.textContent = S.boss.desc; }
+  else bossEl.hidden = true;
+  renderBlindTag();
+  showScreen("blind");
+}
+
+function renderBlindTag() {
+  const el = $("#btn-skip-blind");
+  if (!el) return;
+  const tag = SKIP_TAGS[Math.floor(Math.random() * SKIP_TAGS.length)];
+  S.pendingTag = tag;
+  const lbl = el.querySelector(".lbl");
+  if (lbl) lbl.textContent = "Skip → " + tag.desc;
+}
+
+function skipBlind() {
+  const tag = S.pendingTag || SKIP_TAGS[0];
+  const res = tag.apply();
+  if (res === null) {
+    // no room for the tag reward — fall back to coins
+    S.money += 5;
+    showToast("No room for " + tag.name + " → +$5");
+  } else {
+    showToast(tag.name + ": " + tag.desc + " (" + res + ")");
+  }
+  AudioFX.play("coin");
+  advanceBlindIndex();
+  if (S.gameWon) return;
+  renderAll();
+  showBlindSelect();
+}
+
+function playSelectedBlind() {
+  AudioFX.play("click");
   startBlind();
 }
 
@@ -629,8 +700,12 @@ function endRoundWin() {
 
 function renderShop() {
   $("#shop-money").textContent = "$" + S.money;
-  $("#btn-reroll").textContent = "Reroll $" + S.rerollCost;
+  const rerollLbl = $("#btn-reroll .lbl");
+  if (rerollLbl) rerollLbl.textContent = "Reroll $" + S.rerollCost;
+  else $("#btn-reroll").textContent = "Reroll $" + S.rerollCost;
   $("#btn-reroll").disabled = S.money < S.rerollCost;
+  const hint = $("#reroll-hint");
+  if (hint) hint.textContent = "reroll $" + S.rerollCost;
   $("#shop-joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
 
   // owned jokers (click for details / sell)
@@ -766,6 +841,7 @@ function gameOver() {
 }
 function winRun() {
   S.phase = "win";
+  S.gameWon = true;
   clearSave();
   AudioFX.play("win");
   showScreen("win");
@@ -1147,28 +1223,12 @@ $("#btn-discard").onclick = discardHand;
 $("#btn-sort-rank").onclick = () => { sortMode = "rank"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-sort-suit").onclick = () => { sortMode = "suit"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-next").onclick = nextBlind;
+$("#btn-play-blind").onclick = playSelectedBlind;
+$("#btn-skip-blind").onclick = () => { AudioFX.play("click"); skipBlind(); };
 $("#btn-menu").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
 const menuCompact = $("#btn-menu-compact");
 if (menuCompact) menuCompact.onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
 
-const orientToggle = $("#btn-orientation-toggle");
-if (orientToggle) {
-  orientToggle.onclick = () => {
-    AudioFX.play("click");
-    // Toggle forced orientation class on body
-    if (document.body.classList.contains("force-landscape")) {
-      document.body.classList.remove("force-landscape");
-      document.body.classList.add("force-portrait");
-      showToast("Portrait mode");
-    } else if (document.body.classList.contains("force-portrait")) {
-      document.body.classList.remove("force-portrait");
-      showToast("Auto orientation");
-    } else {
-      document.body.classList.add("force-landscape");
-      showToast("Landscape mode");
-    }
-  };
-}
 $("#nav-resume").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = true; };
 $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
 $("#nav-fullscreen").onclick = () => {
@@ -1219,6 +1279,11 @@ $("#mc-backdrop").onclick = closeModal;
 
 document.querySelectorAll(".float-card").forEach(el => {
   el.innerHTML = suitSVG(el.dataset.suit);
+});
+
+// inject pixel-art UI icons into buttons
+document.querySelectorAll(".ico[data-icon]").forEach(el => {
+  el.innerHTML = uiIcon(el.dataset.icon, "currentColor");
 });
 
 applySettings();

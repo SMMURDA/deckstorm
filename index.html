@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-12">
+<link rel="stylesheet" href="css/style.css?v=20261007-14">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -132,10 +132,9 @@
           <div class="stat-box"><span>Round</span><b id="hud-round">1</b></div>
           <div class="stat-box"><span>Deck</span><b id="hud-deck">52</b></div>
         </div>
-        <button id="btn-run-info" class="btn btn-run">Run Info</button>
-        <button id="btn-menu" class="btn btn-options">Options</button>
-        <button id="btn-menu-compact" class="btn btn-ghost btn-small" style="display:none">☰</button>
-        <button id="btn-orientation-toggle" class="btn btn-ghost btn-small" style="display:none" title="Toggle orientation">⤾</button>
+        <button id="btn-run-info" class="btn btn-run"><span class="ico" data-icon="info"></span><span class="lbl">Run Info</span></button>
+        <button id="btn-menu" class="btn btn-options"><span class="ico" data-icon="gear"></span><span class="lbl">Options</span></button>
+        <button id="btn-menu-compact" class="btn btn-ghost btn-small" style="display:none"><span class="ico" data-icon="menu"></span></button>
       </aside>
 
       <div class="main-area felt-table">
@@ -173,10 +172,10 @@
         </div>
 
         <div class="actions" id="actions">
-          <button id="btn-play" class="btn btn-primary">Play Hand</button>
-          <button id="btn-discard" class="btn">Discard</button>
-          <button id="btn-sort-rank" class="btn btn-ghost btn-small">Sort: Rank</button>
-          <button id="btn-sort-suit" class="btn btn-ghost btn-small">Sort: Suit</button>
+          <button id="btn-play" class="btn btn-primary"><span class="ico" data-icon="play"></span><span class="lbl">Play Hand</span></button>
+          <button id="btn-discard" class="btn"><span class="ico" data-icon="discard"></span><span class="lbl">Discard</span></button>
+          <button id="btn-sort-rank" class="btn btn-ghost btn-small"><span class="ico" data-icon="sortrank"></span><span class="lbl lbl-sm">Rank</span></button>
+          <button id="btn-sort-suit" class="btn btn-ghost btn-small"><span class="ico" data-icon="sortsuit"></span><span class="lbl lbl-sm">Suit</span></button>
         </div>
         <div class="deck-pile" aria-hidden="true"><div class="deck-pile-card"></div><span id="deck-pile-count">52</span></div>
       </div>
@@ -190,18 +189,47 @@
       <h2 class="panel-title">Blind Beaten!</h2>
       <p id="shop-reward" class="shop-reward"></p>
       <p class="shop-money">Money: <b class="c-gold" id="shop-money">$0</b></p>
-      <div class="strip-label"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click for details</span></div>
-      <div id="shop-owned" class="jokers"></div>
-      <div class="strip-label"><span>Cards</span></div>
-      <div id="shop-offers" class="shop-offers"></div>
-      <div class="strip-label"><span>Booster Packs</span></div>
-      <div id="shop-packs" class="shop-offers"></div>
-      <div class="strip-label"><span>Voucher</span></div>
-      <div id="shop-voucher" class="shop-offers"></div>
-      <div class="actions">
-        <button id="btn-reroll" class="btn">Reroll $5</button>
-        <button id="btn-next" class="btn btn-primary">Next Blind →</button>
+      <div class="shop-bay bay-owned">
+        <div class="shop-bay-head"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click to inspect / sell</span></div>
+        <div id="shop-owned" class="jokers"></div>
       </div>
+      <div class="shop-bay bay-offers">
+        <div class="shop-bay-head"><span>Jokers for Sale</span><span class="price-hint" id="reroll-hint"></span></div>
+        <div id="shop-offers" class="shop-row"></div>
+      </div>
+      <div class="shop-bay bay-packs">
+        <div class="shop-bay-head"><span>Booster Packs</span></div>
+        <div id="shop-packs" class="shop-row"></div>
+      </div>
+      <div class="shop-bay bay-voucher">
+        <div class="shop-bay-head"><span>Voucher</span></div>
+        <div id="shop-voucher" class="shop-row"></div>
+      </div>
+      <div class="actions">
+        <button id="btn-reroll" class="btn"><span class="ico" data-icon="reroll"></span><span class="lbl">Reroll $5</span></button>
+        <button id="btn-next" class="btn btn-primary"><span class="ico" data-icon="next"></span><span class="lbl">Next Blind</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BLIND SELECT ══ -->
+  <section id="screen-blind" class="screen">
+    <div class="panel panel-wide blind-select-panel">
+      <h2 class="panel-title">Choose Your Path</h2>
+      <div class="blind-select-card">
+        <div class="blind-select-badge" id="bs-badge"></div>
+        <div class="blind-select-info">
+          <div class="blind-select-name" id="bs-name">Small Blind</div>
+          <div class="blind-select-target">Score at least <b id="bs-target">300</b></div>
+          <div class="blind-select-reward">Reward <b id="bs-reward">$3</b></div>
+          <div class="blind-select-boss" id="bs-boss" hidden></div>
+        </div>
+      </div>
+      <div class="blind-select-actions">
+        <button id="btn-play-blind" class="btn btn-primary btn-big"><span class="ico" data-icon="play"></span><span class="lbl">Play Blind</span></button>
+        <button id="btn-skip-blind" class="btn btn-big btn-skip"><span class="ico" data-icon="skip"></span><span class="lbl">Skip for Tag</span></button>
+      </div>
+      <p class="blind-select-hint">Skipping forfeits this blind's reward but grants a <b>Tag</b> bonus.</p>
     </div>
   </section>
 
@@ -280,11 +308,11 @@
   </div>
 </div>
 
-<script src="js/cards.js?v=20261007-12"></script>
-<script src="js/jokers.js?v=20261007-12"></script>
-<script src="js/consumables.js?v=20261007-12"></script>
-<script src="js/pixelart.js?v=20261007-12"></script>
-<script src="js/audio.js?v=20261007-12"></script>
-<script src="js/game.js?v=20261007-12"></script>
+<script src="js/cards.js?v=20261007-14"></script>
+<script src="js/jokers.js?v=20261007-14"></script>
+<script src="js/consumables.js?v=20261007-14"></script>
+<script src="js/pixelart.js?v=20261007-14"></script>
+<script src="js/audio.js?v=20261007-14"></script>
+<script src="js/game.js?v=20261007-14"></script>
 </body>
 </html>
