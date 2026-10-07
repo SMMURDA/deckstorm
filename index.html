@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-3">
+<link rel="stylesheet" href="css/style.css?v=20261007-4">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -31,7 +31,9 @@
       <h1 class="logo">DECK<span>STORM</span></h1>
       <p class="tagline">— a poker roguelike —</p>
       <nav class="menu-nav">
+        <button id="btn-continue" class="btn btn-primary btn-big" hidden>↻ Continue</button>
         <button id="btn-start" class="btn btn-primary btn-big">▶ Start Run</button>
+        <button id="btn-collection" class="btn btn-big">Collection</button>
         <button id="btn-howto" class="btn btn-big">How to Play</button>
         <button id="btn-settings" class="btn btn-big">Settings</button>
       </nav>
@@ -82,6 +84,22 @@
         <div class="setting-row"><span>Sound FX</span><button id="set-sound" class="btn btn-toggle">ON</button></div>
         <div class="setting-row"><span>Animations</span><button id="set-anim" class="btn btn-toggle">ON</button></div>
       </div>
+      <button class="btn btn-big btn-back" data-back>← Back</button>
+    </div>
+  </section>
+
+  <!-- ══ COLLECTION ══ -->
+  <section id="screen-collection" class="screen">
+    <div class="panel panel-wide panel-tall">
+      <h2 class="panel-title">Collection <span id="coll-count" class="coll-count"></span></h2>
+      <div class="coll-tabs">
+        <button class="btn btn-small coll-tab btn-primary" data-tab="jokers">Jokers</button>
+        <button class="btn btn-small coll-tab" data-tab="planets">Planets</button>
+        <button class="btn btn-small coll-tab" data-tab="tarots">Tarots</button>
+        <button class="btn btn-small coll-tab" data-tab="vouchers">Vouchers</button>
+        <button class="btn btn-small coll-tab" data-tab="bosses">Bosses</button>
+      </div>
+      <div id="collection-grid" class="collection-grid"></div>
       <button class="btn btn-big btn-back" data-back>← Back</button>
     </div>
   </section>
@@ -233,11 +251,11 @@
   </div>
 </div>
 
-<script src="js/cards.js?v=20261007-3"></script>
-<script src="js/jokers.js?v=20261007-3"></script>
-<script src="js/consumables.js?v=20261007-3"></script>
-<script src="js/pixelart.js?v=20261007-3"></script>
-<script src="js/audio.js?v=20261007-3"></script>
-<script src="js/game.js?v=20261007-3"></script>
+<script src="js/cards.js?v=20261007-4"></script>
+<script src="js/jokers.js?v=20261007-4"></script>
+<script src="js/consumables.js?v=20261007-4"></script>
+<script src="js/pixelart.js?v=20261007-4"></script>
+<script src="js/audio.js?v=20261007-4"></script>
+<script src="js/game.js?v=20261007-4"></script>
 </body>
 </html>

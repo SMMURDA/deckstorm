@@ -134,11 +134,101 @@ const priceOf = item => {
 };
 const isBossDebuffed = c => S.boss && S.boss.debuffSuit && c.suit === S.boss.debuffSuit && c.enhancement !== "wild" && c.enhancement !== "stone";
 
+// ── save / continue (localStorage, autosave on every state change) ──
+const SAVE_KEY = "deckstorm.save";
+function serializeRun() {
+  return {
+    v: 3, sortMode,
+    ante: S.ante, blindIndex: S.blindIndex, money: S.money,
+    roundScore: S.roundScore, handsLeft: S.handsLeft, discardsLeft: S.discardsLeft,
+    phase: S.phase === "shop" ? "shop" : "play",
+    rerollCost: S.rerollCost, deckTotal: S.deckTotal,
+    deck: S.deck, hand: S.hand,
+    handLevels: S.handLevels, stats: S.stats,
+    bossId: S.boss ? S.boss.id : null,
+    vouchers: [...S.vouchers],
+    jokers: S.jokers.map(j => ({ id: j.id, edition: j.edition, data: j.data || null, sellBonus: j.sellBonus || 0 })),
+    consumables: S.consumables.map(c => ({ id: c.id, kind: c.kind })),
+    offers: S.offers.map(j => ({ id: j.id, edition: j.edition, data: j.data || null, sellBonus: j.sellBonus || 0 })),
+    packs: S.packs.map(p => p.id),
+    voucherOfferId: S.voucherOffer ? S.voucherOffer.id : null,
+    lastConsumable: S.lastConsumable ? { id: S.lastConsumable.id, kind: S.lastConsumable.kind } : null,
+  };
+}
+function saveGame() {
+  if (!store || !S || S.phase === "over" || S.phase === "win" || S.targetMode) return;
+  try { store.setItem(SAVE_KEY, JSON.stringify(serializeRun())); } catch (e) {}
+}
+function hasSave() {
+  if (!store) return false;
+  try { return !!store.getItem(SAVE_KEY); } catch (e) { return false; }
+}
+function clearSave() { if (store) try { store.removeItem(SAVE_KEY); } catch (e) {} }
+
+function rehydrateJoker(s) {
+  const def = JOKERS.find(j => j.id === s.id);
+  if (!def) return null;
+  const j = makeJoker(def, s.edition);
+  if (s.data) j.data = s.data;
+  if (s.sellBonus) j.sellBonus = s.sellBonus;
+  return j;
+}
+function rehydrateCons(s) {
+  const def = (s.kind === "planet" ? PLANETS : TAROTS).find(x => x.id === s.id);
+  return def ? { ...def } : null;
+}
+
+function loadGame() {
+  let d;
+  try { d = JSON.parse(store.getItem(SAVE_KEY)); } catch (e) { return false; }
+  if (!d || d.v !== 3) return false;
+  S = freshState();
+  sortMode = d.sortMode || "rank";
+  Object.assign(S, {
+    ante: d.ante, blindIndex: d.blindIndex, money: d.money,
+    roundScore: d.roundScore, handsLeft: d.handsLeft, discardsLeft: d.discardsLeft,
+    phase: d.phase, rerollCost: d.rerollCost, deckTotal: d.deckTotal,
+    deck: d.deck, hand: d.hand, handLevels: d.handLevels, stats: d.stats,
+  });
+  S.vouchers = new Set(d.vouchers || []);
+  S.jokers = (d.jokers || []).map(rehydrateJoker).filter(Boolean);
+  S.consumables = (d.consumables || []).map(rehydrateCons).filter(Boolean);
+  S.offers = (d.offers || []).map(rehydrateJoker).filter(Boolean);
+  S.packs = (d.packs || []).map(id => ({ ...PACKS.find(p => p.id === id) })).filter(p => p.id);
+  S.voucherOffer = d.voucherOfferId ? VOUCHERS.find(v => v.id === d.voucherOfferId) : null;
+  S.lastConsumable = d.lastConsumable ? rehydrateCons(d.lastConsumable) : null;
+  S.boss = d.bossId ? BOSSES.find(b => b.id === d.bossId) : null;
+
+  if (S.phase === "shop") {
+    showScreen("shop");
+    renderShop();
+    renderHud();
+    renderJokers();
+  } else {
+    renderBossBanner();
+    showScreen("game");
+    renderAll();
+  }
+  return true;
+}
+
 // ── screens ──
 function showScreen(name) {
   currentScreen = name;
   document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
   $("#screen-" + name).classList.add("active");
+  if (name === "menu") {
+    const btn = $("#btn-continue");
+    let label = null;
+    if (hasSave()) {
+      try {
+        const d = JSON.parse(store.getItem(SAVE_KEY));
+        if (d && d.v === 3) label = `↻ Continue — Ante ${d.ante}`;
+      } catch (e) {}
+    }
+    btn.hidden = !label;
+    if (label) btn.textContent = label;
+  }
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
@@ -618,6 +708,7 @@ function renderShop() {
   } else {
     vw.innerHTML = `<p class="shop-empty">No voucher available</p>`;
   }
+  saveGame();
 }
 
 // ── booster pack opening ──
@@ -661,11 +752,13 @@ function gameOver() {
   $("#final-blind").textContent = blindName();
   $("#final-score").textContent = S.roundScore.toLocaleString();
   $("#final-target").textContent = blindTarget().toLocaleString();
+  clearSave();
   AudioFX.play("lose");
   showScreen("over");
 }
 function winRun() {
   S.phase = "win";
+  clearSave();
   AudioFX.play("win");
   showScreen("win");
 }
@@ -887,11 +980,39 @@ function renderAll() {
   renderHud();
   renderPreview();
   refreshControls();
+  saveGame();
 }
 
 // ── hand levels screen ──
-function renderHandsScreen() {
-  const tbl = $("#hands-levels");
+// ── collection (card encyclopedia) ──
+let collTab = "jokers";
+function renderCollection() {
+  const tabs = {
+    jokers:   { items: JOKERS,   cls: i => "j-" + i.rarity, meta: i => `${i.rarity} · $${i.cost}`, txt: i => i.desc },
+    planets:  { items: PLANETS,  cls: () => "j-planet",     meta: () => "planet · $3",  txt: consDesc },
+    tarots:   { items: TAROTS,   cls: () => "j-tarot",      meta: () => "tarot · $3",   txt: i => i.desc },
+    vouchers: { items: VOUCHERS, cls: () => "j-voucher",    meta: () => "voucher · $10", txt: i => i.desc },
+    bosses:   { items: BOSSES,   cls: () => "j-boss",       meta: () => "boss blind",   txt: i => i.desc },
+  };
+  const t = tabs[collTab];
+  const grid = $("#collection-grid");
+  grid.innerHTML = "";
+  t.items.forEach(item => {
+    const tile = document.createElement("div");
+    tile.className = "joker coll-tile " + t.cls(item);
+    tile.innerHTML =
+      `<div class="tile-icon">${iconSVG(item.id)}</div>` +
+      `<div class="tile-name">${item.name}</div>` +
+      `<span class="jdesc">${t.txt(item)}</span>` +
+      `<span class="coll-meta">${t.meta(item)}</span>`;
+    grid.appendChild(tile);
+  });
+  $("#coll-count").textContent = `${t.items.length} cards`;
+  document.querySelectorAll(".coll-tab").forEach(b =>
+    b.classList.toggle("btn-primary", b.dataset.tab === collTab));
+}
+
+function renderHandsScreen() {  const tbl = $("#hands-levels");
   const planetOf = h => PLANETS.find(p => p.hand === h);
   let rows = `<tr><th>Hand</th><th>Lv</th><th>Chips</th><th>Mult</th><th>Planet</th></tr>`;
   ["High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House",
@@ -940,6 +1061,12 @@ function showToast(msg) {
 
 // ── bindings ──
 $("#btn-start").onclick = () => { AudioFX.play("click"); newRun(); };
+$("#btn-continue").onclick = () => {
+  if (loadGame()) { AudioFX.play("click"); showToast("Run restored!"); }
+  else { AudioFX.play("error"); showToast("Save corrupted — start a new run"); }
+};
+$("#btn-collection").onclick = () => { AudioFX.play("click"); renderCollection(); showScreen("collection"); };
+window.addEventListener("beforeunload", saveGame);
 $("#btn-howto").onclick = () => { AudioFX.play("click"); showScreen("howto"); };
 $("#btn-settings").onclick = () => { AudioFX.play("click"); showScreen("settings"); };
 $("#btn-play").onclick = playHand;
@@ -966,6 +1093,8 @@ $("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
 $("#btn-abandon").onclick = () => { AudioFX.play("click"); showScreen("menu"); };
 document.querySelectorAll("[data-back]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
+document.querySelectorAll(".coll-tab").forEach(b =>
+  b.onclick = () => { collTab = b.dataset.tab; AudioFX.play("click"); renderCollection(); });
 document.querySelectorAll("[data-menu]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 $("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
@@ -978,6 +1107,7 @@ document.querySelectorAll(".float-card").forEach(el => {
 });
 
 applySettings();
+showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
 window.DS = { get S() { return S; }, newRun, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings,

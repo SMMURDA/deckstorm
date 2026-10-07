@@ -8,16 +8,21 @@ const bundle = ["js/cards.js", "js/jokers.js", "js/consumables.js", "js/pixelart
 const html = fs.readFileSync("index.html", "utf8")
   .replace(/<script src="[^"]*"><\/script>/g, "")
   .replace("</body>", () => `<script>${bundle}</script></body>`); // fn: avoid $-pattern mangling
-const dom = new JSDOM(html, {
-  url: "https://deckstorm.local/",
-  runScripts: "dangerously",
-  pretendToBeVisual: true,
-  beforeParse(window) {
-    try { window.localStorage.setItem("deckstorm.settings", JSON.stringify({ sound: false, anim: false })); } catch (e) {}
-  },
-});
-const { window } = dom;
-const { document } = window;
+function boot(saveStr) {
+  const dom = new JSDOM(html, {
+    url: "https://deckstorm.local/",
+    runScripts: "dangerously",
+    pretendToBeVisual: true,
+    beforeParse(window) {
+      try {
+        window.localStorage.setItem("deckstorm.settings", JSON.stringify({ sound: false, anim: false }));
+        if (saveStr) window.localStorage.setItem("deckstorm.save", saveStr);
+      } catch (e) {}
+    },
+  });
+  return { window: dom.window, document: dom.window.document };
+}
+const { window, document } = boot();
 
 let fails = 0, passes = 0;
 function ok(name, cond) {
@@ -180,6 +185,11 @@ DS.settings.sound = false;
   ok("target bar hidden after use", $("#target-bar").hidden === true);
   ok("tarotsUsed tracked", DS.S.stats.tarotsUsed === 1);
 
+  // 11b. autosave captured mid-run
+  const saveStr = window.localStorage.getItem("deckstorm.save");
+  ok("autosave written", !!saveStr && saveStr.includes('"ante"'));
+  const saved = JSON.parse(saveStr);
+
   // 15. hand levels screen
   $("#btn-hands").click();
   ok("hands screen opens", $("#screen-hands").classList.contains("active"));
@@ -198,6 +208,38 @@ DS.settings.sound = false;
   $("#btn-retry").click();
   await sleep(50);
   ok("retry restarts run", DS.S.ante === 1 && DS.S.roundScore === 0 && $$("#hand .card").length === 8);
+
+  // 18. continue in a FRESH window with the seeded save
+  {
+    const w2 = boot(saveStr);
+    const d2 = w2.document;
+    const DS2 = w2.window.DS;
+    await sleep(30);
+    ok("continue button visible on menu", d2.querySelector("#btn-continue").hidden === false);
+    d2.querySelector("#btn-continue").click();
+    await sleep(60);
+    ok("continue shows game/shop screen", ["screen-game", "screen-shop"].includes(d2.querySelector(".screen.active").id));
+    ok("continue restores money", DS2.S.money === saved.money);
+    ok("continue restores hand", DS2.S.hand.length === saved.hand.length);
+    ok("continue restores hand levels", (DS2.S.handLevels["Pair"] || 1) === (saved.handLevels["Pair"] || 1));
+    ok("continue restores stats", DS2.S.stats.tarotsUsed === saved.stats.tarotsUsed);
+    ok("continue restores steel card", DS2.S.hand.some(c => c.enhancement === "steel") === saved.hand.some(c => c.enhancement === "steel"));
+  }
+
+  // 19. collection encyclopedia
+  $("#btn-collection").click();
+  await sleep(30);
+  ok("collection screen opens", $("#screen-collection").classList.contains("active"));
+  ok("jokers tab renders all", $$("#collection-grid .coll-tile").length === 43);
+  ok("collection tiles have icons", $$("#collection-grid .tile-icon svg").length === 43);
+  document.querySelector('[data-tab="planets"]').click();
+  ok("planets tab 12", $$("#collection-grid .coll-tile").length === 12);
+  document.querySelector('[data-tab="tarots"]').click();
+  ok("tarots tab 22", $$("#collection-grid .coll-tile").length === 22);
+  document.querySelector('[data-tab="vouchers"]').click();
+  ok("vouchers tab 7", $$("#collection-grid .coll-tile").length === 7);
+  document.querySelector('[data-tab="bosses"]').click();
+  ok("bosses tab 10", $$("#collection-grid .coll-tile").length === 10);
 
   console.log(`\n${passes} passed, ${fails} failed`);
   process.exit(fails ? 1 : 0);

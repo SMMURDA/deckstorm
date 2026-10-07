@@ -181,7 +181,7 @@ function mockS() {
 // ── pixel-art coverage & integrity ──
 const needIcons = [
   ...JOKERS.map(j => j.id), ...PLANETS.map(p => p.id),
-  ...TAROTS.map(t => t.id), ...VOUCHERS.map(v => v.id), ...PACKS.map(p => p.id),
+  ...TAROTS.map(t => t.id), ...VOUCHERS.map(v => v.id), ...PACKS.map(p => p.id), ...BOSSES.map(b => b.id),
 ];
 needIcons.forEach(id => eq(`icon exists: ${id}`, !!ICONS[id], true));
 Object.entries(ICONS).forEach(([id, grid]) => {
