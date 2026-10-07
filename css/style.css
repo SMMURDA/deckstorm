@@ -989,67 +989,82 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     height: 100% !important; width: 100% !important;
   }
 
-  /* ── TOP HUD: blind panel full width ── */
+  /* ── TOP HUD: single compact row (blind + score + stats) ── */
   #screen-game .sidebar {
     width: 100% !important; height: auto !important;
-    flex-direction: column !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    align-items: center !important; justify-content: flex-start !important;
     flex-shrink: 0 !important;
-    padding: 0 !important; gap: 0 !important;
+    padding: 4px 6px !important; gap: 5px !important;
     border-right: none !important;
-    border-bottom: 3px solid #000 !important;
-    overflow: visible !important;
+    border-bottom: 2px solid #000 !important;
+    overflow: hidden !important;
     position: static !important;
   }
 
-  /* blind panel: horizontal row, full width */
+  /* blind panel: inline group (title + badge + target + reward) */
   .blind-panel {
-    flex-direction: row !important; align-items: center !important;
-    gap: 10px !important; padding: 7px 10px !important;
-    border-bottom: 2px solid rgba(0,0,0,.4) !important;
-    width: 100% !important;
+    display: flex !important; flex-direction: row !important;
+    align-items: center !important;
+    gap: 5px !important; padding: 0 !important;
+    border: none !important; width: auto !important;
+    flex: 0 0 auto !important;
   }
   .blind-title {
-    font-size: 8px !important; padding: 4px 10px !important;
-    margin-bottom: 0 !important; white-space: nowrap !important;
+    font-size: 6px !important; padding: 2px 5px !important;
+    margin: 0 !important; white-space: nowrap !important;
     position: static !important; transform: none !important;
   }
-  .blind-row { flex-direction: row !important; gap: 8px !important; margin: 0 !important; flex: 1 !important; }
-  .blind-badge { width: 36px !important; height: 36px !important; }
-  .blind-badge svg { width: 22px !important; height: 22px !important; }
-  .blind-info { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 8px !important; flex: 1 !important; }
+  .blind-row { flex-direction: row !important; gap: 5px !important; margin: 0 !important; flex: 0 0 auto !important; }
+  .blind-badge { width: 26px !important; height: 26px !important; border-width: 2px !important; }
+  .blind-badge svg { width: 16px !important; height: 16px !important; }
+  .blind-info { display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 4px !important; flex: 0 0 auto !important; }
   .score-at-least { display: none !important; }
-  #hud-target { font-size: 22px !important; display: inline !important; }
-  .earn-line { font-size: 14px !important; }
+  #hud-target { font-size: 15px !important; display: inline !important; color: #ff8f8f !important; }
+  .earn-line { display: none !important; }
   .score-bar { display: none !important; }
-  .round-score-row { font-size: 13px !important; white-space: nowrap !important; }
-  .round-score-row b { font-size: 22px !important; }
-  .boss-banner { margin: 4px 10px !important; }
+  .boss-banner { display: none !important; }
 
-  /* stats: 2 rows × 3 cols, full width, equal height to blind panel */
-  #screen-game .stats-panel {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    grid-template-rows: repeat(2, 1fr) !important;
-    gap: 4px !important; padding: 6px 8px !important;
-    width: 100% !important;
-    background: rgba(0,0,0,.2) !important;
-    border-bottom: none !important; border-radius: 0 !important;
-    filter: none !important;
+  /* round score sits inline, right after the blind */
+  .round-score-row {
+    display: flex !important; flex-direction: row !important;
+    align-items: baseline !important; gap: 3px !important;
+    padding: 0 !important; margin: 0 !important;
+    border: none !important; flex: 0 0 auto !important;
   }
-  .stat-box {
-    padding: 4px 2px !important; gap: 2px !important;
-    border-radius: 4px !important;
+  .round-score-row span { font-size: 8px !important; }
+  .round-score-row b { font-size: 16px !important; }
+
+  /* stats: compact inline chips on the same row */
+  #screen-game .stats-panel {
+    display: flex !important; flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-template-columns: unset !important; grid-template-rows: unset !important;
+    gap: 3px !important; padding: 0 !important;
+    background: transparent !important;
+    border: none !important; border-radius: 0 !important;
+    filter: none !important;
+    flex: 1 1 auto !important; justify-content: flex-end !important;
     min-width: 0 !important;
   }
-  .stat-box span { font-size: 8.5px !important; }
-  .stat-box b { font-size: 16px !important; }
+  .stat-box {
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: center !important;
+    padding: 2px 4px !important; gap: 0 !important;
+    border-radius: 3px !important; min-width: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  .stat-box span { font-size: 6.5px !important; line-height: 1.1 !important; letter-spacing: 0 !important; }
+  .stat-box b { font-size: 13px !important; line-height: 1.1 !important; }
 
-  /* sidebar buttons: hidden on mobile portrait → accessible via Options */
-  .btn-run, .btn-options, #btn-menu-compact, #btn-orientation-toggle { display: none !important; }
+  /* menu button: tiny, sits at the end of the row */
+  .btn-run, .btn-options { display: none !important; }
+  #btn-menu-compact { display: none !important; }
   #btn-menu {
-    width: calc(100% - 16px) !important; margin: 4px 8px !important;
-    font-size: 9px !important; padding: 7px !important;
     display: block !important;
+    width: auto !important; margin: 0 !important;
+    font-size: 7px !important; padding: 4px 6px !important;
+    flex: 0 0 auto !important;
   }
 
   /* ── FELT TABLE ── */
@@ -1113,22 +1128,22 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   .hand {
     padding: 10px 4px 2px !important;
-    min-height: 68px !important;
+    min-height: 82px !important;
     overflow: visible !important;
     flex-wrap: nowrap !important;
   }
-  #screen-game .hand .card { margin: 0 -5px !important; }
+  #screen-game .hand .card { margin: 0 -6px !important; }
   #screen-game .hand .card.selected { transform: translateY(-12px) rotate(0) !important; z-index: 3 !important; }
   #screen-game .hand .card:hover:not(.selected) { transform: translateY(-7px) rotate(0) !important; }
   .hand-meta { font-size: 11px !important; margin-top: 2px !important; }
 
   /* card sizes */
-  #screen-game .card { width: 46px !important; height: 64px !important; }
-  #screen-game .card .c-rank  { font-size: 7.5px !important; top: 3px !important; left: 3px !important; }
-  #screen-game .card .c-suit  { top: 13px !important; left: 3px !important; }
-  #screen-game .card .c-suit svg { width: 10px !important; height: 10px !important; }
-  #screen-game .card .c-big svg  { width: 18px !important; height: 18px !important; }
-  #screen-game .card .c-rank-b { font-size: 7.5px !important; bottom: 3px !important; right: 3px !important; }
+  #screen-game .card { width: 54px !important; height: 75px !important; }
+  #screen-game .card .c-rank  { font-size: 9px !important; top: 4px !important; left: 4px !important; }
+  #screen-game .card .c-suit  { top: 16px !important; left: 4px !important; }
+  #screen-game .card .c-suit svg { width: 12px !important; height: 12px !important; }
+  #screen-game .card .c-big svg  { width: 22px !important; height: 22px !important; }
+  #screen-game .card .c-rank-b { font-size: 9px !important; bottom: 4px !important; right: 4px !important; }
 
   /* actions */
   #screen-game .actions {
