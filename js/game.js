@@ -824,21 +824,36 @@ function winRun() {
 }
 
 // ── rendering ──
+// short badge + tooltip for each Tarot enhancement, so an altered card stands out
+const ENH_BADGE = {
+  bonus: ["+30",  "Bonus • +30 Chips when scored"],
+  mult:  ["+4",   "Mult • +4 Mult when scored"],
+  wild:  ["★",    "Wild • counts as every suit"],
+  glass: ["×2",   "Glass • ×2 Mult, 1 in 4 shatters"],
+  steel: ["×1.5", "Steel • ×1.5 Mult while held in hand"],
+  gold:  ["$",    "Gold • $3 if held at end of round"],
+  lucky: ["?",    "Lucky • 1/5 +20 Mult, 1/15 $20"],
+  stone: ["◆",    "Stone • +50 Chips, always scores"],
+};
+
 function cardEl(c) {
   const el = document.createElement("button");
   const enh = c.enhancement ? ` enh-${c.enhancement}` : "";
   el.className = "card " + (SUIT_CLASS[c.suit] || "black") + enh;
   el.dataset.id = c.id;
   if (isBossDebuffed(c)) el.classList.add("debuffed");
+  const badge = ENH_BADGE[c.enhancement];
+  const badgeHTML = badge ? `<span class="c-enh-badge" title="${badge[1]}">${badge[0]}</span>` : "";
   if (c.enhancement === "stone") {
-    el.innerHTML = `<span class="c-stone">+50</span>`;
+    el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML;
   } else {
     const svg = suitSVG(c.suit);
     el.innerHTML =
       `<span class="c-rank">${rankLabel(c.rank)}</span>` +
       `<span class="c-suit">${svg}</span>` +
       `<span class="c-big">${svg}</span>` +
-      `<span class="c-rank c-rank-b">${rankLabel(c.rank)}</span>`;
+      `<span class="c-rank c-rank-b">${rankLabel(c.rank)}</span>` +
+      badgeHTML;
   }
   el.onclick = () => toggleCard(c.id, el);
   return el;

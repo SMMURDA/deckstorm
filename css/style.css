@@ -198,7 +198,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 8px 14px;
+  padding: 8px 18px;
+  margin: 0 auto;
+  width: fit-content; max-width: 100%;
   min-height: 46px;
   flex-wrap: wrap;
 }
@@ -401,8 +403,20 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .boss-banner-body { flex: 1; min-width: 0; }
 .boss-banner b { display: block; font-family: var(--font-px); font-size: 12px; color: #DCC9FF; margin-bottom: 2px; }
 .boss-banner span { font-size: 14px; line-height: 1.25; color: #CDBEE6; }
-.boss-banner-art { flex: none; width: 42px; height: 42px; }
-.boss-banner-art svg { width: 100%; height: 100%; display: block; }
+/* boss art — brighter, framed and clearly pulsing so it reads at a glance */
+.boss-banner-art {
+  flex: none; width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 13px;
+  background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.22), rgba(124,58,237,.45) 70%);
+  border: 1px solid rgba(196,181,253,.55);
+  animation: bossArtPulse 2.1s ease-in-out infinite;
+}
+.boss-banner-art svg { width: 32px; height: 32px; display: block; filter: drop-shadow(0 0 5px rgba(255,255,255,.4)) saturate(1.35); }
+@keyframes bossArtPulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 12px rgba(167,139,250,.45), inset 0 0 10px rgba(0,0,0,.35); }
+  50%      { transform: scale(1.09); box-shadow: 0 0 26px rgba(216,196,255,.9),  inset 0 0 10px rgba(0,0,0,.25); }
+}
 
 
 /* ── v2: card enhancements ── */
@@ -419,6 +433,23 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-px); font-size: 10px; color: #2B2B3A;
 }
+/* tarot enhancement badge — makes an altered card unmistakable */
+.card .c-enh-badge {
+  position: absolute; top: 3px; right: 4px; z-index: 1;
+  font-family: var(--font-score); font-size: 8px; line-height: 1;
+  padding: 2px 4px; border-radius: 6px;
+  background: rgba(18,16,28,.9);
+  border: 1px solid currentColor;
+  color: #E9E5F5;
+}
+.card.enh-bonus .c-enh-badge { color: #7FD4FF; }
+.card.enh-mult  .c-enh-badge { color: #FF8A9B; }
+.card.enh-wild  .c-enh-badge { color: var(--pink); }
+.card.enh-glass .c-enh-badge { color: #CFF3FF; }
+.card.enh-steel .c-enh-badge { color: #D6D1E4; }
+.card.enh-gold  .c-enh-badge { color: var(--gold); }
+.card.enh-lucky .c-enh-badge { color: var(--green); }
+.card.enh-stone .c-enh-badge { color: #C9C2DE; }
 .card.debuffed { opacity: .4; filter: grayscale(.7) drop-shadow(4px 4px 0 rgba(0,0,0,.4)); }
 .card.debuffed:hover { transform: none; }
 
@@ -812,11 +843,17 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .stat-hands    { border-color: var(--glow-blue);  background: rgba(94,200,248,.10); }
 .stat-discards { border-color: rgba(255,93,115,.45); background: rgba(255,93,115,.10); }
 .stat-money    { border-color: var(--glow-gold);  background: rgba(252,228,12,.10); }
+.stat-ante     { border-color: var(--glow-pink);  background: rgba(252,132,252,.10); }
+.stat-round    { border-color: var(--glow-green); background: rgba(124,230,178,.10); }
+.stat-deck     { border-color: rgba(167,139,250,.45); background: rgba(167,139,250,.10); }
 .stat-box span { font-family: var(--font-px); font-weight: 600; font-size: 12px; color: var(--muted); letter-spacing: .02em; }
 .stat-box b { font-family: var(--font-px); font-weight: 800; font-size: 20px; line-height: 1; }
 .stat-hands b { color: var(--blue); }
 .stat-discards b { color: var(--red); }
 .stat-money b { color: var(--gold); }
+.stat-ante b  { color: var(--pink); }
+.stat-round b { color: var(--green); }
+.stat-deck b  { color: #A78BFA; }
 
 /* topup.eu.org logo — sits between the round score and the HUD buttons */
 .hud-logo { display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
@@ -1240,6 +1277,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     align-items: center !important; justify-content: center !important;
     padding: 5px 10px !important; min-height: 40px !important;
     gap: 2px !important; flex-shrink: 0 !important;
+    width: fit-content !important; max-width: 100% !important; margin: 0 auto !important;
     border-radius: 8px !important;
     background: rgba(0,0,0,.32) !important;
     border: 2px solid rgba(255,255,255,.12) !important;
@@ -1270,6 +1308,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   #screen-game .card .c-suit svg { width: 12px !important; height: 12px !important; }
   #screen-game .card .c-big svg  { width: 22px !important; height: 22px !important; }
   #screen-game .card .c-rank-b { font-size: 9px !important; bottom: 4px !important; right: 4px !important; }
+  #screen-game .card .c-enh-badge { font-size: 6px !important; top: 2px !important; right: 2px !important; padding: 1px 3px !important; }
 
   /* actions */
   #screen-game .actions {
@@ -1634,6 +1673,27 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
 
 /* ══ LANDSCAPE MOBILE — keep action buttons + sidebar buttons on screen ══ */
 @media (orientation: landscape) and (max-height: 620px) {
+
+  /* full-screen panels (Run Info, Collection, How to Play, Settings) must scroll
+     in landscape too — otherwise the Back button is unreachable */
+  #screen-hands.active,
+  #screen-collection.active,
+  #screen-howto.active,
+  #screen-settings.active {
+    position: fixed !important; inset: 0 !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 8px 10px 14px !important;
+  }
+  #screen-hands.active .panel,
+  #screen-collection.active .panel,
+  #screen-howto.active .panel,
+  #screen-settings.active .panel {
+    height: auto !important; max-height: none !important;
+    margin-bottom: 12px !important;
+  }
+  #screen-hands .hands-table { font-size: 15px !important; }
+  #screen-hands .panel-title { margin-bottom: 10px !important; }
 
   /* felt must never overflow: everything shrinkable */
   #screen-game .felt-table { overflow: hidden !important; gap: 3px !important; padding: 4px 6px !important; }
