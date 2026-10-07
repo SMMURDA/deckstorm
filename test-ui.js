@@ -51,6 +51,7 @@ DS.settings.sound = false;
   await sleep(50);
   ok("game screen active after start", $("#screen-game").classList.contains("active"));
   ok("8 cards dealt", $$("#hand .card").length === 8);
+  ok("blind badge = small with icon", $("#blind-badge").classList.contains("blind-small") && !!$("#blind-badge svg"));
 
   // 3. REGRESSION: rank labels must be A/K/Q/J/10-2, never "[object Object]"
   const ranks = $$("#hand .card .c-rank:not(.c-rank-b)").map(el => el.textContent);
@@ -84,6 +85,14 @@ DS.settings.sound = false;
   ok("discard consumed", DS.S.discardsLeft === discBefore - 1);
   ok("hand refilled after discard", DS.S.hand.length === 8);
 
+  // 6b. in-game nav modal
+  $("#btn-menu").click();
+  await sleep(30);
+  ok("nav modal opens", $("#modal-nav").hidden === false);
+  $("#nav-resume").click();
+  await sleep(30);
+  ok("nav resume closes modal", $("#modal-nav").hidden === true);
+
   // 7. force round win -> shop
   DS.S.roundScore = 999999;
   $$("#hand .card")[0].click();
@@ -97,10 +106,14 @@ DS.settings.sound = false;
   DS.renderShop();
   const buyBtn = $$("#shop-offers .joker .btn").find(b => !b.disabled);
   ok("buyable joker offer exists", !!buyBtn);
+  DS.settings.anim = true;
   buyBtn.click();
+  ok("buy spawns fly-to-tray ghost", !!document.querySelector(".fly-ghost"));
+  DS.settings.anim = false;
   ok("joker added to state", DS.S.jokers.length === 1);
-  ok("joker visible in shop owned row", $$("#shop-owned .joker").length === 1);
-  ok("joker visible in game HUD", $$("#jokers .joker").length === 1);
+  ok("joker visible in shop owned row", $$("#shop-owned .joker:not(.slot-empty)").length === 1);
+  ok("joker visible in game HUD", $$("#jokers .joker:not(.slot-empty)").length === 1);
+  ok("joker tray has 5 slots total", $$("#jokers .joker").length === 5);
   ok("joker count text", $("#joker-count").textContent === "1/5");
   ok("joker tile has pixel icon svg", !!document.querySelector("#jokers .joker .tile-icon svg"));
   ok("joker tile shows name", document.querySelector("#jokers .joker .tile-name").textContent.length > 1);
@@ -146,6 +159,7 @@ DS.settings.sound = false;
   await sleep(30);
   ok("boss assigned on boss blind", !!DS.S.boss);
   ok("boss banner visible", $("#boss-banner").hidden === false);
+  ok("blind badge = boss", $("#blind-badge").classList.contains("blind-boss"));
   ok("boss name shown", $("#boss-name").textContent.length > 3);
 
   // fresh small blind, no boss, for consumable tests (consumables need play phase)
@@ -158,9 +172,10 @@ DS.settings.sound = false;
   DS.S.consumables.length = 0; // isolate from pack test
   DS.S.consumables.push({ ...DS.api.PLANETS.find(p => p.hand === "Pair") });
   DS.renderAll();
-  ok("consumable tile shown", $$("#consumables .joker").length === 1);
+  ok("consumable tile shown", $$("#consumables .joker:not(.slot-empty)").length === 1);
+  ok("consumable tray has 2 slots total", $$("#consumables .joker").length === 2);
   ok("consumable tile has icon", !!document.querySelector("#consumables .joker .tile-icon svg"));
-  $$("#consumables .joker")[0].click();
+  $$("#consumables .joker:not(.slot-empty)")[0].click();
   await sleep(30);
   ok("consumable modal opens", $("#modal-card").hidden === false);
   $("#mc-use").click();
@@ -173,11 +188,12 @@ DS.settings.sound = false;
   DS.S.consumables.length = 0;
   DS.S.consumables.push({ ...DS.api.TAROTS.find(t => t.id === "chariot") });
   DS.renderAll();
-  $$("#consumables .joker")[0].click();
+  $$("#consumables .joker:not(.slot-empty)")[0].click();
   await sleep(30);
   $("#mc-use").click();
   await sleep(30);
   ok("target bar appears", $("#target-bar").hidden === false);
+  ok("target bar shows tarot icon", !!$("#target-icon svg"));
   $$("#hand .card")[2].click();
   $("#btn-target-use").click();
   await sleep(30);
@@ -190,8 +206,10 @@ DS.settings.sound = false;
   ok("autosave written", !!saveStr && saveStr.includes('"ante"'));
   const saved = JSON.parse(saveStr);
 
-  // 15. hand levels screen
-  $("#btn-hands").click();
+  // 15. hand levels screen (via nav modal)
+  $("#btn-menu").click();
+  await sleep(30);
+  $("#nav-hands").click();
   ok("hands screen opens", $("#screen-hands").classList.contains("active"));
   ok("hands table has 12 rows", $$("#hands-levels tr").length === 13); // header + 12
   $("#btn-hands-back").click();

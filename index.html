@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-4">
+<link rel="stylesheet" href="css/style.css?v=20261007-5">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -110,7 +110,13 @@
 
       <aside class="sidebar">
         <div class="panel side-panel">
-          <div class="ante-line"><span id="hud-blind">Small Blind</span><b class="c-pink" id="hud-ante">1/8</b></div>
+          <div class="blind-row">
+            <div class="blind-badge blind-small" id="blind-badge"></div>
+            <div class="blind-info">
+              <span id="hud-blind">Small Blind</span>
+              <span class="ante-sub">Ante <b class="c-pink" id="hud-ante">1/8</b></span>
+            </div>
+          </div>
           <div id="boss-banner" class="boss-banner" hidden><b id="boss-name"></b><span id="boss-desc"></span></div>
           <div class="target-line">score at least<b id="hud-target">300</b></div>
           <div class="score-bar"><div id="score-bar-fill"></div></div>
@@ -129,8 +135,7 @@
           <div class="stat"><span>Money</span><b class="c-gold" id="hud-money">$4</b></div>
           <div class="stat"><span>Deck</span><b id="hud-deck">52</b></div>
         </div>
-        <button id="btn-hands" class="btn btn-ghost btn-small">♠ Hand Levels</button>
-        <button id="btn-abandon" class="btn btn-ghost btn-small">☰ Abandon Run</button>
+        <button id="btn-menu" class="btn btn-ghost btn-small">☰ Menu</button>
       </aside>
 
       <div class="main-area">
@@ -144,15 +149,17 @@
         </div>
 
         <div id="target-bar" class="target-bar" hidden>
+          <span id="target-icon" class="target-icon"></span>
           <span id="target-msg"></span>
           <button id="btn-target-use" class="btn btn-primary btn-small">Use</button>
           <button id="btn-target-cancel" class="btn btn-small">Cancel</button>
         </div>
 
+        <div class="tray-label">Play Area</div>
         <div id="played-zone" class="played-zone"></div>
         <div id="played-info" class="played-info"></div>
 
-        <div class="hand-zone">
+        <div class="hand-zone felt">
           <div id="hand" class="hand"></div>
           <div class="hand-meta"><span id="hand-count">8/8</span></div>
         </div>
@@ -235,6 +242,19 @@
 
 </main>
 
+<!-- ══ IN-GAME NAV MODAL ══ -->
+<div id="modal-nav" class="modal" hidden>
+  <div class="modal-backdrop" id="nav-backdrop"></div>
+  <div class="panel modal-panel">
+    <h3 class="panel-title">Menu</h3>
+    <div class="menu-nav">
+      <button id="nav-resume" class="btn btn-primary btn-big">Resume</button>
+      <button id="nav-hands" class="btn btn-big">Hand Levels</button>
+      <button id="nav-abandon" class="btn btn-big btn-ghost">Abandon Run</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ CARD DETAIL MODAL ══ -->
 <div id="modal-card" class="modal" hidden>
   <div class="modal-backdrop" id="mc-backdrop"></div>
@@ -251,11 +271,11 @@
   </div>
 </div>
 
-<script src="js/cards.js?v=20261007-4"></script>
-<script src="js/jokers.js?v=20261007-4"></script>
-<script src="js/consumables.js?v=20261007-4"></script>
-<script src="js/pixelart.js?v=20261007-4"></script>
-<script src="js/audio.js?v=20261007-4"></script>
-<script src="js/game.js?v=20261007-4"></script>
+<script src="js/cards.js?v=20261007-5"></script>
+<script src="js/jokers.js?v=20261007-5"></script>
+<script src="js/consumables.js?v=20261007-5"></script>
+<script src="js/pixelart.js?v=20261007-5"></script>
+<script src="js/audio.js?v=20261007-5"></script>
+<script src="js/game.js?v=20261007-5"></script>
 </body>
 </html>

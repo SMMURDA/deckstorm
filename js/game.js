@@ -399,10 +399,11 @@ function fmtMult(m) { return m % 1 === 0 ? String(m) : m.toFixed(1); }
 // ── play hand ──
 async function playHand() {
   if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
-  if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); return; }
+  if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); shakeEl($("#btn-play")); return; }
   if (S.boss && S.boss.id === "psychic" && S.selected.size !== 5) {
     showToast("The Psychic: must play exactly 5 cards");
     AudioFX.play("error");
+    shakeEl($("#btn-play"));
     return;
   }
   S.animating = true;
@@ -499,7 +500,7 @@ async function playHand() {
 // ── discard ──
 async function discardHand() {
   if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
-  if (S.selected.size === 0 || S.discardsLeft <= 0) { AudioFX.play("error"); return; }
+  if (S.selected.size === 0 || S.discardsLeft <= 0) { AudioFX.play("error"); shakeEl($("#btn-discard")); return; }
   S.animating = true;
   refreshControls();
   AudioFX.play("discard");
@@ -654,6 +655,7 @@ function renderShop() {
         S.jokers.push(j);
         S.offers = S.offers.filter(o => o !== j);
         tile.classList.add("sold");
+        flyTo(tile, "#jokers");
         AudioFX.play("coin");
         renderShop(); renderHud(); renderJokers();
       };
@@ -675,6 +677,7 @@ function renderShop() {
       if (S.money < priceOf(p)) { AudioFX.play("error"); return; }
       S.money -= priceOf(p);
       S.packs = S.packs.filter(o => o !== p);
+      flyTo(tile, "#consumables");
       AudioFX.play("pack");
       openPack(p);
       renderShop(); renderHud();
@@ -699,6 +702,7 @@ function renderShop() {
       S.money -= priceOf(v);
       S.vouchers.add(v.id);
       S.voucherOffer = null;
+      flyTo(tile, ".sidebar");
       AudioFX.play("win");
       showToast(v.name + " active!");
       renderShop(); renderHud();
@@ -727,8 +731,8 @@ function openPack(pack) {
     btn.textContent = noRoom ? "No room" : "Take";
     btn.disabled = noRoom;
     btn.onclick = () => {
-      if (choice.rarity) S.jokers.push(choice);
-      else S.consumables.push(choice);
+      if (choice.rarity) { S.jokers.push(choice); flyTo(tile, "#jokers"); }
+      else { S.consumables.push(choice); flyTo(tile, "#consumables"); }
       AudioFX.play("coin");
       showToast("Got " + choice.name + "!");
       S.packOpen = null;
@@ -833,6 +837,11 @@ function renderJokers() {
   const wrap = $("#jokers");
   wrap.innerHTML = "";
   S.jokers.forEach((j, i) => wrap.appendChild(jokerTile(j, { onClick: () => openJokerModal(j, i) })));
+  for (let i = S.jokers.length; i < MAX_JOKERS; i++) {
+    const slot = document.createElement("div");
+    slot.className = "joker slot-empty";
+    wrap.appendChild(slot);
+  }
   $("#joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
 }
 
@@ -851,6 +860,11 @@ function renderConsumables() {
   const wrap = $("#consumables");
   wrap.innerHTML = "";
   S.consumables.forEach((c, i) => wrap.appendChild(consTile(c, { onClick: () => openConsModal(i) })));
+  for (let i = S.consumables.length; i < MAX_CONS; i++) {
+    const slot = document.createElement("div");
+    slot.className = "joker slot-empty";
+    wrap.appendChild(slot);
+  }
   $("#cons-count").textContent = `${S.consumables.length}/${MAX_CONS}`;
 }
 
@@ -918,6 +932,7 @@ function activateConsumable(idx) {
   S.selected.clear();
   const exact = cons.exact ? "exactly" : "up to";
   $("#target-msg").textContent = `${cons.name}: select ${exact} ${cons.needs} card${cons.needs > 1 ? "s" : ""}`;
+  $("#target-icon").innerHTML = iconSVG(cons.id);
   $("#target-bar").hidden = false;
   renderHand();
   refreshControls();
@@ -937,6 +952,10 @@ function renderBossBanner() {
 function renderHud(skipScore) {
   $("#hud-ante").textContent = S.ante + "/8";
   $("#hud-blind").textContent = blindName();
+  const badge = $("#blind-badge");
+  const kind = S.blindIndex === 0 ? "small" : S.blindIndex === 1 ? "big" : "boss";
+  badge.className = "blind-badge blind-" + kind;
+  badge.innerHTML = iconSVG(kind === "boss" ? "death" : kind === "big" ? "blind_big" : "blind_small");
   $("#hud-target").textContent = blindTarget().toLocaleString();
   if (!skipScore) $("#hud-score").textContent = S.roundScore.toLocaleString();
   $("#score-bar-fill").style.width = Math.min(100, S.roundScore / blindTarget() * 100) + "%";
@@ -944,6 +963,7 @@ function renderHud(skipScore) {
   $("#hud-discards").textContent = S.discardsLeft;
   $("#hud-money").textContent = "$" + S.money;
   $("#hud-deck").textContent = S.deck.length;
+  flashMoneyIfChanged();
 }
 
 function renderPreview() {
@@ -1027,6 +1047,45 @@ function renderHandsScreen() {  const tbl = $("#hands-levels");
 }
 
 // ── fx helpers ──
+function flyTo(sourceEl, targetSel) {
+  if (!settings.anim || !sourceEl) return;
+  const t = document.querySelector(targetSel);
+  if (!t) return;
+  const a = sourceEl.getBoundingClientRect(), b = t.getBoundingClientRect();
+  const ghost = sourceEl.cloneNode(true);
+  ghost.classList.add("fly-ghost");
+  Object.assign(ghost.style, {
+    position: "fixed", left: a.left + "px", top: a.top + "px",
+    width: a.width + "px", zIndex: 98, margin: 0, pointerEvents: "none",
+  });
+  document.body.appendChild(ghost);
+  requestAnimationFrame(() => {
+    ghost.style.transition = "transform .5s cubic-bezier(.22,1,.36,1), opacity .5s ease";
+    ghost.style.transform = `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(.25)`;
+    ghost.style.opacity = "0.25";
+  });
+  setTimeout(() => ghost.remove(), 600);
+}
+
+function shakeEl(el) {
+  if (!el) return;
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+  setTimeout(() => el.classList.remove("shake"), 400);
+}
+
+let prevMoney = null;
+function flashMoneyIfChanged() {
+  if (prevMoney !== null && S.money !== prevMoney) {
+    ["#hud-money", "#shop-money"].forEach(sel => {
+      const el = $(sel);
+      if (el) { el.classList.remove("flash-gold"); void el.offsetWidth; el.classList.add("flash-gold"); }
+    });
+  }
+  prevMoney = S.money;
+}
+
 function setPlayedInfo(html) {
   const el = $("#played-info");
   el.innerHTML = html;
@@ -1074,7 +1133,11 @@ $("#btn-discard").onclick = discardHand;
 $("#btn-sort-rank").onclick = () => { sortMode = "rank"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-sort-suit").onclick = () => { sortMode = "suit"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-next").onclick = nextBlind;
-$("#btn-hands").onclick = () => { AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
+$("#btn-menu").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
+$("#nav-resume").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = true; };
+$("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
+$("#nav-hands").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
+$("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
 $("#btn-target-use").onclick = confirmTarget;
 $("#btn-target-cancel").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
@@ -1090,7 +1153,6 @@ $("#btn-reroll").onclick = () => {
 };
 $("#btn-retry").onclick = () => { AudioFX.play("click"); newRun(); };
 $("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
-$("#btn-abandon").onclick = () => { AudioFX.play("click"); showScreen("menu"); };
 document.querySelectorAll("[data-back]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 document.querySelectorAll(".coll-tab").forEach(b =>

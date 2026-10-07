@@ -191,6 +191,7 @@ Object.entries(ICONS).forEach(([id, grid]) => {
   if (badChars.length) { fails++; console.log(`FAIL icon ${id}: unknown chars ${badChars.join("")}`); }
 });
 eq("all icons render to svg", needIcons.every(id => iconSVG(id).startsWith("<svg")), true);
+["blind_small", "blind_big"].forEach(id => eq(`icon exists: ${id}`, !!ICONS[id], true));
 
 console.log(fails ? `\n${fails} FAILURES` : "\nALL PASS");
 process.exit(fails ? 1 : 0);

@@ -827,6 +827,28 @@ const ICONS = {
     ".DWWWWWWWD.",
     "..DDDDDDD..",
   ],
+
+  // ─── BLIND BADGES ───
+  blind_small: [
+    "...GGG...",
+    "..GGGGG..",
+    ".GGGGGGG.",
+    ".GGKGKGG.",
+    ".GGGGGGG.",
+    "..GGGGG..",
+    "...GGG...",
+  ],
+  blind_big: [
+    "...OOOOO...",
+    "..OOOOOOO..",
+    ".OOKKKKKOO.",
+    ".OOKGGGKOO.",
+    ".OOKGKOKOO.",
+    ".OOKGGGKOO.",
+    ".OOKKKKKOO.",
+    "..OOOOOOO..",
+    "...OOOOO...",
+  ],
 };
 
 function iconSVG(id) {
