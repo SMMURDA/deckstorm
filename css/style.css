@@ -17,6 +17,8 @@
   --font-px: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
   --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
   --font-pixel: "Press Start 2P", ui-monospace, monospace;
+  /* Balatro-style score/multiplier face */
+  --font-score: "Silkscreen", "Press Start 2P", ui-monospace, monospace;
   --btn-line: #6a5f95;
   /* soft accent glows used for panel outlines */
   --glow-pink:  rgba(252,132,252,.45);
@@ -200,12 +202,18 @@ body {
   min-height: 46px;
   flex-wrap: wrap;
 }
-.preview-name { font-family: var(--font-px); font-size: 10px; color: var(--pink); }
-.preview-level { font-size: 15px; color: var(--muted); }
-.preview-score { font-size: 26px; line-height: 1; }
-.preview-score #preview-chips { color: var(--blue); }
-.preview-score #preview-mult { color: var(--red); }
-.px-mult { color: var(--muted); margin: 0 8px; }
+.preview-name { font-family: var(--font-px); font-size: 11px; font-weight: 700; color: var(--pink); letter-spacing: .02em; }
+.preview-level { font-family: var(--font-score); font-size: 13px; color: var(--muted); }
+.preview-score {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--font-score); font-size: 20px; line-height: 1;
+  padding: 4px 12px; border-radius: 10px;
+  background: rgba(0,0,0,.38);
+  border: 1px solid rgba(255,255,255,.13);
+}
+.preview-score #preview-chips { color: var(--blue); text-shadow: 0 0 10px rgba(94,200,248,.45); }
+.preview-score #preview-mult { color: var(--red); text-shadow: 0 0 10px rgba(255,93,115,.45); }
+.px-mult { color: var(--muted); font-size: .75em; margin: 0; }
 
 .stats-panel { display: flex; flex-direction: column; gap: 6px; }
 .stat { display: flex; justify-content: space-between; font-size: 21px; }
@@ -235,10 +243,14 @@ body {
 .joker.j-common { border-color: #8E87A8; }
 .joker.j-uncommon { border-color: var(--pink); }
 .joker.j-uncommon b { color: var(--pink); }
-.joker.flash { animation: jokerFlash .45s steps(3); }
+/* smooth (not steppy) so the player can clearly see WHICH joker fired */
+.joker.flash { animation: jokerFlash .5s cubic-bezier(.34,1.3,.5,1); }
+/* while the scoring sequence runs, dim the jokers that are NOT firing */
+#jokers.flashing .joker:not(.flash) { opacity: .45; }
 @keyframes jokerFlash {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.12); border-color: var(--gold); filter: drop-shadow(0 0 14px rgba(252,228,12,.8)); }
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.14); border-color: var(--gold); filter: drop-shadow(0 0 16px rgba(252,228,12,.85)); }
+  60%  { transform: scale(1.04); border-color: var(--gold); filter: drop-shadow(0 0 10px rgba(252,228,12,.5)); }
   100% { transform: scale(1); }
 }
 .jpop {
@@ -265,9 +277,9 @@ body {
   font-family: var(--font-px); font-size: 11px; color: var(--ink);
   margin-bottom: 8px;
 }
-.played-info .pi-name { color: var(--pink); margin-right: 12px; }
-.played-info .pi-chips { color: var(--blue); }
-.played-info .pi-mult { color: var(--red); }
+.played-info .pi-name { color: var(--pink); margin-right: 12px; font-family: var(--font-px); font-weight: 700; }
+.played-info .pi-chips { color: var(--blue); font-family: var(--font-score); font-size: 17px; }
+.played-info .pi-mult { color: var(--red); font-family: var(--font-score); font-size: 17px; }
 .played-info.show { animation: popIn .25s steps(4) both; }
 @keyframes popIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
 
@@ -457,7 +469,7 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
   padding: 6px;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
 }
-.joker.clickable { cursor: pointer; transition: transform .12s ease, border-color .12s ease; }
+.joker.clickable { cursor: pointer; transition: transform .12s ease, border-color .12s ease, opacity .2s ease; }
 .joker.clickable:hover { transform: translateY(-3px); border-color: var(--pink); }
 .tile-icon {
   width: 100%; height: 52px;
@@ -479,12 +491,17 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 /* ── v3: card detail modal ── */
 .modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; }
 .modal[hidden] { display: none; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(6,5,10,.72); backdrop-filter: blur(2px); }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(6,5,10,.72); backdrop-filter: blur(2px); animation: fadeIn .24s ease both; }
 .modal-panel {
   position: relative; z-index: 1;
   width: min(320px, 92vw);
   text-align: center;
-  animation: popIn .18s steps(3) both;
+  animation: modalIn .3s cubic-bezier(.22,1.4,.36,1) both;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(14px) scale(.9); }
+  to   { opacity: 1; transform: none; }
 }
 .mc-icon {
   width: 110px; height: 110px; margin: 0 auto 14px;
@@ -721,6 +738,7 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   border: 2px solid var(--glow-pink);
   border-radius: 14px;
   padding: 10px;
+  margin-bottom: 6px;   /* keeps the gap when the boss banner is hidden */
   box-shadow: 0 0 14px rgba(252,132,252,.12), inset 0 0 20px rgba(0,0,0,.25);
   filter: none !important;
 }
@@ -744,6 +762,7 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .blind-info { flex: 1; display: flex; flex-direction: column; }
 .score-at-least { font-size: 14px; color: var(--muted); }
 #hud-target {
+  font-family: var(--font-score);
   font-size: 28px; line-height: 1;
   color: #ff6b6b;
   text-shadow: 2px 2px 0 rgba(0,0,0,.5);
@@ -768,7 +787,7 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   border-top: 1px solid rgba(255,255,255,.12);
 }
 .round-score-row span { color: var(--muted); font-size: 13px; }
-.round-score-row b { font-size: 28px; color: var(--blue); line-height: 1; text-shadow: 0 0 12px rgba(94,200,248,.35); }
+.round-score-row b { font-family: var(--font-score); font-size: 26px; color: var(--blue); line-height: 1; text-shadow: 0 0 12px rgba(94,200,248,.35); }
 
 /* stats 2×3 grid — boxed card matching the blind panel */
 .stats-panel {
@@ -1093,9 +1112,10 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .blind-panel {
     display: flex !important; flex-direction: row !important;
     align-items: center !important;
-    gap: 5px !important; padding: 2px 6px !important;
+    gap: 5px !important; padding: 2px 6px 7px !important;
     border: 1px solid var(--glow-pink) !important; border-radius: 10px !important;
     background: rgba(252,132,252,.08) !important;
+    overflow: hidden !important;
     width: auto !important;
     flex: 0 0 auto !important;
   }
@@ -1111,7 +1131,13 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .score-at-least { display: none !important; }
   #hud-target { font-size: 14px !important; display: inline !important; color: #ff8f8f !important; }
   .earn-line { display: none !important; }
-  .score-bar { display: none !important; }
+  /* progress bar lives on the bottom edge of the score box — visible in portrait too */
+  .score-bar {
+    display: block !important;
+    position: absolute !important; left: 0; right: 0; bottom: 0;
+    height: 4px !important; margin: 0 !important;
+    border: none !important; border-radius: 0 !important;
+  }
 
   /* in portrait the blind panel itself is the box, so drop the inner one */
   .score-stack { display: contents !important; }
@@ -1419,7 +1445,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .blind-info { flex-direction: column !important; align-items: flex-start !important; gap: 0 !important; }
   #hud-target { font-size: 16px !important; }
   .earn-line { font-size: 11px !important; }
-  .score-bar { height: 5px !important; margin: 5px 0 3px !important; display: block !important; }
+  .score-bar { position: static !important; height: 5px !important; margin: 5px 0 3px !important; display: block !important; border-radius: 4px !important; }
   .round-score-row { flex-direction: row !important; justify-content: space-between !important;
                      align-items: baseline !important; padding: 0 !important; }
   .round-score-row span { font-size: 10px !important; }
@@ -1445,7 +1471,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     display: block !important; width: calc(100% - 10px) !important;
     margin: 3px 5px 0 !important; font-size: 8px !important; padding: 6px !important;
   }
-  #btn-menu-compact, #btn-menu { display: none !important; }
+  #btn-menu-compact { display: none !important; }   /* keep the real Options button in landscape */
 
   /* felt: tighter */
   #screen-game .felt-table { gap: 3px !important; padding: 5px 7px !important; }

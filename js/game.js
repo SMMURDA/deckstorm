@@ -472,22 +472,26 @@ async function playHand() {
   if (result.debuffedCount) showToast(`${result.debuffedCount} card(s) debuffed by ${S.boss.name}`);
   await wait(t ? 350 : 30);
 
-  // joker flashes
+  // joker flashes — one joker at a time, slowly, so it's obvious which one fired
+  const jwrap = $("#jokers");
+  if (jwrap) jwrap.classList.add("flashing");
   for (const f of result.flashes) {
     const tile = document.querySelectorAll("#jokers .joker")[f.idx];
     if (tile) {
       tile.classList.remove("flash");
       void tile.offsetWidth;
       tile.classList.add("flash");
+      setTimeout(() => tile.classList.remove("flash"), 700);
       const pop = document.createElement("span");
       pop.className = "jpop";
       pop.textContent = f.label;
       tile.appendChild(pop);
-      setTimeout(() => pop.remove(), 950);
+      setTimeout(() => pop.remove(), 1000);
       AudioFX.play("joker");
     }
-    await wait(t ? 160 : 0);
+    await wait(t ? 400 : 0);
   }
+  if (jwrap) jwrap.classList.remove("flashing");
 
   // score
   const prevScore = S.roundScore;
