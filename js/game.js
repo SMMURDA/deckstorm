@@ -551,7 +551,7 @@ function clickConsumable(idx) { openConsModal(idx); }
 function cancelTarget() {
   S.targetMode = null;
   S.selected.clear();
-  $("#target-bar").hidden = true;
+  document.body.classList.remove("targeting");
   renderHand();
   refreshControls();
 }
@@ -566,7 +566,7 @@ function confirmTarget() {
     S.consumables.splice(tm.idx, 1);
     S.targetMode = null;
     S.selected.clear();
-    $("#target-bar").hidden = true;
+    document.body.classList.remove("targeting");
     renderAll();
   }
 }
@@ -933,12 +933,11 @@ function activateConsumable(idx) {
     }
     return;
   }
-  // targeted tarot: enter aiming mode
+  // targeted tarot: enter aiming mode (hand glows, toast guides)
   S.targetMode = { cons, idx };
   S.selected.clear();
-  $("#target-msg").textContent = `${cons.name}: pick ${cons.needs} card${cons.needs > 1 ? "s" : ""} — auto-applies`;
-  $("#target-icon").innerHTML = iconSVG(cons.id);
-  $("#target-bar").hidden = false;
+  document.body.classList.add("targeting");
+  showToast(`${cons.name}: pick ${cons.needs} card${cons.needs > 1 ? "s" : ""} — auto-applies · tap again to cancel`);
   renderHand();
   refreshControls();
 }

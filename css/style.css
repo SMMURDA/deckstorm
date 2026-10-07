@@ -383,16 +383,6 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .boss-banner b { display: block; font-family: var(--font-px); font-size: 8px; color: var(--red); margin-bottom: 4px; }
 .boss-banner span { font-size: 16px; line-height: 1.25; color: #D8CFE8; }
 
-/* ── v2: target bar (tarot aiming) ── */
-.target-bar {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  background: rgba(252,228,12,.08);
-  border: 2px solid var(--gold);
-  border-radius: 8px;
-  padding: 8px 14px;
-  margin-bottom: 10px;
-  font-size: 19px;
-}
 
 /* ── v2: card enhancements ── */
 .card.enh-bonus { box-shadow: inset 0 -6px 0 rgba(94,200,248,.45); }
@@ -583,13 +573,12 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
   height: 100%; color: rgba(255,255,255,.14); font-size: 24px;
 }
 
-/* ── v5: target bar polish ── */
-.target-bar {
-  animation: bossIn .3s steps(4) both;
-  border-width: 3px;
+/* ── v8: tarot targeting = glowing hand, no bar ── */
+body.targeting .card { animation: targetPulse 1.2s ease-in-out infinite; }
+@keyframes targetPulse {
+  0%,100% { border-color: var(--card-ink); filter: drop-shadow(4px 4px 0 rgba(0,0,0,.4)); }
+  50% { border-color: var(--gold); filter: drop-shadow(0 0 10px rgba(252,228,12,.55)); }
 }
-.target-icon { display: inline-flex; width: 30px; height: 30px; }
-.target-icon svg { width: 30px; height: 30px; }
 
 /* ── v5: fx ── */
 .fly-ghost { filter: drop-shadow(0 0 12px rgba(252,228,12,.6)); }

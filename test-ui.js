@@ -193,16 +193,15 @@ DS.settings.sound = false;
   await sleep(30);
   $("#mc-use").click();
   await sleep(30);
-  ok("target bar appears", $("#target-bar").hidden === false);
-  ok("target bar shows tarot icon", !!$("#target-icon svg"));
-  ok("no Use/Cancel/X buttons in target bar", !$("#btn-target-use") && !$("#btn-target-cancel") && !$("#btn-target-x"));
+  ok("no target bar element at all", !$("#target-bar"));
+  ok("hand glows while targeting", document.body.classList.contains("targeting"));
   // cancel by re-clicking the same consumable (modal shows Cancel Targeting)
   $$("#consumables .joker:not(.slot-empty)")[0].click();
   await sleep(30);
   ok("modal offers Cancel Targeting", $("#mc-use").textContent === "Cancel Targeting");
   $("#mc-use").click();
   await sleep(30);
-  ok("targeting cancelled via re-click", $("#target-bar").hidden === true && DS.S.targetMode === null);
+  ok("targeting cancelled via re-click", !document.body.classList.contains("targeting") && DS.S.targetMode === null);
   // re-enter and apply for real
   $$("#consumables .joker:not(.slot-empty)")[0].click();
   await sleep(30);
@@ -211,7 +210,7 @@ DS.settings.sound = false;
   $$("#hand .card")[2].click(); // needs=1 -> auto-applies
   await sleep(30);
   ok("tarot applied -> steel", DS.S.hand[2].enhancement === "steel");
-  ok("target bar hidden after use", $("#target-bar").hidden === true);
+  ok("targeting cleared after use", !document.body.classList.contains("targeting"));
   ok("tarotsUsed tracked", DS.S.stats.tarotsUsed === 1);
 
   // 11b. autosave captured mid-run
