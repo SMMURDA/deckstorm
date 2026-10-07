@@ -403,19 +403,21 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .boss-banner-body { flex: 1; min-width: 0; }
 .boss-banner b { display: block; font-family: var(--font-px); font-size: 12px; color: #DCC9FF; margin-bottom: 2px; }
 .boss-banner span { font-size: 14px; line-height: 1.25; color: #CDBEE6; }
-/* boss art — brighter, framed and clearly pulsing so it reads at a glance */
+/* boss art — LIGHT disc: 6 of the 10 boss icons are drawn in near-black (#2B2B3A),
+   so on the dark violet banner they were invisible. A bright disc makes every
+   icon read, and the pulse is deliberately obvious. */
 .boss-banner-art {
-  flex: none; width: 46px; height: 46px;
+  flex: none; width: 48px; height: 48px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 13px;
-  background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.22), rgba(124,58,237,.45) 70%);
-  border: 1px solid rgba(196,181,253,.55);
-  animation: bossArtPulse 2.1s ease-in-out infinite;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #FFFFFF 0%, #D9CEFF 100%);
+  border: 2px solid #C4B5FD;
+  animation: bossArtPulse 2s ease-in-out infinite;
 }
-.boss-banner-art svg { width: 32px; height: 32px; display: block; filter: drop-shadow(0 0 5px rgba(255,255,255,.4)) saturate(1.35); }
+.boss-banner-art svg { width: 72%; height: 72%; display: block; }
 @keyframes bossArtPulse {
-  0%, 100% { transform: scale(1);    box-shadow: 0 0 12px rgba(167,139,250,.45), inset 0 0 10px rgba(0,0,0,.35); }
-  50%      { transform: scale(1.09); box-shadow: 0 0 26px rgba(216,196,255,.9),  inset 0 0 10px rgba(0,0,0,.25); }
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 10px rgba(167,139,250,.55), inset 0 0 8px rgba(124,58,237,.12); }
+  50%      { transform: scale(1.12); box-shadow: 0 0 30px rgba(228,214,255,1),  inset 0 0 8px rgba(124,58,237,.04); }
 }
 
 
@@ -465,20 +467,21 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .ed-tag.ed-holo { background: rgba(255,93,115,.22); color: var(--red); border-color: rgba(255,93,115,.45); }
 .ed-tag.ed-poly { background: rgba(252,228,12,.22); color: var(--gold); border-color: rgba(252,228,12,.45); }
 
-/* rarity / type chip — always visible on the tile, no click needed */
+/* rarity / type chip — SOLID fill so it can't be missed on the dark tile */
 .tile-rarity {
-  font-family: var(--font-px); font-size: 9px; font-weight: 700; line-height: 1;
-  letter-spacing: .05em; text-transform: capitalize;
-  padding: 1px 7px; border-radius: 999px;
-  background: rgba(255,255,255,.08); color: var(--muted);
+  font-family: var(--font-px); font-size: 9px; font-weight: 800; line-height: 1;
+  letter-spacing: .03em; text-transform: capitalize;
+  padding: 2px 8px; border-radius: 999px;
+  background: #C6BFE0; color: #17141F;
+  box-shadow: 0 1px 0 rgba(0,0,0,.4);
 }
-.tile-rarity.rar-common   { color: #C6BFE0; background: rgba(198,191,224,.15); }
-.tile-rarity.rar-uncommon { color: var(--pink); background: rgba(252,132,252,.18); }
-.tile-rarity.rar-rare     { color: var(--gold); background: rgba(252,228,12,.18); }
-.tile-rarity.kind-planet  { color: var(--blue); background: rgba(94,200,248,.18); }
-.tile-rarity.kind-tarot   { color: var(--gold); background: rgba(252,228,12,.18); }
-.tile-rarity.kind-voucher { color: var(--pink); background: rgba(252,132,252,.18); }
-.tile-rarity.kind-pack    { color: var(--green); background: rgba(124,230,178,.18); }
+.tile-rarity.rar-common   { background: #C6BFE0; color: #17141F; }
+.tile-rarity.rar-uncommon { background: var(--pink); color: #2A0E26; }
+.tile-rarity.rar-rare     { background: var(--gold); color: #2A2200; }
+.tile-rarity.kind-planet  { background: var(--blue); color: #04212E; }
+.tile-rarity.kind-tarot   { background: var(--gold); color: #2A2200; }
+.tile-rarity.kind-voucher { background: var(--pink); color: #2A0E26; }
+.tile-rarity.kind-pack    { background: var(--green); color: #052018; }
 .joker.ed-foil { box-shadow: inset 0 0 0 2px rgba(94,200,248,.35); }
 .joker.ed-holo { box-shadow: inset 0 0 0 2px rgba(255,93,115,.35); }
 .joker.ed-poly { box-shadow: inset 0 0 0 2px rgba(252,228,12,.35); }
@@ -1141,7 +1144,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
                           width: 100% !important; max-width: 100% !important; min-width: 100% !important;
                           box-sizing: border-box !important; margin: 4px 0 8px !important; border-radius: 12px !important; }
   .boss-banner:not([hidden]) { display: flex !important; }
-  .boss-banner-art { width: 32px !important; height: 32px !important; }
+  .boss-banner-art { width: 34px !important; height: 34px !important; border-radius: 10px !important; }
   .boss-banner b { font-size: 10px !important; }
   .boss-banner span { font-size: 12px !important; }
 
@@ -1607,8 +1610,8 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   #screen-game .tile-icon { height: 26px !important; }
   #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
-  #screen-game .tile-name { font-size: 7px !important; min-height: 1.3em !important; line-height: 1.15 !important; }
-  #screen-game .tile-rarity { font-size: 7px !important; padding: 1px 5px !important; }
+  #screen-game .tile-name { font-size: 7.5px !important; min-height: 1.3em !important; line-height: 1.15 !important; }
+  #screen-game .tile-rarity { font-size: 7.5px !important; padding: 2px 6px !important; }
   #screen-game .joker .ed-tag { font-size: 5.5px !important; top: 2px !important; right: 2px !important; padding: 1px 3px !important; }
   #screen-game .slot-empty { min-height: 44px !important; }
 
