@@ -14,9 +14,14 @@
   --blue: #5EC8F8;
   --cream: #F7F1E3;
   --card-ink: #26232E;
-  --font-px: "Press Start 2P", monospace;
-  --font-body: "VT323", "Courier New", monospace;
+  --font-px: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
   --btn-line: #6a5f95;
+  /* soft accent glows used for panel outlines */
+  --glow-pink:  rgba(252,132,252,.45);
+  --glow-blue:  rgba(94,200,248,.42);
+  --glow-green: rgba(124,230,178,.42);
+  --glow-gold:  rgba(252,228,12,.42);
 }
 
 * { box-sizing: border-box; }
@@ -62,6 +67,7 @@ body {
   margin: 0 0 18px;
   text-align: center;
   letter-spacing: .04em;
+  color: var(--pink);
 }
 .c-pink { color: var(--pink); } .c-gold { color: var(--gold); } .c-red { color: var(--red); }
 
@@ -203,7 +209,7 @@ body {
 .joker-strip { margin-bottom: 12px; }
 .strip-label {
   display: flex; justify-content: space-between;
-  font-family: var(--font-px); font-size: 8px; color: var(--muted);
+  font-family: var(--font-px); font-size: 10px; color: var(--muted);
   margin-bottom: 8px; letter-spacing: .1em;
 }
 .jokers { display: flex; gap: 8px; flex-wrap: wrap; min-height: 66px; }
@@ -218,7 +224,7 @@ body {
 }
 .joker-head { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .joker-head svg { width: 14px; height: 14px; flex: none; }
-.joker b { font-family: var(--font-px); font-size: 7.5px; line-height: 1.5; word-break: break-word; }
+.joker b { font-family: var(--font-px); font-size: 9px; line-height: 1.35; word-break: break-word; }
 .joker .jdesc { display: block; font-size: 16px; line-height: 1.15; color: var(--muted); }
 .joker.j-common { border-color: #8E87A8; }
 .joker.j-uncommon { border-color: var(--pink); }
@@ -430,7 +436,7 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 }
 .tile-icon svg { width: 40px; height: 40px; }
 .tile-name {
-  font-family: var(--font-px); font-size: 7px; line-height: 1.6;
+  font-family: var(--font-px); font-size: 9px; line-height: 1.35;
   text-align: center; color: var(--ink);
   min-height: 2.4em;
   display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
@@ -675,13 +681,16 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   padding: 8px;
 }
 
-/* blind panel — boxed card like the Options / Run Info buttons */
+/* blind panel (round-score area) — soft tinted box with a clearly visible border */
 .blind-panel {
   position: relative;
-  background: linear-gradient(180deg, #2a1f40 0%, #1a1528 100%);
-  border: 2px solid var(--line);
-  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(252,132,252,.12) 0%, rgba(94,200,248,.07) 100%),
+    var(--sb-panel);
+  border: 2px solid var(--glow-pink);
+  border-radius: 14px;
   padding: 10px;
+  box-shadow: 0 0 14px rgba(252,132,252,.12), inset 0 0 20px rgba(0,0,0,.25);
   filter: none !important;
 }
 .blind-title {
@@ -716,10 +725,14 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 
 .round-score-row {
   display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 14px; padding-top: 4px;
+  font-size: 14px;
+  margin-top: 8px; padding: 6px 10px;
+  border: 1px solid var(--glow-blue);
+  border-radius: 10px;
+  background: rgba(94,200,248,.10);
 }
-.round-score-row span { color: var(--muted); font-size: 13px; }
-.round-score-row b { font-size: 28px; color: var(--blue); line-height: 1; }
+.round-score-row span { color: #B9D9EE; font-size: 13px; }
+.round-score-row b { font-size: 28px; color: var(--blue); line-height: 1; text-shadow: 0 0 12px rgba(94,200,248,.35); }
 
 /* stats 2×3 grid — boxed card matching the blind panel */
 .stats-panel {
@@ -728,23 +741,38 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   gap: 6px;
   padding: 8px;
   background: var(--sb-panel);
-  border: 2px solid var(--line);
-  border-radius: 12px;
+  border: 2px solid var(--glow-blue);
+  border-radius: 14px;
+  box-shadow: 0 0 14px rgba(94,200,248,.10), inset 0 0 20px rgba(0,0,0,.25);
   filter: none !important;
 }
 .stat-box {
   display: flex; flex-direction: column; align-items: center;
   padding: 6px 4px 5px;
-  background: rgba(0,0,0,.3);
-  border: 1px solid var(--sb-border);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.13);
   border-radius: 10px;
   gap: 3px;
 }
+.stat-hands    { border-color: var(--glow-blue);  background: rgba(94,200,248,.10); }
+.stat-discards { border-color: rgba(255,93,115,.45); background: rgba(255,93,115,.10); }
+.stat-money    { border-color: var(--glow-gold);  background: rgba(252,228,12,.10); }
 .stat-box span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .stat-box b { font-size: 20px; line-height: 1; }
 .stat-hands b { color: var(--blue); }
 .stat-discards b { color: var(--red); }
 .stat-money b { color: var(--gold); }
+
+/* topup.eu.org logo — sits between the round score and the HUD buttons */
+.hud-logo { display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.hud-logo img {
+  display: block; width: 30px; height: 30px; border-radius: 9px;
+  box-shadow: 0 0 0 2px var(--glow-pink), 3px 3px 0 rgba(0,0,0,.45), 0 0 14px rgba(252,132,252,.22);
+}
+
+/* strip titles get their own accent colour */
+.strips-row .joker-strip:not(.strip-right) .strip-label > span:first-child { color: var(--pink); }
+.strips-row .strip-right .strip-label > span:first-child { color: var(--green); }
 
 /* Run Info + Options are grouped so they always stay paired */
 .hud-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; }
@@ -1006,29 +1034,34 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     overflow: visible !important;
     position: static !important;
   }
-  /* HUD row 1 = blind info + [Options][Run Info] · row 2 = boss banner · row 3 = stats */
+  /* HUD row 1 = [blind + round score] · logo (centre) · [Options][Run Info] (right corner)
+     row 2 = boss banner · row 3 = stats */
   .blind-panel          { order: 1 !important; flex: 0 0 auto !important; flex-wrap: wrap !important; }
-  .hud-buttons          { order: 2 !important; flex-direction: row !important; align-items: center !important;
+  .hud-logo             { order: 2 !important; margin: 0 auto !important; }
+  .hud-logo img         { width: 26px !important; height: 26px !important; }
+  .hud-buttons          { order: 3 !important; flex-direction: row !important; align-items: center !important;
                           gap: 3px !important; width: auto !important; flex: 0 0 auto !important;
                           align-self: center !important; }
   #btn-menu             { order: 1 !important; }
   #btn-run-info         { order: 2 !important; }
   /* the banner always owns a full row and can never be shrunk away */
-  .boss-banner          { order: 3 !important; flex: 0 0 100% !important;
+  .boss-banner          { order: 4 !important; flex: 0 0 100% !important;
                           width: 100% !important; max-width: 100% !important; min-width: 100% !important;
                           box-sizing: border-box !important; margin: 2px 0 0 !important; border-radius: 12px !important; }
   .boss-banner:not([hidden]) { display: block !important; }
 
-  /* blind panel: inline group (title + badge + target + reward) */
+  /* blind panel: inline group (title + badge + target + reward) in a soft box */
   .blind-panel {
     display: flex !important; flex-direction: row !important;
     align-items: center !important;
-    gap: 5px !important; padding: 0 !important;
-    border: none !important; width: auto !important;
+    gap: 5px !important; padding: 2px 6px !important;
+    border: 1px solid var(--glow-pink) !important; border-radius: 10px !important;
+    background: rgba(252,132,252,.08) !important;
+    width: auto !important;
     flex: 0 0 auto !important;
   }
   .blind-title {
-    font-size: 5px !important; padding: 2px 4px !important;
+    font-size: 7px !important; padding: 2px 5px !important;
     margin: 0 !important; white-space: nowrap !important;
     position: static !important; transform: none !important;
   }
@@ -1037,7 +1070,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .blind-badge svg { width: 15px !important; height: 15px !important; }
   .blind-info { display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 3px !important; flex: 0 0 auto !important; }
   .score-at-least { display: none !important; }
-  #hud-target { font-size: 13px !important; display: inline !important; color: #ff8f8f !important; }
+  #hud-target { font-size: 14px !important; display: inline !important; color: #ff8f8f !important; }
   .earn-line { display: none !important; }
   .score-bar { display: none !important; }
 
@@ -1048,12 +1081,12 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     padding: 0 !important; margin: 0 !important;
     border: none !important; flex: 0 0 auto !important;
   }
-  .round-score-row span { font-size: 6.5px !important; }
-  .round-score-row b { font-size: 15px !important; }
+  .round-score-row span { font-size: 8px !important; }
+  .round-score-row b { font-size: 16px !important; }
 
   /* stats: tidy 3x2 grid on its own row below the boss banner */
   #screen-game .stats-panel {
-    order: 4 !important;
+    order: 5 !important;
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     grid-template-rows: repeat(2, 1fr) !important;
@@ -1070,14 +1103,14 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     border-radius: 6px !important; min-width: 0 !important;
     flex: unset !important;
   }
-  .stat-box span { font-size: 6px !important; line-height: 1.1 !important; letter-spacing: 0 !important; }
-  .stat-box b { font-size: 12.5px !important; line-height: 1.1 !important; }
+  .stat-box span { font-size: 7px !important; line-height: 1.1 !important; letter-spacing: 0 !important; }
+  .stat-box b { font-size: 13px !important; line-height: 1.1 !important; }
 
   /* Options + Run Info: compact, always paired on the round-score row */
   .btn-run, .btn-options {
     display: block !important;
     width: auto !important; margin: 0 !important;
-    font-size: 6px !important; padding: 4px 5px !important;
+    font-size: 7px !important; padding: 4px 6px !important;
     flex: 0 0 auto !important;
     align-self: center !important;
   }
@@ -1099,7 +1132,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     flex-shrink: 0 !important; align-items: stretch !important;
   }
   .strips-row .joker-strip { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
-  .strip-label { font-size: 6px !important; margin-bottom: 2px !important; }
+  .strip-label { font-size: 7px !important; margin-bottom: 2px !important; }
   .strip-label .hint { display: none !important; }
 
   /* tiles: 5 across for Jokers, and Consumables use the very same size */
@@ -1465,13 +1498,13 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   #screen-game .tile-icon { height: 26px !important; }
   #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
-  #screen-game .tile-name { font-size: 4.5px !important; min-height: 1.3em !important; line-height: 1.2 !important; }
+  #screen-game .tile-name { font-size: 6px !important; min-height: 1.3em !important; line-height: 1.15 !important; }
   #screen-game .slot-empty { min-height: 44px !important; }
 
   /* ── stats panel tidy: even chips, aligned ── */
   #screen-game .stats-panel { gap: 2px !important; justify-content: space-between !important; }
   .stat-box { padding: 2px 3px !important; border-radius: 6px !important; }
-  .stat-box span { font-size: 6px !important; }
+  .stat-box span { font-size: 7px !important; }
   .stat-box b { font-size: 12.5px !important; }
 
   /* ── ALL pages scrollable in portrait, custom scrollbar ── */
