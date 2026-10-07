@@ -277,7 +277,7 @@ body {
   transition: transform .16s cubic-bezier(.22,1,.36,1), filter .16s ease;
   padding: 0;
 }
-.card:hover { transform: translateY(-8px); }
+@media (hover: hover) and (pointer: fine) { .card:hover { transform: translateY(-8px); } }
 .card.selected {
   transform: translateY(-16px);
   border-color: var(--pink-strong);
@@ -793,22 +793,24 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 }
 #screen-game .felt-table > * { position: relative; z-index: 1; }
 
-/* ── strips row: jokers left, consumables right ── */
+/* ── strips: Consumables row on TOP (right-aligned), Jokers row BELOW (left) ── */
 .strips-row {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   flex-shrink: 0;
 }
-.strips-row .joker-strip { flex: 1; max-width: 48%; margin-bottom: 0; }
+.strips-row .joker-strip { width: 100%; max-width: 100%; margin-bottom: 0; }
+.strips-row .strip-right { order: -1; }                       /* Consumables above the Jokers */
 .strips-row .strip-right .jokers { justify-content: flex-end; }
+.strips-row .strip-right .strip-label { justify-content: flex-end; }
 .strip-label { margin-bottom: 4px; }
 
-/* ── joker/consumable cards smaller on felt ── */
-#screen-game .joker { width: 80px; }
+/* ── joker/consumable tiles on the felt — same width as a playing card ── */
+#screen-game .joker { width: 78px; }
 #screen-game .tile-icon { height: 44px; }
 #screen-game .tile-icon svg { width: 34px; height: 34px; }
-#screen-game .slot-empty { min-height: 74px; width: 80px; }
+#screen-game .slot-empty { min-height: 74px; width: 78px; }
 
 /* ── play area ── */
 .played-zone {
@@ -855,7 +857,14 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 
 /* selected lifts up but keeps its fan angle */
 .hand .card.selected { transform: translateY(calc(var(--ty) - 20px)) rotate(var(--rot)); z-index: 3; }
-.hand .card:hover:not(.selected) { transform: translateY(calc(var(--ty) - 12px)) rotate(var(--rot)); z-index: 2; }
+/* Hover must NOT lift a card. A card that was just deselected is usually still
+   hovered/tapped, so lifting on hover left it standing and covering its
+   neighbours until another card was picked. Hover only brightens now. */
+@media (hover: hover) and (pointer: fine) {
+  .hand .card:hover:not(.selected):not(.debuffed) {
+    filter: drop-shadow(4px 4px 0 rgba(0,0,0,.4)) brightness(1.1);
+  }
+}
 
 /* ── preview: inline row ── */
 .preview-panel {
@@ -959,7 +968,7 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   #screen-game .sidebar { width: 260px; }
   .card { width: 84px !important; height: 116px !important; }
   .card .c-big svg { width: 38px !important; height: 38px !important; }
-  #screen-game .joker { width: 90px; }
+  #screen-game .joker { width: 84px; }
   .deck-pile { width: 80px; height: 112px; }
   #deck-pile-count { font-size: 26px; }
 }
@@ -1084,31 +1093,26 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     display: flex !important; flex-direction: column !important;
   }
 
-  /* strips: jokers left, consumables right — all in one row */
+  /* strips: Consumables row above (right-aligned), Jokers row below */
   .strips-row {
-    display: flex !important; gap: 6px !important;
-    flex-shrink: 0 !important; align-items: flex-start !important;
+    display: flex !important; flex-direction: column !important; gap: 4px !important;
+    flex-shrink: 0 !important; align-items: stretch !important;
   }
-  .strips-row .joker-strip { flex: 1 !important; max-width: 50% !important; overflow: hidden !important; }
+  .strips-row .joker-strip { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
   .strip-label { font-size: 6px !important; margin-bottom: 2px !important; }
   .strip-label .hint { display: none !important; }
 
-  /* joker tiles: auto-fit 5 tiles in ~46% width */
+  /* tiles: 5 across for Jokers, and Consumables use the very same size */
   .jokers {
-    display: flex !important; flex-wrap: wrap !important;
+    display: flex !important; flex-wrap: nowrap !important;
     gap: 3px !important; min-height: unset !important;
-    overflow: hidden !important;
+    overflow: visible !important; max-width: 100% !important;
   }
-  #screen-game .joker { width: calc(20% - 3px) !important; min-width: 44px !important; }
+  #screen-game .joker { width: calc(20% - 3px) !important; min-width: 0 !important; max-width: calc(20% - 3px) !important; }
   #screen-game .tile-icon { height: 32px !important; }
   #screen-game .tile-icon svg { width: 24px !important; height: 24px !important; }
   #screen-game .tile-name { font-size: 5px !important; min-height: 1.4em !important; }
   #screen-game .slot-empty { min-height: 50px !important; }
-  .strips-row .joker-strip .jokers {
-    /* 2 jokers in left column, 1 in right — no overflow */
-    flex-wrap: nowrap !important; overflow: hidden !important;
-    max-width: 100% !important;
-  }
 
   /* played zone */
   .played-zone {
@@ -1156,7 +1160,6 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   #screen-game .hand .card { margin: 0 -6px !important; }
   #screen-game .hand .card.selected { transform: translateY(calc(var(--ty) - 14px)) rotate(var(--rot)) !important; z-index: 3 !important; }
-  #screen-game .hand .card:hover:not(.selected) { transform: translateY(calc(var(--ty) - 8px)) rotate(var(--rot)) !important; }
   .hand-meta { font-size: 11px !important; margin-top: 2px !important; }
 
   /* card sizes */
@@ -1446,9 +1449,9 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
 /* ══ PORTRAIT (≤680px) ══ */
 @media (max-width: 680px) {
 
-  /* ── jokers: 5 tiles always visible, no horizontal scroll ── */
-  .strips-row .joker-strip { flex: 0 0 66% !important; max-width: 66% !important; overflow: visible !important; }
-  .strips-row .strip-right { flex: 0 0 32% !important; max-width: 32% !important; }
+  /* ── Consumables row on top (right), Jokers row below; identical tile size ── */
+  .strips-row .joker-strip { flex: 1 1 auto !important; width: 100% !important; max-width: 100% !important; overflow: visible !important; }
+  .strips-row .strip-right { width: 100% !important; max-width: 100% !important; }
   #screen-game .jokers,
   .strips-row .joker-strip .jokers {
     display: flex !important; flex-wrap: nowrap !important;
@@ -1459,10 +1462,6 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     width: calc(20% - 2px) !important;
     min-width: 0 !important; max-width: calc(20% - 2px) !important;
     padding: 2px !important; gap: 2px !important;
-  }
-  .strips-row .strip-right #screen-game .joker,
-  .strips-row .strip-right .joker {
-    width: calc(50% - 2px) !important; max-width: calc(50% - 2px) !important;
   }
   #screen-game .tile-icon { height: 26px !important; }
   #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
@@ -1533,7 +1532,10 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
 
   /* felt must never overflow: everything shrinkable */
   #screen-game .felt-table { overflow: hidden !important; gap: 3px !important; padding: 4px 6px !important; }
-  #screen-game .strips-row { flex: 0 0 auto !important; }
+  /* landscape: keep the two strips side by side — vertical space is scarce here */
+  #screen-game .strips-row { flex: 0 0 auto !important; flex-direction: row !important; align-items: flex-start !important; }
+  .strips-row .joker-strip { width: auto !important; max-width: 50% !important; }
+  .strips-row .strip-right { order: 0 !important; }
   #screen-game .tray-label { display: none !important; }
   #screen-game .played-zone {
     flex: 1 1 auto !important; min-height: 40px !important; max-height: none !important;
