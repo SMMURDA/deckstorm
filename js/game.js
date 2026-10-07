@@ -1,24 +1,67 @@
-// ═══════════════ DECKSTORM — core game state & UI ═══════════════
+// ═══════════════ DECKSTORM v2 — full Balatro-faithful core ═══════════════
 "use strict";
-const HAND_SIZE = 8, MAX_SELECT = 5, MAX_JOKERS = 5;
-const BASE_HANDS = 4, BASE_DISCARDS = 3;
+const HAND_SIZE = 8, MAX_SELECT = 5, MAX_JOKERS = 5, MAX_CONS = 2;
 const ANTE_TARGETS = [300, 800, 2000, 5000, 11000, 20000, 35000, 50000];
-const BLINDS = [
-  { name: "Small Blind", mult: 1,   reward: 3 },
-  { name: "Big Blind",   mult: 1.5, reward: 4 },
-  { name: "Boss Blind",  mult: 2,   reward: 5 },
-];
 const SUIT_CLASS = { hearts: "red", diamonds: "red", spades: "black", clubs: "black" };
 const $ = s => document.querySelector(s);
 
-// ── pixel-art suits (grid → inline SVG, crisp pixels) ──
+// ── pixel-art suits (fine-grained 11-13px grids → smooth look) ──
 const SUIT_PIXELS = {
-  hearts:   [".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."],
-  diamonds: ["...#...", "..###..", ".#####.", "#######", ".#####.", "..###..", "...#..."],
-  spades:   ["...#...", "..###..", ".#####.", "#######", "#######", "...#...", "..###.."],
-  clubs:    ["..###..", "..###..", "##.#.##", "##.#.##", "..###..", "...#...", "..###.."],
+  hearts: [
+    "..###...###..",
+    ".#####.#####.",
+    "#############",
+    "#############",
+    "#############",
+    ".###########.",
+    "..#########..",
+    "...#######...",
+    "....#####....",
+    ".....###.....",
+    "......#......",
+  ],
+  diamonds: [
+    ".....#.....",
+    "....###....",
+    "...#####...",
+    "..#######..",
+    ".#########.",
+    "###########",
+    ".#########.",
+    "..#######..",
+    "...#####...",
+    "....###....",
+    ".....#.....",
+  ],
+  spades: [
+    "......#......",
+    ".....###.....",
+    "....#####....",
+    "...#######...",
+    "..#########..",
+    ".###########.",
+    "#############",
+    "#############",
+    ".##.#####.##.",
+    "......#......",
+    ".....###.....",
+    "....#####....",
+  ],
+  clubs: [
+    ".....###.....",
+    "....#####....",
+    "....#####....",
+    ".####.#.####.",
+    ".###########.",
+    ".###########.",
+    "..##.###.##..",
+    "......#......",
+    ".....###.....",
+    "....#####....",
+  ],
 };
-const STAR_PIXELS = ["...#...", "..###..", "#######", ".#####.", "..###..", ".#...#."];
+const PLANET_ICON = ["....#....", "...###...", "..#####..", ".#######.", "#########", ".#######.", "..#####..", "...###...", "....#...."];
+const TAROT_ICON = ["..#..", ".###.", "#####", ".###.", "..#.."];
 const SUIT_COLOR = { hearts: "#E23C50", diamonds: "#E23C50", spades: "#2B2B3A", clubs: "#2B2B3A" };
 
 function pixelSVG(grid, fill) {
@@ -31,12 +74,16 @@ function pixelSVG(grid, fill) {
   return `<svg viewBox='0 0 ${w} ${h}' shape-rendering='crispEdges' fill='${fill}' aria-hidden='true'>${rects}</svg>`;
 }
 function suitSVG(suit) { return pixelSVG(SUIT_PIXELS[suit], SUIT_COLOR[suit]); }
-function starSVG(color) { return pixelSVG(STAR_PIXELS, color); }
+function consIcon(kind) {
+  return kind === "planet" ? pixelSVG(PLANET_ICON, "#5EC8F8") : pixelSVG(TAROT_ICON, "#FCE40C");
+}
+function rarityColor(r) { return r === "rare" ? "#FCE40C" : r === "uncommon" ? "#FC84FC" : "#C8C2DC"; }
 
-// ── settings (persisted) ──
+// ── settings (persisted; storage-safe) ──
+const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
 const settings = Object.assign({ sound: true, anim: true },
-  JSON.parse(localStorage.getItem("deckstorm.settings") || "{}"));
-function saveSettings() { localStorage.setItem("deckstorm.settings", JSON.stringify(settings)); }
+  store ? JSON.parse(store.getItem("deckstorm.settings") || "{}") : {});
+function saveSettings() { if (store) store.setItem("deckstorm.settings", JSON.stringify(settings)); }
 function applySettings() {
   AudioFX.enabled = settings.sound;
   document.body.classList.toggle("reduced", !settings.anim);
@@ -49,9 +96,51 @@ function applySettings() {
 // ── state ──
 let S = null;
 let sortMode = "rank";
-
-// ── screen manager ──
 let currentScreen = "menu";
+
+function freshState() {
+  return {
+    ante: 1, blindIndex: 0, money: 4,
+    jokers: [], consumables: [], vouchers: new Set(),
+    deck: [], deckTotal: 52, hand: [], selected: new Set(), freshIds: new Set(),
+    handsLeft: 0, discardsLeft: 0, roundScore: 0,
+    handLevels: {}, // handName -> level
+    stats: { planetsUsed: 0, tarotsUsed: 0, planetCounts: {} },
+    lastConsumable: null,
+    boss: null,
+    phase: "play", animating: false,
+    offers: [], packs: [], voucherOffer: null,
+    rerollCost: 5,
+    targetMode: null, // { cons } while selecting cards for a tarot
+    packOpen: null,   // { pack, choices }
+  };
+}
+function handLevel(name) {
+  return S.handLevels[name === "Royal Flush" ? "Straight Flush" : name] || 1;
+}
+function handValue(name) {
+  const key = name === "Royal Flush" ? "Straight Flush" : name;
+  const base = HAND_BASE[name];
+  const lvl = handLevel(name);
+  if (lvl === 1) return { chips: base.chips, mult: base.mult };
+  const planet = PLANETS.find(p => p.hand === key);
+  return {
+    chips: base.chips + planet.chips * (lvl - 1),
+    mult: base.mult + planet.mult * (lvl - 1),
+  };
+}
+const handSize = () => HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0) + (S.boss && S.boss.id === "manacle" ? -1 : 0);
+const maxHands = () => 4 + (S.vouchers.has("grabber") ? 1 : 0);
+const maxDiscards = () => 3 + (S.vouchers.has("wasteful") ? 1 : 0);
+const interestCap = () => S.vouchers.has("seedmoney") ? 10 : 5;
+const priceOf = item => {
+  let p = item.cost + (item.edition ? EDITIONS[item.edition].priceAdd : 0);
+  if (S.vouchers.has("clearance")) p = Math.ceil(p * 0.75);
+  return p;
+};
+const isBossDebuffed = c => S.boss && S.boss.debuffSuit && c.suit === S.boss.debuffSuit && c.enhancement !== "wild" && c.enhancement !== "stone";
+
+// ── screens ──
 function showScreen(name) {
   currentScreen = name;
   document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
@@ -59,33 +148,52 @@ function showScreen(name) {
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
-// ── run / round flow ──
+// ── run / blind flow ──
 function newRun() {
-  S = {
-    ante: 1, blindIndex: 0, money: 4, jokers: [], offers: [],
-    deck: [], hand: [], selected: new Set(), freshIds: new Set(),
-    handsLeft: 0, discardsLeft: 0, roundScore: 0,
-    phase: "play", animating: false, grosMichelGone: false,
-  };
+  S = freshState();
   sortMode = "rank";
   startBlind();
 }
 
-function blindTarget() { return Math.round(ANTE_TARGETS[S.ante - 1] * BLINDS[S.blindIndex].mult); }
+function blindTarget() {
+  const base = ANTE_TARGETS[S.ante - 1];
+  const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : S.boss.targetMult;
+  return Math.round(base * mult);
+}
+function blindName() {
+  return S.blindIndex === 2 ? S.boss.name : (S.blindIndex === 0 ? "Small Blind" : "Big Blind");
+}
+function blindReward() { return S.blindIndex === 2 ? 5 : S.blindIndex === 1 ? 4 : 3; }
 
 function startBlind() {
   S.phase = "play";
   S.animating = false;
   S.deck = shuffle(buildDeck());
+  S.deckTotal = S.deck.length;
   S.hand = [];
   S.selected.clear();
   S.freshIds.clear();
-  S.handsLeft = BASE_HANDS;
-  S.discardsLeft = BASE_DISCARDS;
+  S.targetMode = null;
   S.roundScore = 0;
+  S.boss = null;
+  if (S.blindIndex === 2) S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
+
+  S.handsLeft = S.boss && S.boss.id === "needle" ? 1 : maxHands();
+  S.discardsLeft = S.boss && S.boss.id === "water" ? 0 : maxDiscards();
+
   drawUp();
+
+  // joker blind-start hooks
+  S.jokers.forEach(j => {
+    if (j.onBlindStart) {
+      const msg = j.onBlindStart(j, S);
+      if (msg) showToast(msg);
+    }
+  });
+
   $("#played-zone").innerHTML = "";
   setPlayedInfo("");
+  renderBossBanner();
   showScreen("game");
   renderAll();
 }
@@ -104,7 +212,8 @@ function nextBlind() {
 
 // ── drawing / sorting ──
 function drawUp() {
-  const need = HAND_SIZE - S.hand.length;
+  const need = handSize() - S.hand.length;
+  if (need <= 0) return;
   const drawn = S.deck.splice(0, need);
   drawn.forEach(c => S.freshIds.add(c.id));
   S.hand.push(...drawn);
@@ -117,7 +226,7 @@ function sortHand() {
     : suitOrder[a.suit] - suitOrder[b.suit] || b.rank - a.rank);
 }
 
-// ── scoring ──
+// ── scoring pipeline ──
 function liveEval() {
   if (!S || S.selected.size === 0) return null;
   return evaluateHand(S.hand.filter(c => S.selected.has(c.id)));
@@ -126,36 +235,68 @@ function liveEval() {
 function scorePlayed() {
   const played = S.hand.filter(c => S.selected.has(c.id));
   const ev = evaluateHand(played);
-  let chips = ev.chips, mult = ev.mult;
-  played.forEach(c => { if (ev.scoringIds.has(c.id)) chips += cardChips(c); });
-
-  const ctx = () => ({
-    handName: ev.name, scoringCards: played.filter(c => ev.scoringIds.has(c.id)),
-    playedCards: played, discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
-  });
-
+  const hv = handValue(ev.name);
+  let chips = hv.chips, mult = hv.mult;
+  const scoringCards = played.filter(c => ev.scoringIds.has(c.id));
+  const heldCards = S.hand.filter(c => !S.selected.has(c.id));
+  const destroyed = [];
   const flashes = [];
-  let removeGros = false;
+  let firstScoringFace = false, sawFace = false, debuffedCount = 0;
+
+  // 1. per-card triggers (Balatro order: each scoring card, left to right)
+  scoringCards.forEach(c => {
+    if (isBossDebuffed(c)) { debuffedCount++; return; } // debuffed: no chips, no effects
+    chips += cardChips(c);
+    if (isFace(c)) { if (!sawFace) firstScoringFace = true; sawFace = true; }
+    switch (c.enhancement) {
+      case "bonus": chips += 30; break;
+      case "mult": mult += 4; break;
+      case "glass":
+        mult *= 2;
+        if (Math.random() < 0.25) destroyed.push(c);
+        break;
+      case "lucky":
+        if (Math.random() < 1 / 5) mult += 20;
+        if (Math.random() < 1 / 15) S.money += 20;
+        break;
+    }
+  });
+  ev.scoringFacePlayed = sawFace;
+  if (sawFace) ev.firstFaceUsed = firstScoringFace;
+
+  // 2. steel cards held in hand: ×1.5 each
+  heldCards.forEach(c => { if (c.enhancement === "steel") mult *= 1.5; });
+
+  // 3. jokers, left to right (editions included)
+  const ctx = () => ({
+    handName: ev.name,
+    scoringCards: scoringCards.filter(c => !isBossDebuffed(c)),
+    playedCards: played, heldCards,
+    discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
+    deckCount: S.deck.length, stats: S.stats, money: S.money,
+    emptySlots: MAX_JOKERS - S.jokers.length,
+    firstScoringFace,
+  });
   S.jokers.forEach((j, idx) => {
     let label = null;
-    if (j.effect) {
-      const r = j.effect(ctx());
-      if (r && r.mult)  { mult += r.mult;   label = `+${r.mult} mult`; }
-      if (r && r.chips) { chips += r.chips; label = `+${r.chips} chips`; }
-    } else {
-      mult += 4; label = "+4 mult"; // base Joker
+    const r = j.effect ? j.effect(ctx()) : { mult: 4 };
+    if (r) {
+      if (r.chips) chips += r.chips;
+      if (r.mult) mult += r.mult;
+      if (r.xmult) mult *= r.xmult;
+      if (r.money) S.money += r.money;
+      label = r.label;
     }
-    if (label) flashes.push({ idx, label });
-    if (j.id === "gros" && Math.random() < 1 / 6) removeGros = true;
+    if (j.edition === "foil") chips += 50;
+    if (j.edition === "holo") mult += 10;
+    if (j.edition === "poly") mult *= 1.5;
+    if (label || j.edition) flashes.push({ idx, label: label || EDITIONS[j.edition].desc });
   });
-  if (removeGros) {
-    S.jokers = S.jokers.filter(j => j.id !== "gros");
-    S.grosMichelGone = true;
-  }
-  return { ev, chips, mult, total: chips * mult, flashes };
+
+  return { ev, chips, mult, total: Math.max(1, Math.round(chips * mult)), flashes, destroyed, debuffedCount, scoringCards };
 }
 
-// ── play / discard with animation ──
+// ── animation helpers ──
 function flipMove(el, parent) {
   if (!settings.anim) { parent.appendChild(el); return; }
   const first = el.getBoundingClientRect();
@@ -168,20 +309,27 @@ function flipMove(el, parent) {
     el.style.transform = "";
   });
 }
-
 function wait(ms) { return new Promise(r => setTimeout(r, settings.anim ? ms : Math.min(ms, 30))); }
+function fmtMult(m) { return m % 1 === 0 ? String(m) : m.toFixed(1); }
 
+// ── play hand ──
 async function playHand() {
-  if (!S || S.phase !== "play" || S.animating) return;
+  if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
   if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); return; }
+  if (S.boss && S.boss.id === "psychic" && S.selected.size !== 5) {
+    showToast("The Psychic: must play exactly 5 cards");
+    AudioFX.play("error");
+    return;
+  }
   S.animating = true;
   refreshControls();
   AudioFX.play("play");
 
   const result = scorePlayed();
   S.handsLeft--;
+  S.stats.handsPlayed = S.stats.handsPlayed || {};
 
-  // 1. move selected cards into the staging zone (FLIP animation)
+  // move cards to staging
   const zone = $("#played-zone");
   zone.innerHTML = "";
   const els = [...document.querySelectorAll("#hand .card")].filter(el => S.selected.has(el.dataset.id));
@@ -190,12 +338,13 @@ async function playHand() {
   const t = settings.anim;
   await wait(t ? 400 : 30);
 
-  // 2. show hand breakdown
-  setPlayedInfo(`<span class="pi-name">${result.ev.name}</span><span class="pi-chips">${result.chips}</span> × <span class="pi-mult">${result.mult}</span>`);
+  // breakdown
+  setPlayedInfo(`<span class="pi-name">${result.ev.name} · Lv.${handLevel(result.ev.name)}</span><span class="pi-chips">${result.chips}</span> × <span class="pi-mult">${fmtMult(result.mult)}</span>`);
   AudioFX.play("score");
+  if (result.debuffedCount) showToast(`${result.debuffedCount} card(s) debuffed by ${S.boss.name}`);
   await wait(t ? 350 : 30);
 
-  // 3. flash contributing jokers one by one
+  // joker flashes
   for (const f of result.flashes) {
     const tile = document.querySelectorAll("#jokers .joker")[f.idx];
     if (tile) {
@@ -209,10 +358,10 @@ async function playHand() {
       setTimeout(() => pop.remove(), 950);
       AudioFX.play("joker");
     }
-    await wait(t ? 180 : 0);
+    await wait(t ? 160 : 0);
   }
 
-  // 4. score popup + count-up + progress bar
+  // score
   const prevScore = S.roundScore;
   S.roundScore += result.total;
   spawnScorePop(`+${result.total.toLocaleString()}`);
@@ -220,14 +369,41 @@ async function playHand() {
   countUp($("#hud-score"), prevScore, S.roundScore, t ? 550 : 30);
   await wait(t ? 600 : 30);
 
-  // 5. cleanup staging, redraw
+  // cleanup
   els.forEach(el => el.classList.add("played-out"));
   await wait(t ? 260 : 30);
   zone.innerHTML = "";
   setPlayedInfo("");
+
+  // glass destruction
+  if (result.destroyed.length) {
+    const ids = new Set(result.destroyed.map(c => c.id));
+    S.deck = S.deck.filter(c => !ids.has(c.id));
+    S.deckTotal -= result.destroyed.length;
+    showToast(`${result.destroyed.length} Glass card(s) shattered!`);
+  }
+
   S.hand = S.hand.filter(c => !S.selected.has(c.id));
   S.selected.clear();
   drawUp();
+
+  // joker per-hand hooks (green, bus, ice cream, gros michel)
+  S.jokers.slice().forEach(j => {
+    if (j.onHandPlayed) j.onHandPlayed(j, result.ev, S);
+    if (j.id === "gros" && Math.random() < 1 / 6) {
+      S.jokers = S.jokers.filter(x => x !== j);
+      showToast("Gros Michel went extinct!");
+    }
+  });
+
+  // The Hook: discard 2 random held cards
+  if (S.boss && S.boss.id === "hook" && S.hand.length > 0) {
+    const pool = [...S.hand];
+    shuffle(pool).slice(0, 2).forEach(c => { S.hand = S.hand.filter(x => x !== c); });
+    drawUp();
+    showToast("The Hook discarded 2 cards");
+  }
+
   renderAll();
   S.animating = false;
   refreshControls();
@@ -236,8 +412,9 @@ async function playHand() {
   if (S.handsLeft <= 0) return setTimeout(gameOver, 500);
 }
 
+// ── discard ──
 async function discardHand() {
-  if (!S || S.phase !== "play" || S.animating) return;
+  if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
   if (S.selected.size === 0 || S.discardsLeft <= 0) { AudioFX.play("error"); return; }
   S.animating = true;
   refreshControls();
@@ -255,74 +432,272 @@ async function discardHand() {
   S.hand = S.hand.filter(c => !S.selected.has(c.id));
   S.selected.clear();
   drawUp();
+  S.jokers.forEach(j => { if (j.onDiscard) j.onDiscard(j, S); });
   renderAll();
   S.animating = false;
   refreshControls();
   AudioFX.play("deal");
 }
 
-// ── shop ──
+// ── consumables (planets & tarots) ──
+function useConsumable(cons, sel) {
+  if (cons.kind === "planet") {
+    const key = cons.hand === "Royal Flush" ? "Straight Flush" : cons.hand;
+    S.handLevels[key] = (S.handLevels[key] || 1) + 1;
+    S.stats.planetsUsed++;
+    S.stats.planetCounts[cons.hand] = (S.stats.planetCounts[cons.hand] || 0) + 1;
+    showToast(`${cons.hand} → Lv.${S.handLevels[key]} (+${cons.chips} chips, +${cons.mult} mult)`);
+    AudioFX.play("levelup");
+    S.lastConsumable = cons;
+    return true;
+  }
+  // tarot
+  const r = cons.apply(S, sel || []);
+  if (!r.ok) { showToast(r.msg); AudioFX.play("error"); return false; }
+  showToast(r.msg);
+  S.stats.tarotsUsed++;
+  if (cons.id !== "fool") S.lastConsumable = cons;
+  AudioFX.play("tarot");
+  return true;
+}
+
+function clickConsumable(idx) {
+  if (S.phase !== "play" || S.animating) return;
+  const cons = S.consumables[idx];
+  if (!cons) return;
+  if (cons.kind === "planet" || cons.needs === 0) {
+    if (useConsumable(cons)) {
+      S.consumables.splice(idx, 1);
+      renderAll();
+    }
+    return;
+  }
+  // targeted tarot
+  S.targetMode = { cons, idx };
+  S.selected.clear();
+  const exact = cons.exact ? "exactly" : "up to";
+  $("#target-msg").textContent = `${cons.name}: select ${exact} ${cons.needs} card${cons.needs > 1 ? "s" : ""}`;
+  $("#target-bar").hidden = false;
+  AudioFX.play("click");
+  renderHand();
+  refreshControls();
+}
+
+function cancelTarget() {
+  S.targetMode = null;
+  S.selected.clear();
+  $("#target-bar").hidden = true;
+  renderHand();
+  refreshControls();
+}
+
+function confirmTarget() {
+  const tm = S.targetMode;
+  if (!tm) return;
+  const sel = S.hand.filter(c => S.selected.has(c.id));
+  const okCount = tm.cons.exact ? sel.length === tm.cons.needs : sel.length >= 1 && sel.length <= tm.cons.needs;
+  if (!okCount) { AudioFX.play("error"); return; }
+  if (useConsumable(tm.cons, sel)) {
+    S.consumables.splice(tm.idx, 1);
+    S.targetMode = null;
+    S.selected.clear();
+    $("#target-bar").hidden = true;
+    renderAll();
+  }
+}
+
+function sellConsumable(idx) {
+  const cons = S.consumables[idx];
+  if (!cons) return;
+  S.money += sellValue(cons);
+  S.consumables.splice(idx, 1);
+  AudioFX.play("coin");
+  showToast(`Sold ${cons.name} for $${sellValue(cons)}`);
+  renderAll();
+}
+
+function sellJoker(idx) {
+  const j = S.jokers[idx];
+  if (!j) return;
+  const v = sellValue(j);
+  S.money += v;
+  S.jokers.splice(idx, 1);
+  AudioFX.play("coin");
+  showToast(`Sold ${j.name} for $${v}`);
+  renderAll();
+  if (currentScreen === "shop") renderShop();
+}
+
+// ── round end / shop ──
 function endRoundWin() {
-  const blind = BLINDS[S.blindIndex];
-  const interest = Math.min(Math.floor(S.money / 5), 5);
-  const reward = blind.reward + S.handsLeft + interest;
+  const interest = Math.min(Math.floor(S.money / 5), interestCap());
+  const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
+  let jokerMoney = 0;
+  S.jokers.forEach(j => { if (j.onRoundEnd) { const m = j.onRoundEnd(j, S); if (m) jokerMoney += m; } });
+  const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney;
   S.money += reward;
   S.phase = "shop";
-  S.offers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
-  $("#shop-reward").textContent =
-    `+${blind.reward} blind  +${S.handsLeft} unused hands  +${interest} interest  =  $${reward}`;
+  S.rerollCost = 5;
+
+  S.offers = rollShopJokers(2 + (S.vouchers.has("overstock") ? 1 : 0), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
+  S.packs = shuffle([...PACKS]).slice(0, 2).map(p => ({ ...p }));
+  const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id));
+  S.voucherOffer = availVouchers.length ? availVouchers[Math.floor(Math.random() * availVouchers.length)] : null;
+
+  const parts = [`$${blindReward()} blind`];
+  if (S.handsLeft) parts.push(`$${S.handsLeft} hands left`);
+  if (interest) parts.push(`$${interest} interest`);
+  if (goldHeld) parts.push(`$${goldHeld} gold cards`);
+  if (jokerMoney) parts.push(`$${jokerMoney} jokers`);
+  $("#shop-reward").textContent = parts.join("  +  ") + `  =  $${reward}`;
+
   AudioFX.play("coin");
   showScreen("shop");
   renderShop();
   renderHud();
+  renderJokers();
 }
 
 function renderShop() {
   $("#shop-money").textContent = "$" + S.money;
-  $("#btn-reroll").disabled = S.money < 2;
+  $("#btn-reroll").textContent = "Reroll $" + S.rerollCost;
+  $("#btn-reroll").disabled = S.money < S.rerollCost;
+  $("#shop-joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
+
+  // owned jokers (sellable)
+  const owned = $("#shop-owned");
+  owned.innerHTML = "";
+  if (S.jokers.length === 0) owned.innerHTML = `<p class="shop-empty">No jokers yet</p>`;
+  S.jokers.forEach((j, i) => owned.appendChild(jokerTile(j, () => sellJoker(i))));
+
+  // joker offers
   const wrap = $("#shop-offers");
   wrap.innerHTML = "";
   if (S.jokers.length >= MAX_JOKERS) {
     wrap.innerHTML = `<p class="shop-empty">Joker slots full (${MAX_JOKERS}/${MAX_JOKERS})</p>`;
   } else if (S.offers.length === 0) {
-    wrap.innerHTML = `<p class="shop-empty">Sold out — reroll or move on!</p>`;
+    wrap.innerHTML = `<p class="shop-empty">Sold out — reroll!</p>`;
   } else {
-    S.offers.forEach(j => wrap.appendChild(shopCard(j)));
+    S.offers.forEach(j => {
+      const tile = jokerTile(j);
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.textContent = "Buy $" + priceOf(j);
+      btn.disabled = S.money < priceOf(j);
+      btn.onclick = () => {
+        if (S.money < priceOf(j)) { AudioFX.play("error"); return; }
+        S.money -= priceOf(j);
+        S.jokers.push(j);
+        S.offers = S.offers.filter(o => o !== j);
+        tile.classList.add("sold");
+        AudioFX.play("coin");
+        renderShop(); renderHud(); renderJokers();
+      };
+      tile.appendChild(btn);
+      wrap.appendChild(tile);
+    });
+  }
+
+  // booster packs
+  const pw = $("#shop-packs");
+  pw.innerHTML = "";
+  S.packs.forEach(p => {
+    const tile = document.createElement("div");
+    tile.className = "joker j-pack";
+    tile.innerHTML = `<div class="joker-head">${consIcon("tarot")}<b>${p.name}</b></div><span class="jdesc">${p.desc}</span>`;
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = "Open $" + priceOf(p);
+    btn.disabled = S.money < priceOf(p);
+    btn.onclick = () => {
+      if (S.money < priceOf(p)) { AudioFX.play("error"); return; }
+      S.money -= priceOf(p);
+      S.packs = S.packs.filter(o => o !== p);
+      AudioFX.play("pack");
+      openPack(p);
+      renderShop(); renderHud();
+    };
+    tile.appendChild(btn);
+    pw.appendChild(tile);
+  });
+
+  // voucher
+  const vw = $("#shop-voucher");
+  vw.innerHTML = "";
+  if (S.voucherOffer) {
+    const v = S.voucherOffer;
+    const tile = document.createElement("div");
+    tile.className = "joker j-voucher";
+    tile.innerHTML = `<div class="joker-head">${consIcon("planet")}<b>${v.name}</b></div><span class="jdesc">${v.desc} (permanent)</span>`;
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = "Buy $" + priceOf(v);
+    btn.disabled = S.money < priceOf(v);
+    btn.onclick = () => {
+      if (S.money < priceOf(v)) { AudioFX.play("error"); return; }
+      S.money -= priceOf(v);
+      S.vouchers.add(v.id);
+      S.voucherOffer = null;
+      AudioFX.play("win");
+      showToast(v.name + " active!");
+      renderShop(); renderHud();
+    };
+    tile.appendChild(btn);
+    vw.appendChild(tile);
+  } else {
+    vw.innerHTML = `<p class="shop-empty">No voucher available</p>`;
   }
 }
 
-function shopCard(j) {
-  const tile = jokerTile(j);
-  const btn = document.createElement("button");
-  btn.className = "btn";
-  btn.textContent = "Buy $" + j.cost;
-  btn.disabled = S.money < j.cost;
-  btn.onclick = () => {
-    if (S.money < j.cost) { AudioFX.play("error"); return; }
-    S.money -= j.cost;
-    S.jokers.push(j);
-    S.offers = S.offers.filter(o => o !== j);
-    tile.classList.add("sold");
-    AudioFX.play("coin");
-    renderShop();
-    renderHud();
-    renderJokers();
-  };
-  tile.appendChild(btn);
-  return tile;
+// ── booster pack opening ──
+function openPack(pack) {
+  S.packOpen = { pack, choices: pack.open(S) };
+  $("#pack-title").textContent = pack.name;
+  const wrap = $("#pack-choices");
+  wrap.innerHTML = "";
+  S.packOpen.choices.forEach(choice => {
+    let tile;
+    if (choice.rarity) { // joker
+      tile = jokerTile(choice);
+    } else {
+      tile = document.createElement("div");
+      tile.className = "joker j-" + choice.kind;
+      tile.innerHTML = `<div class="joker-head">${consIcon(choice.kind)}<b>${choice.name}</b></div><span class="jdesc">${consDesc(choice)}</span>`;
+    }
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    const noRoom = choice.rarity ? S.jokers.length >= MAX_JOKERS : S.consumables.length >= MAX_CONS;
+    btn.textContent = noRoom ? "No room" : "Take";
+    btn.disabled = noRoom;
+    btn.onclick = () => {
+      if (choice.rarity) S.jokers.push(choice);
+      else S.consumables.push(choice);
+      AudioFX.play("coin");
+      showToast("Got " + choice.name + "!");
+      S.packOpen = null;
+      showScreen("shop");
+      renderShop(); renderJokers(); renderConsumables(); renderHud();
+    };
+    tile.appendChild(btn);
+    wrap.appendChild(tile);
+  });
+  showScreen("pack");
+}
+function consDesc(c) {
+  if (c.kind === "planet") return `${c.hand}: +${c.chips} chips, +${c.mult} mult per level`;
+  return c.desc;
 }
 
 // ── end screens ──
 function gameOver() {
   S.phase = "over";
   $("#final-ante").textContent = S.ante;
-  $("#final-blind").textContent = BLINDS[S.blindIndex].name;
+  $("#final-blind").textContent = blindName();
   $("#final-score").textContent = S.roundScore.toLocaleString();
   $("#final-target").textContent = blindTarget().toLocaleString();
   AudioFX.play("lose");
   showScreen("over");
 }
-
 function winRun() {
   S.phase = "win";
   AudioFX.play("win");
@@ -332,25 +707,32 @@ function winRun() {
 // ── rendering ──
 function cardEl(c) {
   const el = document.createElement("button");
-  el.className = "card " + SUIT_CLASS[c.suit];
+  const enh = c.enhancement ? ` enh-${c.enhancement}` : "";
+  el.className = "card " + (SUIT_CLASS[c.suit] || "black") + enh;
   el.dataset.id = c.id;
-  const svg = suitSVG(c.suit);
-  el.innerHTML =
-    `<span class="c-rank">${rankLabel(c)}</span>` +
-    `<span class="c-suit">${svg}</span>` +
-    `<span class="c-big">${svg}</span>` +
-    `<span class="c-rank c-rank-b">${rankLabel(c)}</span>`;
+  if (isBossDebuffed(c)) el.classList.add("debuffed");
+  if (c.enhancement === "stone") {
+    el.innerHTML = `<span class="c-stone">+50</span>`;
+  } else {
+    const svg = suitSVG(c.suit);
+    el.innerHTML =
+      `<span class="c-rank">${rankLabel(c.rank)}</span>` +
+      `<span class="c-suit">${svg}</span>` +
+      `<span class="c-big">${svg}</span>` +
+      `<span class="c-rank c-rank-b">${rankLabel(c.rank)}</span>`;
+  }
   el.onclick = () => toggleCard(c.id, el);
   return el;
 }
 
 function toggleCard(id, el) {
-  if (S.animating || S.phase !== "play") return;
+  if (!S || S.animating || S.phase !== "play") return;
+  const maxSel = S.targetMode ? S.targetMode.cons.needs : MAX_SELECT;
   if (S.selected.has(id)) {
     S.selected.delete(id);
     el.classList.remove("selected");
     AudioFX.play("deselect");
-  } else if (S.selected.size < MAX_SELECT) {
+  } else if (S.selected.size < maxSel) {
     S.selected.add(id);
     el.classList.add("selected");
     AudioFX.play("select");
@@ -374,58 +756,119 @@ function renderHand() {
     wrap.appendChild(el);
   });
   S.freshIds.clear();
-  $("#hand-count").textContent = `${S.hand.length}/${HAND_SIZE}`;
+  $("#hand-count").textContent = `${S.hand.length}/${handSize()}`;
 }
 
-function jokerTile(j) {
+function jokerTile(j, onSell) {
   const tile = document.createElement("div");
-  tile.className = `joker j-${j.rarity}`;
-  const starColor = j.rarity === "uncommon" ? "#FC84FC" : "#C8C2DC";
+  tile.className = `joker j-${j.rarity}` + (j.edition ? ` ed-${j.edition}` : "");
   tile.innerHTML =
-    `<div class="joker-head">${starSVG(starColor)}<b>${j.name}</b></div>` +
+    `<div class="joker-head"><b>${j.name}</b>${j.edition ? `<span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : ""}</div>` +
     `<span class="jdesc">${j.desc}</span>`;
+  const sell = document.createElement("button");
+  sell.className = "sell-btn";
+  sell.textContent = "$" + sellValue(j);
+  sell.title = "Sell";
+  sell.onclick = e => { e.stopPropagation(); onSell ? onSell() : null; };
+  if (onSell) tile.appendChild(sell);
   return tile;
 }
 
 function renderJokers() {
   const wrap = $("#jokers");
   wrap.innerHTML = "";
-  S.jokers.forEach(j => wrap.appendChild(jokerTile(j)));
+  S.jokers.forEach((j, i) => wrap.appendChild(jokerTile(j, () => sellJoker(i))));
   $("#joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
 }
 
-function renderHud(skipBar) {
+function renderConsumables() {
+  const wrap = $("#consumables");
+  wrap.innerHTML = "";
+  S.consumables.forEach((c, i) => {
+    const tile = document.createElement("div");
+    tile.className = "joker j-" + c.kind;
+    tile.innerHTML = `<div class="joker-head">${consIcon(c.kind)}<b>${c.name}</b></div><span class="jdesc">${consDesc(c)}</span>`;
+    tile.title = "Click to use · right-click to sell";
+    tile.onclick = () => clickConsumable(i);
+    tile.oncontextmenu = e => { e.preventDefault(); sellConsumable(i); };
+    wrap.appendChild(tile);
+  });
+  $("#cons-count").textContent = `${S.consumables.length}/${MAX_CONS}`;
+}
+
+function renderBossBanner() {
+  const el = $("#boss-banner");
+  if (S.boss) {
+    el.hidden = false;
+    $("#boss-name").textContent = S.boss.name;
+    $("#boss-desc").textContent = S.boss.desc;
+  } else {
+    el.hidden = true;
+  }
+}
+
+function renderHud(skipScore) {
   $("#hud-ante").textContent = S.ante + "/8";
-  $("#hud-blind").textContent = BLINDS[S.blindIndex].name;
+  $("#hud-blind").textContent = blindName();
   $("#hud-target").textContent = blindTarget().toLocaleString();
-  if (!skipBar) $("#hud-score").textContent = S.roundScore.toLocaleString();
+  if (!skipScore) $("#hud-score").textContent = S.roundScore.toLocaleString();
   $("#score-bar-fill").style.width = Math.min(100, S.roundScore / blindTarget() * 100) + "%";
   $("#hud-hands").textContent = S.handsLeft;
   $("#hud-discards").textContent = S.discardsLeft;
   $("#hud-money").textContent = "$" + S.money;
+  $("#hud-deck").textContent = S.deck.length;
 }
 
 function renderPreview() {
   const ev = liveEval();
-  $("#preview-name").textContent = ev ? ev.name : "Select cards";
-  $("#preview-chips").textContent = ev ? ev.chips : 0;
-  $("#preview-mult").textContent = ev ? ev.mult : 0;
+  if (ev) {
+    const hv = handValue(ev.name);
+    $("#preview-name").textContent = ev.name;
+    $("#preview-chips").textContent = hv.chips;
+    $("#preview-mult").textContent = hv.mult;
+    $("#preview-level").textContent = "Lv." + handLevel(ev.name);
+  } else {
+    $("#preview-name").textContent = S.targetMode ? "Select target cards" : "Select cards";
+    $("#preview-chips").textContent = 0;
+    $("#preview-mult").textContent = 0;
+    $("#preview-level").innerHTML = "&nbsp;";
+  }
 }
 
 function refreshControls() {
-  const canAct = S && S.phase === "play" && !S.animating;
+  const canAct = S && S.phase === "play" && !S.animating && !S.targetMode;
   $("#btn-play").disabled = !canAct || S.selected.size === 0 || S.handsLeft <= 0;
   $("#btn-discard").disabled = !canAct || S.selected.size === 0 || S.discardsLeft <= 0;
-  $("#btn-sort-rank").textContent = "Sort: Rank";
-  $("#btn-sort-suit").textContent = "Sort: Suit";
+  if (S && S.targetMode) {
+    const tm = S.targetMode;
+    const ok = tm.cons.exact ? S.selected.size === tm.cons.needs : S.selected.size >= 1;
+    $("#btn-target-use").disabled = !ok;
+  }
 }
 
 function renderAll() {
   renderHand();
   renderJokers();
+  renderConsumables();
   renderHud();
   renderPreview();
   refreshControls();
+}
+
+// ── hand levels screen ──
+function renderHandsScreen() {
+  const tbl = $("#hands-levels");
+  const planetOf = h => PLANETS.find(p => p.hand === h);
+  let rows = `<tr><th>Hand</th><th>Lv</th><th>Chips</th><th>Mult</th><th>Planet</th></tr>`;
+  ["High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House",
+   "Four of a Kind", "Straight Flush", "Five of a Kind", "Flush House", "Flush Five"].forEach(h => {
+    const base = { name: h };
+    const hv = handValue(h);
+    const p = planetOf(h);
+    const used = S.stats.planetCounts[h] || 0;
+    rows += `<tr><td>${h}</td><td>${handLevel(h)}</td><td>${hv.chips}</td><td>×${hv.mult}</td><td>${p ? p.name : "—"}${used ? ` (${used})` : ""}</td></tr>`;
+  });
+  tbl.innerHTML = rows;
 }
 
 // ── fx helpers ──
@@ -434,7 +877,6 @@ function setPlayedInfo(html) {
   el.innerHTML = html;
   el.classList.toggle("show", !!html);
 }
-
 function spawnScorePop(text) {
   const zone = $("#played-zone").getBoundingClientRect();
   const pop = document.createElement("div");
@@ -445,7 +887,6 @@ function spawnScorePop(text) {
   $("#fx-layer").appendChild(pop);
   setTimeout(() => pop.remove(), 1050);
 }
-
 function countUp(el, from, to, dur) {
   const t0 = performance.now();
   (function step(t) {
@@ -453,6 +894,14 @@ function countUp(el, from, to, dur) {
     el.textContent = Math.round(from + (to - from) * p).toLocaleString();
     if (p < 1) requestAnimationFrame(step);
   })(t0);
+}
+let toastTimer = null;
+function showToast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
 }
 
 // ── bindings ──
@@ -464,10 +913,16 @@ $("#btn-discard").onclick = discardHand;
 $("#btn-sort-rank").onclick = () => { sortMode = "rank"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-sort-suit").onclick = () => { sortMode = "suit"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-next").onclick = nextBlind;
+$("#btn-hands").onclick = () => { AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
+$("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
+$("#btn-target-use").onclick = confirmTarget;
+$("#btn-target-cancel").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
+$("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
-  if (!S || S.money < 2) { AudioFX.play("error"); return; }
-  S.money -= 2;
-  S.offers = rollShopJokers(2, new Set(S.jokers.map(j => j.id)));
+  if (!S || S.money < S.rerollCost) { AudioFX.play("error"); return; }
+  S.money -= S.rerollCost;
+  S.rerollCost++;
+  S.offers = rollShopJokers(2 + (S.vouchers.has("overstock") ? 1 : 0), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
   AudioFX.play("click");
   renderShop();
   renderHud();
@@ -479,13 +934,15 @@ document.querySelectorAll("[data-back]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 document.querySelectorAll("[data-menu]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
-
 $("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#set-anim").onclick = () => { settings.anim = !settings.anim; saveSettings(); applySettings(); AudioFX.play("click"); };
 
-// menu floating cards: fill with pixel suits
 document.querySelectorAll(".float-card").forEach(el => {
   el.innerHTML = suitSVG(el.dataset.suit);
 });
 
 applySettings();
+
+// debug/testing hooks
+window.DS = { get S() { return S; }, newRun, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings,
+  api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };

@@ -37,6 +37,9 @@ const AudioFX = (() => {
     error()    { tone(150, .14, "sawtooth", .12, 0, 110); },
     win()      { [523, 659, 784, 1047].forEach((f, i) => tone(f, .14, "square", .12, i * .11)); },
     lose()     { [392, 330, 262, 196].forEach((f, i) => tone(f, .16, "sawtooth", .1, i * .13)); },
+    levelup()  { [440, 554, 659].forEach((f, i) => tone(f, .09, "triangle", .11, i * .06)); },
+    tarot()    { tone(523, .1, "triangle", .1); tone(392, .12, "triangle", .09, .08); tone(659, .14, "triangle", .09, .16); },
+    pack()     { tone(220, .06, "sawtooth", .09); tone(440, .07, "square", .1, .06); tone(880, .1, "square", .1, .12); },
   };
 
   return {

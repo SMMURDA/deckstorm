@@ -9,11 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-1">
+<link rel="stylesheet" href="css/style.css?v=20261007-2">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
 <div id="fx-layer" aria-hidden="true"></div>
+<div id="toast" role="status"></div>
 
 <main id="app">
 
@@ -34,7 +35,7 @@
         <button id="btn-howto" class="btn btn-big">How to Play</button>
         <button id="btn-settings" class="btn btn-big">Settings</button>
       </nav>
-      <p class="menu-foot">v1.0 · beat 8 antes to win</p>
+      <p class="menu-foot">v2.0 · beat 8 antes to win</p>
     </div>
   </section>
 
@@ -44,13 +45,14 @@
       <h2 class="panel-title">How to Play</h2>
       <div class="howto-body">
         <p><b class="c-pink">Goal:</b> beat each blind's score target before your hands run out.
-           Clear <b>Small → Big → Boss</b> blind, then the next <b>Ante</b> begins — harder targets.
-           Survive all <b>8 Antes</b> to win.</p>
-        <p><b class="c-pink">Scoring:</b> play up to 5 cards forming a poker hand.
-           Score = <b>chips × mult</b>. Scoring cards add chips (number = value, face = 10, ace = 11).
-           Only cards that form the hand score — kickers don't.</p>
-        <p><b class="c-pink">Money:</b> blind reward + $1 per unused hand + $1 interest per $5 banked.
-           Spend it in the <b>Shop</b> on Jokers (max 5) — passive effects that boost your score.</p>
+           Clear <b>Small → Big → Boss</b> blind, then the next <b>Ante</b> begins. Survive <b>8 Antes</b> to win.</p>
+        <p><b class="c-pink">Scoring:</b> play up to 5 cards forming a poker hand. Score = <b>chips × mult</b>.
+           Only cards that form the hand score.</p>
+        <p><b class="c-pink">Shop:</b> buy <b>Jokers</b> (passive effects, max 5), <b>Booster Packs</b>
+           (Tarot/Planet/Joker picks), and <b>Vouchers</b> (permanent upgrades). Sell anything for half price.</p>
+        <p><b class="c-pink">Tarot</b> cards enhance your deck: Bonus, Mult, Wild, Glass, Steel, Gold, Lucky, Stone…
+           <b class="c-pink">Planet</b> cards level up a poker hand permanently (+chips / +mult).</p>
+        <p><b class="c-pink">Boss Blinds</b> have nasty effects: debuffed suits, no discards, 1-hand-only…</p>
         <table class="hands-table">
           <tr><th>Hand</th><th>Chips</th><th>Mult</th></tr>
           <tr><td>High Card</td><td>5</td><td>×1</td></tr>
@@ -63,6 +65,9 @@
           <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
           <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
           <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
+          <tr><td>Five of a Kind</td><td>120</td><td>×12</td></tr>
+          <tr><td>Flush House</td><td>140</td><td>×14</td></tr>
+          <tr><td>Flush Five</td><td>160</td><td>×14</td></tr>
         </table>
       </div>
       <button class="btn btn-big btn-back" data-back>← Back</button>
@@ -88,6 +93,7 @@
       <aside class="sidebar">
         <div class="panel side-panel">
           <div class="ante-line"><span id="hud-blind">Small Blind</span><b class="c-pink" id="hud-ante">1/8</b></div>
+          <div id="boss-banner" class="boss-banner" hidden><b id="boss-name"></b><span id="boss-desc"></span></div>
           <div class="target-line">score at least<b id="hud-target">300</b></div>
           <div class="score-bar"><div id="score-bar-fill"></div></div>
           <div class="round-score" id="hud-score">0</div>
@@ -96,20 +102,33 @@
         <div class="panel side-panel preview-panel">
           <div class="preview-name" id="preview-name">&nbsp;</div>
           <div class="preview-score"><span id="preview-chips">0</span><span class="px-mult">×</span><span id="preview-mult">0</span></div>
+          <div class="preview-level" id="preview-level">&nbsp;</div>
         </div>
 
         <div class="panel side-panel stats-panel">
           <div class="stat"><span>Hands</span><b id="hud-hands">4</b></div>
           <div class="stat"><span>Discards</span><b id="hud-discards">3</b></div>
           <div class="stat"><span>Money</span><b class="c-gold" id="hud-money">$4</b></div>
+          <div class="stat"><span>Deck</span><b id="hud-deck">52</b></div>
         </div>
+        <button id="btn-hands" class="btn btn-ghost btn-small">♠ Hand Levels</button>
         <button id="btn-abandon" class="btn btn-ghost btn-small">☰ Abandon Run</button>
       </aside>
 
       <div class="main-area">
         <div class="joker-strip">
-          <div class="strip-label">Jokers <span id="joker-count">0/5</span></div>
+          <div class="strip-label"><span>Jokers <span id="joker-count">0/5</span></span><span class="hint">click to sell</span></div>
           <div id="jokers" class="jokers"></div>
+        </div>
+        <div class="joker-strip">
+          <div class="strip-label"><span>Consumables <span id="cons-count">0/2</span></span><span class="hint">click to use · right-click to sell</span></div>
+          <div id="consumables" class="jokers"></div>
+        </div>
+
+        <div id="target-bar" class="target-bar" hidden>
+          <span id="target-msg"></span>
+          <button id="btn-target-use" class="btn btn-primary btn-small">Use</button>
+          <button id="btn-target-cancel" class="btn btn-small">Cancel</button>
         </div>
 
         <div id="played-zone" class="played-zone"></div>
@@ -137,11 +156,37 @@
       <h2 class="panel-title">Blind Beaten!</h2>
       <p id="shop-reward" class="shop-reward"></p>
       <p class="shop-money">Money: <b class="c-gold" id="shop-money">$0</b></p>
+      <div class="strip-label"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click to sell</span></div>
+      <div id="shop-owned" class="jokers"></div>
+      <div class="strip-label"><span>Cards</span></div>
       <div id="shop-offers" class="shop-offers"></div>
+      <div class="strip-label"><span>Booster Packs</span></div>
+      <div id="shop-packs" class="shop-offers"></div>
+      <div class="strip-label"><span>Voucher</span></div>
+      <div id="shop-voucher" class="shop-offers"></div>
       <div class="actions">
-        <button id="btn-reroll" class="btn">Reroll $2</button>
+        <button id="btn-reroll" class="btn">Reroll $5</button>
         <button id="btn-next" class="btn btn-primary">Next Blind →</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ══ BOOSTER PACK OPENING ══ -->
+  <section id="screen-pack" class="screen">
+    <div class="panel panel-wide">
+      <h2 class="panel-title" id="pack-title">Pack</h2>
+      <p class="pack-sub">— choose 1 —</p>
+      <div id="pack-choices" class="shop-offers"></div>
+      <div class="actions"><button id="btn-pack-skip" class="btn">Skip</button></div>
+    </div>
+  </section>
+
+  <!-- ══ HAND LEVELS ══ -->
+  <section id="screen-hands" class="screen">
+    <div class="panel panel-wide">
+      <h2 class="panel-title">Hand Levels</h2>
+      <table class="hands-table" id="hands-levels"></table>
+      <button class="btn btn-big btn-back" id="btn-hands-back">← Back</button>
     </div>
   </section>
 
@@ -172,9 +217,10 @@
 
 </main>
 
-<script src="js/cards.js?v=20261007-1"></script>
-<script src="js/jokers.js?v=20261007-1"></script>
-<script src="js/audio.js?v=20261007-1"></script>
-<script src="js/game.js?v=20261007-1"></script>
+<script src="js/cards.js?v=20261007-2"></script>
+<script src="js/jokers.js?v=20261007-2"></script>
+<script src="js/consumables.js?v=20261007-2"></script>
+<script src="js/audio.js?v=20261007-2"></script>
+<script src="js/game.js?v=20261007-2"></script>
 </body>
 </html>

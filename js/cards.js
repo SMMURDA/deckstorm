@@ -1,20 +1,35 @@
-// Deck & poker hand evaluation
-const SUITS = ["♠", "♥", "♦", "♣"]; // spades, hearts, diamonds, clubs
+// ═══ Deckstorm — deck, enhancements & poker hand evaluation (Balatro rules) ═══
 const SUIT_KEYS = ["spades", "hearts", "diamonds", "clubs"];
 const RANK_LABELS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 
+// Base hand values (Balatro wiki, level 1). Chips/mult grow via Planet cards.
+const HAND_BASE = {
+  "High Card":       { chips: 5,   mult: 1  },
+  "Pair":            { chips: 10,  mult: 2  },
+  "Two Pair":        { chips: 20,  mult: 2  },
+  "Three of a Kind": { chips: 30,  mult: 3  },
+  "Straight":        { chips: 30,  mult: 4  },
+  "Flush":           { chips: 35,  mult: 4  },
+  "Full House":      { chips: 40,  mult: 4  },
+  "Four of a Kind":  { chips: 60,  mult: 7  },
+  "Straight Flush":  { chips: 100, mult: 8  },
+  "Royal Flush":     { chips: 100, mult: 8  },
+  "Five of a Kind":  { chips: 120, mult: 12 },
+  "Flush House":     { chips: 140, mult: 14 },
+  "Flush Five":      { chips: 160, mult: 14 },
+};
+
 function buildDeck() {
   const deck = [];
-  for (let s = 0; s < 4; s++) {
+  for (const suit of SUIT_KEYS) {
     for (let r = 2; r <= 14; r++) {
-      deck.push({ rank: r, suit: SUIT_KEYS[s], symbol: SUITS[s], id: `${SUIT_KEYS[s]}-${r}` });
+      deck.push({ rank: r, suit, id: `${suit}-${r}`, enhancement: null });
     }
   }
   return deck;
 }
 
-function shuffle(deck) {
-  const a = deck.slice();
+function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
@@ -22,70 +37,85 @@ function shuffle(deck) {
   return a;
 }
 
+// rankLabel takes a RANK NUMBER (2-14)
 function rankLabel(r) { return RANK_LABELS[r] || String(r); }
 
-// Chips a card contributes when scoring (Balatro rules: 2-10 face, J/Q/K 10, A 11)
+// Chips a card contributes when scoring
 function cardChips(card) {
+  if (card.enhancement === "stone") return 50;
   if (card.rank === 14) return 11;
   if (card.rank >= 11) return 10;
   return card.rank;
 }
 
-// Hand base values: [chips, mult]
-const HANDS = {
-  "Royal Flush":     [100, 8],
-  "Straight Flush":  [100, 8],
-  "Four of a Kind":  [60, 7],
-  "Full House":      [40, 4],
-  "Flush":           [35, 4],
-  "Straight":        [30, 4],
-  "Three of a Kind": [30, 3],
-  "Two Pair":        [20, 2],
-  "Pair":            [10, 2],
-  "High Card":       [5, 1],
-};
+function isFace(c) { return c.rank >= 11 && c.rank <= 13; }
 
-// Evaluate up to 5 selected cards -> { name, chips, mult, scoringIds:Set }
+// ── hand evaluation ──
+// Stone cards are excluded from detection but ALWAYS score (+50 chips each).
+// Wild cards count as any suit for flush checks.
 function evaluateHand(cards) {
-  const n = cards.length;
-  const byRank = new Map();
-  for (const c of cards) {
-    if (!byRank.has(c.rank)) byRank.set(c.rank, []);
-    byRank.get(c.rank).push(c);
-  }
-  const groups = [...byRank.values()].sort((a, b) => b.length - a.length || b[0].rank - a[0].rank);
-  const sizes = groups.map(g => g.length).sort((a, b) => b - a);
+  const stones = cards.filter(c => c.enhancement === "stone");
+  const rest = cards.filter(c => c.enhancement !== "stone");
+  const scoreAll = new Set(cards.map(c => c.id));
+  const stoneIds = new Set(stones.map(c => c.id));
 
-  const isFlush = n === 5 && cards.every(c => c.suit === cards[0].suit);
-  let isStraight = false, straightHigh = 0;
-  if (n === 5 && byRank.size === 5) {
-    const ranks = cards.map(c => c.rank).sort((a, b) => a - b);
-    if (ranks[4] - ranks[0] === 4) { isStraight = true; straightHigh = ranks[4]; }
-    else if (ranks.join() === "2,3,4,5,14") { isStraight = true; straightHigh = 5; } // wheel
+  if (rest.length === 0) {
+    return { name: "High Card", scoringIds: scoreAll }; // all stone: just score them
   }
 
-  const ids = arr => new Set(arr.flat().map(c => c.id));
-  const allIds = new Set(cards.map(c => c.id));
+  const ranks = rest.map(c => c.rank).sort((a, b) => a - b);
+  const counts = {};
+  ranks.forEach(r => counts[r] = (counts[r] || 0) + 1);
+  const groups = Object.entries(counts)
+    .map(([r, n]) => ({ rank: +r, n }))
+    .sort((a, b) => b.n - a.n || b.rank - a.rank);
 
-  let name;
-  if (isStraight && isFlush) name = straightHigh === 14 ? "Royal Flush" : "Straight Flush";
-  else if (sizes[0] === 4) name = "Four of a Kind";
-  else if (sizes[0] === 3 && sizes[1] === 2) name = "Full House";
-  else if (isFlush) name = "Flush";
-  else if (isStraight) name = "Straight";
-  else if (sizes[0] === 3) name = "Three of a Kind";
-  else if (sizes[0] === 2 && sizes[1] === 2) name = "Two Pair";
-  else if (sizes[0] === 2) name = "Pair";
-  else name = "High Card";
+  const wilds = rest.filter(c => c.enhancement === "wild");
+  const nonWild = rest.filter(c => c.enhancement !== "wild");
+  const suitCounts = {};
+  nonWild.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+  const maxSuit = Math.max(0, ...Object.values(suitCounts));
+  const isFlush = rest.length === 5 && (maxSuit + wilds.length === 5);
 
-  let scoring;
-  if (["Royal Flush", "Straight Flush", "Flush", "Straight", "Full House"].includes(name)) scoring = allIds;
-  else if (name === "Four of a Kind") scoring = ids([groups[0]]);
-  else if (name === "Three of a Kind") scoring = ids([groups[0]]);
-  else if (name === "Two Pair") scoring = ids(groups.filter(g => g.length === 2));
-  else if (name === "Pair") scoring = ids([groups[0]]);
-  else scoring = new Set([cards.reduce((m, c) => (c.rank > m.rank ? c : m)).id]); // High Card: only highest
+  const uniq = [...new Set(ranks)];
+  const isStraight = rest.length === 5 && (
+    (uniq.length === 5 && uniq[4] - uniq[0] === 4) ||
+    uniq.join() === "2,3,4,5,14" // wheel
+  );
+  const straightHigh = uniq.join() === "2,3,4,5,14" ? 5 : uniq[4];
 
-  const [chips, mult] = HANDS[name];
-  return { name, chips, mult, scoringIds: scoring };
+  const ids = pred => new Set(rest.filter(pred).map(c => c.id));
+  const byRank = r => ids(c => c.rank === r);
+
+  let name, scoring;
+  const n = rest.length;
+  const five = groups[0].n === 5;
+  const fullHouse = groups[0].n === 3 && groups[1] && groups[1].n === 2;
+
+  if (isFlush && five)            { name = "Flush Five";      scoring = scoreAll; }
+  else if (isFlush && fullHouse)  { name = "Flush House";     scoring = scoreAll; }
+  else if (five)                  { name = "Five of a Kind";  scoring = scoreAll; }
+  else if (isFlush && isStraight) {
+    name = straightHigh === 14 ? "Royal Flush" : "Straight Flush";
+    scoring = scoreAll;
+  }
+  else if (groups[0].n === 4)     { name = "Four of a Kind";  scoring = byRank(groups[0].rank); }
+  else if (fullHouse)             { name = "Full House";      scoring = scoreAll; }
+  else if (isFlush)               { name = "Flush";           scoring = scoreAll; }
+  else if (isStraight)            { name = "Straight";        scoring = scoreAll; }
+  else if (groups[0].n === 3)     { name = "Three of a Kind"; scoring = byRank(groups[0].rank); }
+  else if (groups[0].n === 2 && groups[1] && groups[1].n === 2) {
+    name = "Two Pair";
+    scoring = new Set([...byRank(groups[0].rank), ...byRank(groups[1].rank)]);
+  }
+  else if (groups[0].n === 2)     { name = "Pair";            scoring = byRank(groups[0].rank); }
+  else {
+    name = "High Card";
+    const top = Math.max(...ranks);
+    scoring = ids(c => c.rank === top);
+  }
+
+  stoneIds.forEach(id => scoring.add(id)); // stones always score
+  const base = HAND_BASE[name];
+  return { name, chips: base.chips, mult: base.mult, scoringIds: scoring };
 }
