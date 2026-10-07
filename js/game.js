@@ -108,6 +108,7 @@ function freshState() {
     targetMode: null, // { cons } while selecting cards for a tarot
     packOpen: null,   // { pack, choices }
     bonusHands: 0,    // from Handy Tag
+    skipsThisAnte: 0, // Balatro: at most 2 skips per ante (Small + Big)
     pendingTag: null, // tag offered on the blind-select screen
     gameWon: false,
   };
@@ -149,6 +150,7 @@ function serializeRun() {
     deck: S.deck, hand: S.hand,
     handLevels: S.handLevels, stats: S.stats,
     bossId: S.boss ? S.boss.id : null,
+    skipsThisAnte: S.skipsThisAnte || 0,
     vouchers: [...S.vouchers],
     jokers: S.jokers.map(j => ({ id: j.id, edition: j.edition, data: j.data || null, sellBonus: j.sellBonus || 0 })),
     consumables: S.consumables.map(c => ({ id: c.id, kind: c.kind })),
@@ -201,6 +203,7 @@ function loadGame() {
   S.voucherOffer = d.voucherOfferId ? VOUCHERS.find(v => v.id === d.voucherOfferId) : null;
   S.lastConsumable = d.lastConsumable ? rehydrateCons(d.lastConsumable) : null;
   S.boss = d.bossId ? BOSSES.find(b => b.id === d.bossId) : null;
+  S.skipsThisAnte = d.skipsThisAnte || 0;
 
   if (S.phase === "shop") {
     showScreen("shop");
@@ -247,7 +250,7 @@ function newRun() {
 
 function blindTarget() {
   const base = ANTE_TARGETS[S.ante - 1];
-  const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : S.boss.targetMult;
+  const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
   return Math.round(base * mult);
 }
 function blindName() {
@@ -300,10 +303,22 @@ function advanceBlindIndex() {
   if (S.blindIndex === 2) {
     S.ante++;
     S.blindIndex = 0;
+    S.skipsThisAnte = 0; // fresh ante → skips available again
+    S.boss = null;
     if (S.ante > 8) { winRun(); return; }
   } else {
     S.blindIndex++;
+    // landing on the boss blind: roll it now so targets/renders are valid
+    if (S.blindIndex === 2) S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
+    else S.boss = null;
   }
+}
+
+// Balatro rule: only Small and Big Blinds are skippable (max 2 per ante).
+// The Boss Blind must always be fought.
+const MAX_SKIPS_PER_ANTE = 2;
+function canSkipCurrentBlind() {
+  return S.blindIndex !== 2 && (S.skipsThisAnte || 0) < MAX_SKIPS_PER_ANTE;
 }
 
 // ── blind select: play or skip for a tag ──
@@ -331,14 +346,16 @@ function showBlindSelect() {
   if (kind === "boss") { bossEl.hidden = false; bossEl.textContent = S.boss.desc; }
   else bossEl.hidden = true;
 
-  // Balatro rule: only Small and Big Blinds can be skipped — the Boss must be fought
-  const canSkip = S.blindIndex !== 2;
+  // Balatro rule: only Small and Big Blinds can be skipped (max 2 per ante)
+  const canSkip = canSkipCurrentBlind();
   const skipBtn = $("#btn-skip-blind");
   skipBtn.hidden = !canSkip;
   const hint = $(".blind-select-hint");
-  if (hint) hint.innerHTML = canSkip
-    ? "Skipping forfeits this blind's reward but grants a <b>Tag</b> bonus."
-    : "<b>Boss Blinds cannot be skipped</b> — defeat it to clear the ante.";
+  if (hint) {
+    if (S.blindIndex === 2) hint.innerHTML = "<b>Boss Blinds cannot be skipped</b> — defeat it to clear the ante.";
+    else if (!canSkip) hint.innerHTML = "No skips left this ante — play the blind.";
+    else hint.innerHTML = "Skipping forfeits this blind's reward but grants a <b>Tag</b> bonus.";
+  }
 
   if (canSkip) renderBlindTag();
   showScreen("blind");
@@ -363,6 +380,7 @@ function skipBlind() {
   } else {
     showToast(tag.name + ": " + tag.desc + " (" + res + ")");
   }
+  S.skipsThisAnte = (S.skipsThisAnte || 0) + 1;
   AudioFX.play("coin");
   advanceBlindIndex();
   if (S.gameWon) return;

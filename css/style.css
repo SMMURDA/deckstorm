@@ -1408,3 +1408,164 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .blind-select-actions .btn { font-size: 10px !important; padding: 10px 16px !important; }
   .blind-select-hint { font-size: 12px !important; margin-top: 8px !important; }
 }
+
+/* ══════════════════════════════════════════
+   v17 — portrait polish + landscape buttons
+   ══════════════════════════════════════════ */
+
+/* custom scrollbar (all scrollable panels) */
+.scrollable::-webkit-scrollbar,
+#screen-shop .shop-panel::-webkit-scrollbar,
+#screen-collection .panel::-webkit-scrollbar,
+.collection-grid::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollable::-webkit-scrollbar-track,
+#screen-shop .shop-panel::-webkit-scrollbar-track,
+#screen-collection .panel::-webkit-scrollbar-track,
+.collection-grid::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track { background: rgba(0,0,0,.35); border-radius: 3px; }
+.scrollable::-webkit-scrollbar-thumb,
+#screen-shop .shop-panel::-webkit-scrollbar-thumb,
+#screen-collection .panel::-webkit-scrollbar-thumb,
+.collection-grid::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb { background: rgba(252,132,252,.45); border-radius: 3px; }
+.scrollable::-webkit-scrollbar-thumb:hover,
+#screen-shop .shop-panel::-webkit-scrollbar-thumb:hover,
+.collection-grid::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(252,132,252,.75); }
+
+/* ══ PORTRAIT (≤680px) ══ */
+@media (max-width: 680px) {
+
+  /* ── jokers: 5 tiles always visible, no horizontal scroll ── */
+  .strips-row .joker-strip { flex: 0 0 66% !important; max-width: 66% !important; overflow: visible !important; }
+  .strips-row .strip-right { flex: 0 0 32% !important; max-width: 32% !important; }
+  #screen-game .jokers,
+  .strips-row .joker-strip .jokers {
+    display: flex !important; flex-wrap: nowrap !important;
+    gap: 2px !important; overflow: visible !important;
+    max-width: 100% !important;
+  }
+  #screen-game .joker {
+    width: calc(20% - 2px) !important;
+    min-width: 0 !important; max-width: calc(20% - 2px) !important;
+    padding: 2px !important; gap: 2px !important;
+  }
+  .strips-row .strip-right #screen-game .joker,
+  .strips-row .strip-right .joker {
+    width: calc(50% - 2px) !important; max-width: calc(50% - 2px) !important;
+  }
+  #screen-game .tile-icon { height: 26px !important; }
+  #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
+  #screen-game .tile-name { font-size: 4.5px !important; min-height: 1.3em !important; line-height: 1.2 !important; }
+  #screen-game .slot-empty { min-height: 44px !important; }
+
+  /* ── stats panel tidy: even chips, aligned ── */
+  #screen-game .stats-panel { gap: 2px !important; justify-content: space-between !important; }
+  .stat-box { padding: 2px 3px !important; border-radius: 3px !important; }
+  .stat-box span { font-size: 6px !important; }
+  .stat-box b { font-size: 12.5px !important; }
+
+  /* ── ALL pages scrollable in portrait, custom scrollbar ── */
+  #screen-shop.active,
+  #screen-collection.active,
+  #screen-blind.active,
+  #screen-pack.active,
+  #screen-hands.active,
+  #screen-howto.active,
+  #screen-settings.active,
+  #screen-menu.active {
+    position: fixed !important; inset: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 12px 10px 16px !important;
+  }
+  #screen-shop.active .shop-panel,
+  #screen-collection.active .panel,
+  #screen-blind.active .panel,
+  #screen-pack.active .panel {
+    height: auto !important; max-height: none !important;
+    overflow: visible !important;
+    margin-bottom: 12px !important;
+  }
+  /* shop: natural flow + visible Next button */
+  #screen-shop .shop-offers,
+  #screen-shop #shop-packs,
+  #screen-shop #shop-voucher,
+  #screen-shop #shop-owned { max-height: none !important; overflow: visible !important; }
+  .shop-panel .actions {
+    position: sticky !important; bottom: 0 !important;
+    margin-top: 8px !important; padding: 8px 0 !important;
+    background: var(--panel) !important;
+    border-top: 2px solid var(--line) !important;
+    z-index: 4 !important;
+  }
+  #screen-shop .shop-panel { padding: 10px 10px 4px !important; }
+
+  /* scrollbar for the scrolling screens */
+  #screen-shop.active::-webkit-scrollbar,
+  #screen-collection.active::-webkit-scrollbar,
+  #screen-hands.active::-webkit-scrollbar,
+  #screen-howto.active::-webkit-scrollbar { width: 7px; }
+  #screen-shop.active::-webkit-scrollbar-track,
+  #screen-collection.active::-webkit-scrollbar-track,
+  #screen-hands.active::-webkit-scrollbar-track { background: rgba(0,0,0,.4); }
+  #screen-shop.active::-webkit-scrollbar-thumb,
+  #screen-collection.active::-webkit-scrollbar-thumb,
+  #screen-hands.active::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pink), var(--pink-strong));
+    border-radius: 4px;
+  }
+}
+
+/* ══ LANDSCAPE MOBILE — keep action buttons + sidebar buttons on screen ══ */
+@media (orientation: landscape) and (max-height: 620px) {
+
+  /* felt must never overflow: everything shrinkable */
+  #screen-game .felt-table { overflow: hidden !important; gap: 3px !important; padding: 4px 6px !important; }
+  #screen-game .strips-row { flex: 0 0 auto !important; }
+  #screen-game .tray-label { display: none !important; }
+  #screen-game .played-zone {
+    flex: 1 1 auto !important; min-height: 40px !important; max-height: none !important;
+    padding: 3px !important;
+  }
+  #screen-game .hand-zone { flex: 0 0 auto !important; }
+  #screen-game .hand { min-height: 56px !important; padding: 6px 4px 2px !important; }
+  #screen-game .preview-panel { flex: 0 0 auto !important; min-height: 24px !important; padding: 2px 8px !important; }
+  #screen-game .actions { flex: 0 0 auto !important; margin-top: 2px !important; gap: 4px !important; }
+  #screen-game .actions .btn { font-size: 8px !important; padding: 7px 7px !important; }
+
+  /* sidebar: guaranteed buttons visible; content scrolls if needed */
+  #screen-game .sidebar {
+    overflow-y: auto !important; overflow-x: hidden !important;
+    padding-bottom: 8px !important;
+  }
+  #screen-game .blind-panel { flex: 0 0 auto !important; }
+  #screen-game .stats-panel { flex: 0 0 auto !important; }
+  .btn-run, .btn-options {
+    flex: 0 0 auto !important;
+    display: block !important;
+    width: calc(100% - 10px) !important;
+    margin: 3px 5px 0 !important;
+    font-size: 8px !important; padding: 7px 5px !important;
+  }
+  #btn-options, #btn-menu { display: none !important; }
+}
+
+/* very short landscape (≈360×640 rotated → 640×360) */
+@media (orientation: landscape) and (max-height: 420px) {
+  #screen-game .joker { width: 50px !important; }
+  #screen-game .tile-icon { height: 26px !important; }
+  #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
+  #screen-game .slot-empty { min-height: 44px !important; width: 50px !important; }
+  #screen-game .card { width: 40px !important; height: 56px !important; }
+  #screen-game .card .c-big svg { width: 15px !important; height: 15px !important; }
+  #screen-game .hand { min-height: 50px !important; }
+  #screen-game .played-zone { min-height: 34px !important; }
+  .deck-pile { display: none !important; }
+  .blind-badge { width: 22px !important; height: 22px !important; }
+  .blind-badge svg { width: 14px !important; height: 14px !important; }
+  .stat-box b { font-size: 12px !important; }
+  .btn-run, .btn-options { font-size: 7.5px !important; padding: 6px 4px !important; }
+}

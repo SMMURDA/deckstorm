@@ -348,6 +348,21 @@ DS.settings.sound = false;
   ok("boss shows must-fight hint", /cannot be skipped/i.test($(".blind-select-hint").textContent));
   ok("boss select still shows its effect", $("#bs-boss").hidden === false && $("#bs-boss").textContent.length > 3);
 
+  // max 2 skips per ante (explicit cap)
+  DS.S.skipsThisAnte = 0; DS.S.blindIndex = 0; DS.showBlindSelect(); await sleep(20);
+  ok("1st skip available", $("#btn-skip-blind").hidden === false);
+  DS.skipBlind(); await sleep(20);                       // skip #1
+  ok("skip counter = 1", DS.S.skipsThisAnte === 1);
+  DS.S.blindIndex = 1; DS.showBlindSelect(); await sleep(20);
+  ok("2nd skip available", $("#btn-skip-blind").hidden === false);
+  DS.skipBlind(); await sleep(20);                       // skip #2 → reach boss
+  ok("skip counter = 2", DS.S.skipsThisAnte === 2);
+  ok("after 2 skips we are on the boss", DS.S.blindIndex === 2);
+  DS.S.skipsThisAnte = 2; DS.S.blindIndex = 1; DS.showBlindSelect(); await sleep(20);
+  ok("no skip beyond the cap of 2", $("#btn-skip-blind").hidden === true);
+  ok("cap message shown", /no skips left/i.test($(".blind-select-hint").textContent));
+  DS.S.skipsThisAnte = 0; // restore for later tests
+
 
   console.log(`\n${passes} passed, ${fails} failed`);
   try { mainDom.window.close(); } catch(e){}
