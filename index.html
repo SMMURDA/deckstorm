@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-5">
+<link rel="stylesheet" href="css/style.css?v=20261007-6">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -123,12 +123,6 @@
           <div class="round-score" id="hud-score">0</div>
         </div>
 
-        <div class="panel side-panel preview-panel">
-          <div class="preview-name" id="preview-name">&nbsp;</div>
-          <div class="preview-score"><span id="preview-chips">0</span><span class="px-mult">×</span><span id="preview-mult">0</span></div>
-          <div class="preview-level" id="preview-level">&nbsp;</div>
-        </div>
-
         <div class="panel side-panel stats-panel">
           <div class="stat"><span>Hands</span><b id="hud-hands">4</b></div>
           <div class="stat"><span>Discards</span><b id="hud-discards">3</b></div>
@@ -151,8 +145,7 @@
         <div id="target-bar" class="target-bar" hidden>
           <span id="target-icon" class="target-icon"></span>
           <span id="target-msg"></span>
-          <button id="btn-target-use" class="btn btn-primary btn-small">Use</button>
-          <button id="btn-target-cancel" class="btn btn-small">Cancel</button>
+          <button id="btn-target-x" class="target-x" title="Cancel">✕</button>
         </div>
 
         <div class="tray-label">Play Area</div>
@@ -162,6 +155,12 @@
         <div class="hand-zone felt">
           <div id="hand" class="hand"></div>
           <div class="hand-meta"><span id="hand-count">8/8</span></div>
+        </div>
+
+        <div class="panel preview-panel">
+          <span class="preview-name" id="preview-name">&nbsp;</span>
+          <span class="preview-level" id="preview-level"></span>
+          <span class="preview-score"><span id="preview-chips">0</span><span class="px-mult">×</span><span id="preview-mult">0</span></span>
         </div>
 
         <div class="actions">
@@ -271,11 +270,11 @@
   </div>
 </div>
 
-<script src="js/cards.js?v=20261007-5"></script>
-<script src="js/jokers.js?v=20261007-5"></script>
-<script src="js/consumables.js?v=20261007-5"></script>
-<script src="js/pixelart.js?v=20261007-5"></script>
-<script src="js/audio.js?v=20261007-5"></script>
-<script src="js/game.js?v=20261007-5"></script>
+<script src="js/cards.js?v=20261007-6"></script>
+<script src="js/jokers.js?v=20261007-6"></script>
+<script src="js/consumables.js?v=20261007-6"></script>
+<script src="js/pixelart.js?v=20261007-6"></script>
+<script src="js/audio.js?v=20261007-6"></script>
+<script src="js/game.js?v=20261007-6"></script>
 </body>
 </html>

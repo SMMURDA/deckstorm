@@ -804,6 +804,8 @@ function toggleCard(id, el) {
   }
   renderPreview();
   refreshControls();
+  // targeting a tarot: auto-apply as soon as enough cards are picked
+  if (S.targetMode && S.selected.size >= S.targetMode.cons.needs) confirmTarget();
 }
 
 function renderHand() {
@@ -930,8 +932,7 @@ function activateConsumable(idx) {
   // targeted tarot: enter aiming mode
   S.targetMode = { cons, idx };
   S.selected.clear();
-  const exact = cons.exact ? "exactly" : "up to";
-  $("#target-msg").textContent = `${cons.name}: select ${exact} ${cons.needs} card${cons.needs > 1 ? "s" : ""}`;
+  $("#target-msg").textContent = `${cons.name}: pick ${cons.needs} card${cons.needs > 1 ? "s" : ""} — auto-applies`;
   $("#target-icon").innerHTML = iconSVG(cons.id);
   $("#target-bar").hidden = false;
   renderHand();
@@ -986,11 +987,6 @@ function refreshControls() {
   const canAct = S && S.phase === "play" && !S.animating && !S.targetMode;
   $("#btn-play").disabled = !canAct || S.selected.size === 0 || S.handsLeft <= 0;
   $("#btn-discard").disabled = !canAct || S.selected.size === 0 || S.discardsLeft <= 0;
-  if (S && S.targetMode) {
-    const tm = S.targetMode;
-    const ok = tm.cons.exact ? S.selected.size === tm.cons.needs : S.selected.size >= 1;
-    $("#btn-target-use").disabled = !ok;
-  }
 }
 
 function renderAll() {
@@ -1139,8 +1135,8 @@ $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
 $("#nav-hands").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
 $("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
-$("#btn-target-use").onclick = confirmTarget;
-$("#btn-target-cancel").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
+$("#btn-target-x").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && S && S.targetMode) cancelTarget(); });
 $("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
   if (!S || S.money < S.rerollCost) { AudioFX.play("error"); return; }

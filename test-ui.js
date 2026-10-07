@@ -63,6 +63,7 @@ DS.settings.sound = false;
   for (let i = 0; i < 6; i++) cards[i].click();
   ok("5 cards selectable (6th blocked)", $$("#hand .card.selected").length === 5);
   ok("preview shows a hand name", $("#preview-name").textContent.length > 0 && $("#preview-name").textContent !== "Select cards");
+  ok("preview panel sits above actions (no scroll needed)", !!$("#preview-name").closest(".main-area"));
 
   // deselect 2, reselect
   cards[0].click(); cards[1].click();
@@ -194,8 +195,8 @@ DS.settings.sound = false;
   await sleep(30);
   ok("target bar appears", $("#target-bar").hidden === false);
   ok("target bar shows tarot icon", !!$("#target-icon svg"));
-  $$("#hand .card")[2].click();
-  $("#btn-target-use").click();
+  ok("no Use/Cancel buttons in target bar", !$("#btn-target-use") && !$("#btn-target-cancel"));
+  $$("#hand .card")[2].click(); // needs=1 -> auto-applies
   await sleep(30);
   ok("tarot applied -> steel", DS.S.hand[2].enhancement === "steel");
   ok("target bar hidden after use", $("#target-bar").hidden === true);

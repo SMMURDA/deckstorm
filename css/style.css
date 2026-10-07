@@ -190,9 +190,19 @@ body {
 }
 .round-score { font-size: 34px; text-align: center; color: var(--ink); line-height: 1.1; }
 
-.preview-panel { text-align: center; }
-.preview-name { font-family: var(--font-px); font-size: 10px; color: var(--pink); min-height: 16px; margin-bottom: 8px; }
-.preview-score { font-size: 30px; }
+.preview-panel {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 8px 14px;
+  min-height: 46px;
+  flex-wrap: wrap;
+}
+.preview-name { font-family: var(--font-px); font-size: 10px; color: var(--pink); }
+.preview-level { font-size: 15px; color: var(--muted); }
+.preview-score { font-size: 26px; line-height: 1; }
 .preview-score #preview-chips { color: var(--blue); }
 .preview-score #preview-mult { color: var(--red); }
 .px-mult { color: var(--muted); margin: 0 8px; }
@@ -479,8 +489,7 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
   .game-grid { grid-template-columns: 1fr; gap: 10px; }
   .sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
   .sidebar .side-panel { flex: 1 1 140px; padding: 10px; }
-  .preview-panel { order: -1; flex-basis: 100% !important; }
-  #btn-abandon, #btn-hands { flex: 1 1 45%; }
+  #btn-menu { flex: 1 1 100%; }
   .card { width: 58px; height: 82px; }
   .card .c-rank { font-size: 10px; top: 4px; left: 5px; }
   .card .c-suit { top: 18px; left: 5px; }
@@ -581,6 +590,12 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 }
 .target-icon { display: inline-flex; width: 30px; height: 30px; }
 .target-icon svg { width: 30px; height: 30px; }
+.target-x {
+  background: transparent; border: 2px solid var(--muted); border-radius: 6px;
+  color: var(--muted); width: 28px; height: 28px; cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 0;
+}
+.target-x:hover { border-color: var(--red); color: var(--red); }
 
 /* ── v5: fx ── */
 .fly-ghost { filter: drop-shadow(0 0 12px rgba(252,228,12,.6)); }
