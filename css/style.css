@@ -590,12 +590,6 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 }
 .target-icon { display: inline-flex; width: 30px; height: 30px; }
 .target-icon svg { width: 30px; height: 30px; }
-.target-x {
-  background: transparent; border: 2px solid var(--muted); border-radius: 6px;
-  color: var(--muted); width: 28px; height: 28px; cursor: pointer;
-  font-size: 14px; line-height: 1; padding: 0;
-}
-.target-x:hover { border-color: var(--red); color: var(--red); }
 
 /* ── v5: fx ── */
 .fly-ghost { filter: drop-shadow(0 0 12px rgba(252,228,12,.6)); }

@@ -908,6 +908,7 @@ function openConsModal(idx) {
   const c = S.consumables[idx];
   if (!c) return;
   const canUse = S.phase === "play" && !S.animating;
+  const isTargetingThis = S.targetMode && S.targetMode.cons === c;
   openModal({
     icon: iconSVG(c.id),
     name: c.name,
@@ -915,13 +916,16 @@ function openConsModal(idx) {
     desc: consDesc(c),
     sellVal: sellValue(c),
     onSell: () => sellConsumable(idx),
-    onUse: canUse ? () => activateConsumable(idx) : null,
+    onUse: (canUse || isTargetingThis) ? () => activateConsumable(idx) : null,
+    useLabel: isTargetingThis ? "Cancel Targeting" : "Use",
   });
 }
 
 function activateConsumable(idx) {
   const cons = S.consumables[idx];
   if (!cons) return;
+  // clicking the same consumable while targeting it cancels the aiming mode
+  if (S.targetMode && S.targetMode.cons === cons) { cancelTarget(); showToast("Targeting cancelled"); return; }
   if (cons.kind === "planet" || cons.needs === 0) {
     if (useConsumable(cons)) {
       S.consumables.splice(idx, 1);
@@ -1135,7 +1139,6 @@ $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
 $("#nav-hands").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
 $("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
-$("#btn-target-x").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && S && S.targetMode) cancelTarget(); });
 $("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
