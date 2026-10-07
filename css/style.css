@@ -989,18 +989,24 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     height: 100% !important; width: 100% !important;
   }
 
-  /* ── TOP HUD: single compact row (blind + score + stats) ── */
+  /* ── TOP HUD: blind row, then [Options][Run Info][stats] ── */
   #screen-game .sidebar {
     width: 100% !important; height: auto !important;
     flex-direction: row !important; flex-wrap: wrap !important;
-    align-items: center !important; justify-content: flex-start !important;
+    align-items: stretch !important; justify-content: flex-start !important;
     flex-shrink: 0 !important;
-    padding: 4px 6px !important; gap: 5px !important;
+    padding: 4px 6px !important; gap: 4px !important;
     border-right: none !important;
     border-bottom: 2px solid #000 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     position: static !important;
   }
+  /* explicit order: blind → boss banner → Options → Run Info → stats */
+  .blind-panel          { order: 1 !important; flex: 1 1 100% !important; }
+  .boss-banner          { order: 2 !important; flex: 1 1 100% !important; margin: 2px 0 0 !important; }
+  .boss-banner:not([hidden]) { display: block !important; }
+  #btn-menu             { order: 3 !important; }
+  #btn-run-info         { order: 4 !important; }
 
   /* blind panel: inline group (title + badge + target + reward) */
   .blind-panel {
@@ -1023,7 +1029,6 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   #hud-target { font-size: 15px !important; display: inline !important; color: #ff8f8f !important; }
   .earn-line { display: none !important; }
   .score-bar { display: none !important; }
-  .boss-banner { display: none !important; }
 
   /* round score sits inline, right after the blind */
   .round-score-row {
@@ -1035,37 +1040,37 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .round-score-row span { font-size: 8px !important; }
   .round-score-row b { font-size: 16px !important; }
 
-  /* stats: compact inline chips on the same row */
+  /* stats: tidy 3x2 grid beside the Options / Run Info buttons */
   #screen-game .stats-panel {
-    display: flex !important; flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    grid-template-columns: unset !important; grid-template-rows: unset !important;
-    gap: 3px !important; padding: 0 !important;
+    order: 5 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+    gap: 2px !important; padding: 0 !important;
     background: transparent !important;
     border: none !important; border-radius: 0 !important;
     filter: none !important;
-    flex: 1 1 auto !important; justify-content: flex-end !important;
-    min-width: 0 !important;
+    flex: 1 1 auto !important; min-width: 0 !important;
   }
   .stat-box {
     display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: center !important;
-    padding: 2px 4px !important; gap: 0 !important;
+    padding: 2px 1px !important; gap: 0 !important;
     border-radius: 3px !important; min-width: 0 !important;
-    flex: 0 0 auto !important;
+    flex: unset !important;
   }
-  .stat-box span { font-size: 6.5px !important; line-height: 1.1 !important; letter-spacing: 0 !important; }
-  .stat-box b { font-size: 13px !important; line-height: 1.1 !important; }
+  .stat-box span { font-size: 6px !important; line-height: 1.1 !important; letter-spacing: 0 !important; }
+  .stat-box b { font-size: 12.5px !important; line-height: 1.1 !important; }
 
-  /* menu button: tiny, sits at the end of the row */
-  .btn-run, .btn-options { display: none !important; }
-  #btn-menu-compact { display: none !important; }
-  #btn-menu {
+  /* Options + Run Info: compact, side by side, before the stats grid */
+  .btn-run, .btn-options {
     display: block !important;
     width: auto !important; margin: 0 !important;
-    font-size: 7px !important; padding: 4px 6px !important;
+    font-size: 7px !important; padding: 5px 7px !important;
     flex: 0 0 auto !important;
+    align-self: stretch !important;
   }
+  #btn-menu-compact { display: none !important; }
 
   /* ── FELT TABLE ── */
   #screen-game .felt-table {
@@ -1338,7 +1343,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
                      align-items: baseline !important; padding: 0 !important; }
   .round-score-row span { font-size: 10px !important; }
   .round-score-row b { font-size: 17px !important; }
-  .boss-banner { display: block !important; font-size: 10px !important; padding: 3px 5px !important; }
+  .boss-banner:not([hidden]) { display: block !important; font-size: 10px !important; padding: 3px 5px !important; }
   .boss-banner b { font-size: 7px !important; }
 
   /* stats: compact 2-col grid */
@@ -1550,7 +1555,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     margin: 3px 5px 0 !important;
     font-size: 8px !important; padding: 7px 5px !important;
   }
-  #btn-options, #btn-menu { display: none !important; }
+  #btn-menu-compact { display: none !important; }
 }
 
 /* very short landscape (≈360×640 rotated → 640×360) */
