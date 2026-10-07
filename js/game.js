@@ -552,6 +552,8 @@ function cancelTarget() {
   S.targetMode = null;
   S.selected.clear();
   document.body.classList.remove("targeting");
+  $("#target-fab").hidden = true;
+  $("#actions").hidden = false;
   renderHand();
   refreshControls();
 }
@@ -567,6 +569,8 @@ function confirmTarget() {
     S.targetMode = null;
     S.selected.clear();
     document.body.classList.remove("targeting");
+    $("#target-fab").hidden = true;
+    $("#actions").hidden = false;
     renderAll();
   }
 }
@@ -804,8 +808,6 @@ function toggleCard(id, el) {
   }
   renderPreview();
   refreshControls();
-  // targeting a tarot: auto-apply as soon as enough cards are picked
-  if (S.targetMode && S.selected.size >= S.targetMode.cons.needs) confirmTarget();
 }
 
 function renderHand() {
@@ -933,11 +935,14 @@ function activateConsumable(idx) {
     }
     return;
   }
-  // targeted tarot: enter aiming mode (hand glows, toast guides)
+  // targeted tarot: enter aiming mode — hand glows, confirm pill slides up
   S.targetMode = { cons, idx };
   S.selected.clear();
   document.body.classList.add("targeting");
-  showToast(`${cons.name}: pick ${cons.needs} card${cons.needs > 1 ? "s" : ""} — auto-applies · tap again to cancel`);
+  $("#target-fab-icon").innerHTML = iconSVG(cons.id);
+  $("#target-fab-msg").textContent = `${cons.name}: pick ${cons.exact ? "exactly" : "up to"} ${cons.needs}`;
+  $("#target-fab").hidden = false;
+  $("#actions").hidden = true;
   renderHand();
   refreshControls();
 }
@@ -990,6 +995,10 @@ function refreshControls() {
   const canAct = S && S.phase === "play" && !S.animating && !S.targetMode;
   $("#btn-play").disabled = !canAct || S.selected.size === 0 || S.handsLeft <= 0;
   $("#btn-discard").disabled = !canAct || S.selected.size === 0 || S.discardsLeft <= 0;
+  if (S && S.targetMode) {
+    const tm = S.targetMode;
+    $("#btn-target-use").disabled = tm.cons.exact ? S.selected.size !== tm.cons.needs : S.selected.size < 1;
+  }
 }
 
 function renderAll() {
@@ -1139,6 +1148,8 @@ $("#nav-hands").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("c
 $("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && S && S.targetMode) cancelTarget(); });
+$("#btn-target-use").onclick = confirmTarget;
+$("#btn-target-x").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
 $("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
   if (!S || S.money < S.rerollCost) { AudioFX.play("error"); return; }

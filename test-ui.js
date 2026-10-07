@@ -185,7 +185,7 @@ DS.settings.sound = false;
   ok("pair leveled to 2", DS.S.handLevels["Pair"] === 2);
   ok("planetsUsed tracked", DS.S.stats.planetsUsed === 1);
 
-  // 11. targeted tarot (Chariot -> steel)
+  // 11. targeted tarot (Chariot -> steel): confirm pill, no auto-apply
   DS.S.consumables.length = 0;
   DS.S.consumables.push({ ...DS.api.TAROTS.find(t => t.id === "chariot") });
   DS.renderAll();
@@ -193,25 +193,44 @@ DS.settings.sound = false;
   await sleep(30);
   $("#mc-use").click();
   await sleep(30);
-  ok("no target bar element at all", !$("#target-bar"));
+  ok("confirm pill appears while targeting", $("#target-fab").hidden === false);
+  ok("pill shows tarot icon", !!$("#target-fab-icon svg"));
   ok("hand glows while targeting", document.body.classList.contains("targeting"));
-  // cancel by re-clicking the same consumable (modal shows Cancel Targeting)
-  $$("#consumables .joker:not(.slot-empty)")[0].click();
+  ok("play/discard hidden while targeting", $("#actions").hidden === true);
+  ok("use disabled before picking", $("#btn-target-use").disabled === true);
+  $$("#hand .card")[2].click();
   await sleep(30);
-  ok("modal offers Cancel Targeting", $("#mc-use").textContent === "Cancel Targeting");
-  $("#mc-use").click();
-  await sleep(30);
-  ok("targeting cancelled via re-click", !document.body.classList.contains("targeting") && DS.S.targetMode === null);
-  // re-enter and apply for real
-  $$("#consumables .joker:not(.slot-empty)")[0].click();
-  await sleep(30);
-  $("#mc-use").click();
-  await sleep(30);
-  $$("#hand .card")[2].click(); // needs=1 -> auto-applies
+  ok("no auto-apply (card unchanged)", DS.S.hand[2].enhancement === null);
+  ok("use enabled after picking", $("#btn-target-use").disabled === false);
+  $("#btn-target-use").click();
   await sleep(30);
   ok("tarot applied -> steel", DS.S.hand[2].enhancement === "steel");
+  ok("pill hidden after use", $("#target-fab").hidden === true);
+  ok("actions restored after use", $("#actions").hidden === false);
   ok("targeting cleared after use", !document.body.classList.contains("targeting"));
   ok("tarotsUsed tracked", DS.S.stats.tarotsUsed === 1);
+
+  // 11b. cancel via pill x
+  DS.S.consumables.push({ ...DS.api.TAROTS.find(t => t.id === "chariot") });
+  DS.renderAll();
+  $$("#consumables .joker:not(.slot-empty)")[0].click();
+  await sleep(30);
+  $("#mc-use").click();
+  await sleep(30);
+  ok("pill appears again", $("#target-fab").hidden === false);
+  $("#btn-target-x").click();
+  await sleep(30);
+  ok("cancel via pill x", $("#target-fab").hidden === true && DS.S.targetMode === null && $("#actions").hidden === false);
+  ok("consumable kept after cancel", DS.S.consumables.length === 1);
+  // cleanup: use it so later tests are unaffected
+  $$("#consumables .joker:not(.slot-empty)")[0].click();
+  await sleep(30);
+  $("#mc-use").click();
+  await sleep(30);
+  $$("#hand .card")[3].click();
+  await sleep(30);
+  $("#btn-target-use").click();
+  await sleep(30);
 
   // 11b. autosave captured mid-run
   const saveStr = window.localStorage.getItem("deckstorm.save");
