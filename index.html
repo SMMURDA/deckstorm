@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-30">
+<link rel="stylesheet" href="css/style.css?v=20261007-31">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -36,7 +36,8 @@
         <button id="btn-howto" class="btn btn-big">How to Play</button>
         <button id="btn-settings" class="btn btn-big">Settings</button>
       </nav>
-      <p class="menu-foot">v2.0 · build 2026-10-07.30 · beat 8 antes to win</p>
+      <p class="menu-foot">Build 07 October 2026 · v31.1</p>
+      <p class="menu-credit">Powered by <a href="https://dev.topup.eu.org" target="_blank" rel="noopener noreferrer">Bovalone Network</a></p>
     </div>
   </section>
 
@@ -54,22 +55,8 @@
         <p><b class="c-pink">Tarot</b> cards enhance your deck: Bonus, Mult, Wild, Glass, Steel, Gold, Lucky, Stone…
            <b class="c-pink">Planet</b> cards level up a poker hand permanently (+chips / +mult).</p>
         <p><b class="c-pink">Boss Blinds</b> have nasty effects: debuffed suits, no discards, 1-hand-only…</p>
-        <table class="hands-table">
-          <tr><th>Hand</th><th>Chips</th><th>Mult</th></tr>
-          <tr><td>High Card</td><td>5</td><td>×1</td></tr>
-          <tr><td>Pair</td><td>10</td><td>×2</td></tr>
-          <tr><td>Two Pair</td><td>20</td><td>×2</td></tr>
-          <tr><td>Three of a Kind</td><td>30</td><td>×3</td></tr>
-          <tr><td>Straight</td><td>30</td><td>×4</td></tr>
-          <tr><td>Flush</td><td>35</td><td>×4</td></tr>
-          <tr><td>Full House</td><td>40</td><td>×4</td></tr>
-          <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
-          <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
-          <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
-          <tr><td>Five of a Kind</td><td>120</td><td>×12</td></tr>
-          <tr><td>Flush House</td><td>140</td><td>×14</td></tr>
-          <tr><td>Flush Five</td><td>160</td><td>×14</td></tr>
-        </table>
+        <p class="howto-note">Each hand is shown with example cards — the highlighted pattern is what scores.</p>
+        <table class="hands-table" id="howto-hands"></table>
       </div>
       <button class="btn btn-big btn-back" data-back>← Back</button>
     </div>

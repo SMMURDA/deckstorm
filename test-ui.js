@@ -242,7 +242,9 @@ DS.settings.sound = false;
   DS.showScreen("game");
   $("#btn-run-info").click();
   ok("hands screen opens", $("#screen-hands").classList.contains("active"));
-  ok("hands table has 12 rows", $$("#hands-levels tr").length === 13); // header + 12
+  ok("hands table has 13 rows", $$("#hands-levels tr").length === 14); // header + 13 (Royal Flush now listed too)
+  ok("hands table rows show card examples", $$("#hands-levels .mini-card").length >= 13 * 5);
+  ok("how to play table is built with card examples", $$("#howto-hands .mini-card").length >= 13 * 5);
   $("#btn-hands-back").click();
 
   // 16. game over path (1 hand left, score stays 0 -> play fails to reach target)

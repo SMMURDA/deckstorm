@@ -130,7 +130,34 @@ body {
   line-height: 1.6;
 }
 .menu-nav { display: flex; flex-direction: column; gap: 16px; width: min(320px, 84vw); }
-.menu-foot { margin-top: 46px; color: var(--muted); font-size: 17px; opacity: .7; }
+.menu-foot { margin-top: 46px; color: var(--muted); font-size: 17px; opacity: .8; letter-spacing: .04em; }
+.menu-credit { margin: 6px 0 0; color: var(--muted); font-size: 16px; opacity: .85; }
+.menu-credit a {
+  color: var(--pink); font-weight: 700; text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color .15s ease, border-color .15s ease;
+}
+.menu-credit a:hover { color: #FFD6FB; border-bottom-color: currentColor; }
+
+/* ── mini playing cards used by the hand-example tables ── */
+.howto-note { color: var(--muted); font-size: 17px; margin: 0 0 10px; }
+.hand-demo { display: inline-flex; align-items: center; }
+.mini-card {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 22px; height: 30px; flex: none;
+  background: var(--cream); color: var(--card-ink);
+  border: 1px solid rgba(0,0,0,.55);
+  border-radius: 5px;
+  margin-right: -5px;
+  font-family: var(--font-score); line-height: 1.05;
+  box-shadow: 1px 1px 0 rgba(0,0,0,.35);
+}
+.mini-card:last-child { margin-right: 0; }
+.mini-card b { font-size: 9px; font-weight: 700; }
+.mini-card i { font-style: normal; font-size: 9px; }
+.mini-card.red { color: #E23C50; }
+.mini-card.copy { color: #8B5CF6; border-style: dashed; }
+.hands-table .demo-cell { white-space: nowrap; }
 
 /* floating pixel cards behind menu */
 .float-cards { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
@@ -903,8 +930,9 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   padding: 10px 12px 8px;
   position: relative;
   overflow: hidden;
-  gap: 6px;
+  gap: 9px;   /* breathing room between the joker strip, play area and hand */
 }
+#screen-game .strips-row { margin-bottom: 2px; }
 
 /* subtle felt texture via repeating gradient */
 #screen-game .felt-table::before {
@@ -1236,7 +1264,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
 
   /* strips: Consumables row above (right-aligned), Jokers row below */
   .strips-row {
-    display: flex !important; flex-direction: column !important; gap: 4px !important;
+    display: flex !important; flex-direction: column !important; gap: 6px !important;
     flex-shrink: 0 !important; align-items: stretch !important;
   }
   .strips-row .joker-strip { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
@@ -1516,7 +1544,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   #btn-menu-compact { display: none !important; }   /* keep the real Options button in landscape */
 
   /* felt: tighter */
-  #screen-game .felt-table { gap: 3px !important; padding: 5px 7px !important; }
+  #screen-game .felt-table { gap: 6px !important; padding: 5px 7px !important; }
   .strips-row { flex-shrink: 0 !important; }
   #screen-game .joker { width: 58px !important; }
   #screen-game .tile-icon { height: 32px !important; }
@@ -1658,6 +1686,16 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   #screen-shop .shop-panel { padding: 10px 10px 4px !important; }
 
+  /* compact hand-example cards on small screens */
+  .mini-card { width: 16px !important; height: 22px !important; margin-right: -4px !important; border-radius: 4px !important; }
+  .mini-card b, .mini-card i { font-size: 7px !important; }
+  #howto-hands, #hands-levels { font-size: 15px !important; }
+  #howto-hands td, #howto-hands th,
+  #hands-levels td, #hands-levels th { padding: 3px 2px !important; text-align: center !important; }
+  #howto-hands td:first-child, #howto-hands th:first-child,
+  #hands-levels td:first-child, #hands-levels th:first-child { text-align: left !important; }
+  .howto-note { font-size: 14px !important; }
+
   /* scrollbar for the scrolling screens */
   #screen-shop.active::-webkit-scrollbar,
   #screen-collection.active::-webkit-scrollbar,
@@ -1699,7 +1737,7 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   #screen-hands .panel-title { margin-bottom: 10px !important; }
 
   /* felt must never overflow: everything shrinkable */
-  #screen-game .felt-table { overflow: hidden !important; gap: 3px !important; padding: 4px 6px !important; }
+  #screen-game .felt-table { overflow: hidden !important; gap: 6px !important; padding: 4px 6px !important; }
   /* landscape: keep the two strips side by side — vertical space is scarce here */
   #screen-game .strips-row { flex: 0 0 auto !important; flex-direction: row !important; align-items: flex-start !important; }
   .strips-row .joker-strip { width: auto !important; max-width: 50% !important; }

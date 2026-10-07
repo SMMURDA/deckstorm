@@ -1126,16 +1126,57 @@ function renderCollection() {
     b.classList.toggle("btn-primary", b.dataset.tab === collTab));
 }
 
-function renderHandsScreen() {  const tbl = $("#hands-levels");
+// ── poker-hand examples, shown as real (mini) cards in How to Play / Run Info ──
+const HAND_ORDER = ["High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush",
+  "Full House", "Four of a Kind", "Straight Flush", "Royal Flush",
+  "Five of a Kind", "Flush House", "Flush Five"];
+const SUIT_GLYPH = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣", copy: "★" };
+// "copy" = a duplicated/copied card (what you get from Tarot cards)
+const HAND_DEMO = {
+  "High Card":       [["A", "spades"], ["K", "hearts"], ["9", "diamonds"], ["6", "clubs"], ["3", "spades"]],
+  "Pair":            [["8", "spades"], ["8", "hearts"], ["K", "diamonds"], ["5", "clubs"], ["2", "spades"]],
+  "Two Pair":        [["J", "spades"], ["J", "hearts"], ["4", "diamonds"], ["4", "clubs"], ["9", "spades"]],
+  "Three of a Kind": [["7", "spades"], ["7", "hearts"], ["7", "diamonds"], ["K", "clubs"], ["2", "spades"]],
+  "Straight":        [["5", "spades"], ["6", "hearts"], ["7", "diamonds"], ["8", "clubs"], ["9", "spades"]],
+  "Flush":           [["A", "hearts"], ["K", "hearts"], ["9", "hearts"], ["6", "hearts"], ["3", "hearts"]],
+  "Full House":      [["Q", "spades"], ["Q", "hearts"], ["Q", "diamonds"], ["5", "clubs"], ["5", "spades"]],
+  "Four of a Kind":  [["9", "spades"], ["9", "hearts"], ["9", "diamonds"], ["9", "clubs"], ["A", "spades"]],
+  "Straight Flush":  [["6", "hearts"], ["7", "hearts"], ["8", "hearts"], ["9", "hearts"], ["10", "hearts"]],
+  "Royal Flush":     [["10", "spades"], ["J", "spades"], ["Q", "spades"], ["K", "spades"], ["A", "spades"]],
+  "Five of a Kind":  [["5", "spades"], ["5", "hearts"], ["5", "diamonds"], ["5", "clubs"], ["5", "copy"]],
+  "Flush House":     [["Q", "hearts"], ["Q", "hearts"], ["Q", "copy"], ["5", "hearts"], ["5", "copy"]],
+  "Flush Five":      [["A", "spades"], ["A", "spades"], ["A", "copy"], ["A", "copy"], ["A", "copy"]],
+};
+function miniCardHTML(rank, suit) {
+  const kind = suit === "copy" ? " copy" : (suit === "hearts" || suit === "diamonds") ? " red" : "";
+  return `<span class="mini-card${kind}"><b>${rank}</b><i>${SUIT_GLYPH[suit] || "?"}</i></span>`;
+}
+function handDemoHTML(name) {
+  const d = HAND_DEMO[name];
+  if (!d) return "";
+  return `<span class="hand-demo">${d.map(([r, s]) => miniCardHTML(r, s)).join("")}</span>`;
+}
+
+function renderHandsScreen() {
+  const tbl = $("#hands-levels");
   const planetOf = h => PLANETS.find(p => p.hand === h);
-  let rows = `<tr><th>Hand</th><th>Lv</th><th>Chips</th><th>Mult</th><th>Planet</th></tr>`;
-  ["High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House",
-   "Four of a Kind", "Straight Flush", "Five of a Kind", "Flush House", "Flush Five"].forEach(h => {
-    const base = { name: h };
+  let rows = `<tr><th>Hand</th><th>Example</th><th>Lv</th><th>Chips</th><th>Mult</th><th>Planet</th></tr>`;
+  HAND_ORDER.forEach(h => {
     const hv = handValue(h);
     const p = planetOf(h);
     const used = S.stats.planetCounts[h] || 0;
-    rows += `<tr><td>${h}</td><td>${handLevel(h)}</td><td>${hv.chips}</td><td>×${hv.mult}</td><td>${p ? p.name : "—"}${used ? ` (${used})` : ""}</td></tr>`;
+    rows += `<tr><td>${h}</td><td class="demo-cell">${handDemoHTML(h)}</td><td>${handLevel(h)}</td><td>${hv.chips}</td><td>×${hv.mult}</td><td>${p ? p.name : "—"}${used ? ` (${used})` : ""}</td></tr>`;
+  });
+  tbl.innerHTML = rows;
+}
+
+function renderHowtoHands() {
+  const tbl = $("#howto-hands");
+  if (!tbl) return;
+  let rows = `<tr><th>Hand</th><th>Example</th><th>Chips</th><th>Mult</th></tr>`;
+  HAND_ORDER.forEach(h => {
+    const b = HAND_BASE[h] || { chips: 0, mult: 0 };
+    rows += `<tr><td>${h}</td><td class="demo-cell">${handDemoHTML(h)}</td><td>${b.chips}</td><td>×${b.mult}</td></tr>`;
   });
   tbl.innerHTML = rows;
 }
@@ -1290,6 +1331,7 @@ document.querySelectorAll(".ico[data-icon]").forEach(el => {
   el.innerHTML = uiIcon(el.dataset.icon, "currentColor");
 });
 
+renderHowtoHands();  // How to Play table with card examples
 applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
