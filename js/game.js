@@ -878,8 +878,10 @@ function jokerTile(j, opts = {}) {
   const tile = document.createElement("div");
   tile.className = `joker j-${j.rarity}` + (j.edition ? ` ed-${j.edition}` : "") + (opts.onClick ? " clickable" : "");
   tile.innerHTML =
+    (j.edition ? `<span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : "") +
     `<div class="tile-icon">${iconSVG(j.id)}</div>` +
-    `<div class="tile-name">${j.name}${j.edition ? ` <span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : ""}</div>` +
+    `<div class="tile-name">${j.name}</div>` +
+    `<div class="tile-rarity rar-${j.rarity}">${j.rarity}</div>` +
     (opts.showDesc ? `<span class="jdesc">${j.desc}</span>` : "");
   if (opts.onClick) tile.onclick = opts.onClick;
   return tile;
@@ -903,6 +905,7 @@ function consTile(c, opts = {}) {
   tile.innerHTML =
     `<div class="tile-icon">${iconSVG(c.id)}</div>` +
     `<div class="tile-name">${c.name}</div>` +
+    `<div class="tile-rarity kind-${c.kind}">${c.kind}</div>` +
     (opts.showDesc ? `<span class="jdesc">${consDesc(c)}</span>` : "");
   if (opts.onClick) tile.onclick = opts.onClick;
   return tile;
@@ -1001,6 +1004,8 @@ function renderBossBanner() {
     el.hidden = false;
     $("#boss-name").textContent = S.boss.name;
     $("#boss-desc").textContent = S.boss.desc;
+    const art = $("#boss-art");
+    if (art) art.innerHTML = iconSVG(S.boss.id);
   } else {
     el.hidden = true;
   }

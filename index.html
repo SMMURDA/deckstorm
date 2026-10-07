@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-24">
+<link rel="stylesheet" href="css/style.css?v=20261007-25">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -122,7 +122,10 @@
           <div class="round-score-row"><span>Round score</span><b id="hud-score">0</b></div>
         </div>
 
-        <div id="boss-banner" class="boss-banner" hidden><b id="boss-name"></b><span id="boss-desc"></span></div>
+        <div id="boss-banner" class="boss-banner" hidden>
+          <div class="boss-banner-body"><b id="boss-name"></b><span id="boss-desc"></span></div>
+          <div class="boss-banner-art" id="boss-art" aria-hidden="true"></div>
+        </div>
 
         <div class="panel side-panel stats-panel">
           <div class="stat-box stat-hands"><span>Hands</span><b id="hud-hands">4</b></div>
