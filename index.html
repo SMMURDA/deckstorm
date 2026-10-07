@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deckstorm — Poker Roguelike</title>
+<meta name="description" content="A poker roguelike deckbuilder: beat the blinds, build your jokers, survive 8 antes.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main class="table">
+
+  <section id="start-screen" class="overlay">
+    <h1>Deck<span>storm</span></h1>
+    <p>Beat the blinds with poker hands. Build your jokers. Survive 8 antes.</p>
+    <button id="btn-start" class="btn btn-primary">Start Run</button>
+  </section>
+
+  <section id="hud" hidden>
+    <div class="hud-top">
+      <div class="hud-box"><label>Ante</label><b id="hud-ante">1</b><span>/8</span></div>
+      <div class="hud-box hud-blind"><label id="hud-blind">Small Blind</label><b id="hud-target">300</b></div>
+      <div class="hud-box"><label>Money</label><b id="hud-money">$4</b></div>
+    </div>
+    <div class="score-bar"><div id="score-bar-fill"></div></div>
+    <div class="hud-sub">
+      <span>Score <b id="hud-score">0</b></span>
+      <span>Hands <b id="hud-hands">4</b></span>
+      <span>Discards <b id="hud-discards">3</b></span>
+    </div>
+
+    <div class="joker-row-head"><span>Jokers</span><span id="joker-count">0/5</span></div>
+    <div id="jokers" class="jokers"></div>
+
+    <div id="score-flash" aria-live="polite"></div>
+    <p id="preview" class="preview">Select up to 5 cards</p>
+
+    <div id="hand" class="hand"></div>
+    <div class="hand-meta"><span id="hand-count">8/8</span></div>
+
+    <div class="actions">
+      <button id="btn-play" class="btn btn-primary">Play Hand</button>
+      <button id="btn-discard" class="btn">Discard</button>
+      <button id="btn-sort-rank" class="btn btn-ghost">Sort: Rank</button>
+      <button id="btn-sort-suit" class="btn btn-ghost">Sort: Suit</button>
+    </div>
+  </section>
+
+  <section id="shop" class="overlay" hidden>
+    <h2>Blind Beaten!</h2>
+    <p id="shop-reward" class="shop-reward"></p>
+    <div id="shop-offers" class="shop-offers"></div>
+    <div class="actions">
+      <button id="btn-reroll" class="btn">Reroll $2</button>
+      <button id="btn-next" class="btn btn-primary">Next Blind →</button>
+    </div>
+  </section>
+
+  <section id="gameover" class="overlay" hidden>
+    <h2>Run Over</h2>
+    <p>Ante <b id="final-ante"></b> — <b id="final-blind"></b><br>
+       Scored <b id="final-score"></b> of <b id="final-target"></b></p>
+    <button id="btn-retry" class="btn btn-primary">Try Again</button>
+  </section>
+
+  <section id="win" class="overlay" hidden>
+    <h2>You Beat Ante 8!</h2>
+    <p>The deck bows to you.</p>
+    <button id="btn-again" class="btn btn-primary">New Run</button>
+  </section>
+
+</main>
+<script src="js/cards.js"></script>
+<script src="js/jokers.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
