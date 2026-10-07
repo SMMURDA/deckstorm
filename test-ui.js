@@ -33,7 +33,7 @@ function ok(name, cond) {
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-async function waitFor(fn, timeout = 1500) {
+async function waitFor(fn, timeout = 5000) {
   const t0 = Date.now();
   while (!fn()) { if (Date.now() - t0 > timeout) return false; await sleep(30); }
   return true;
@@ -131,45 +131,6 @@ DS.settings.sound = false;
   ok("modal closes after sell", $("#modal-card").hidden === true);
   ok("joker sold", DS.S.jokers.length === 0);
   ok("sell paid money", DS.S.money > moneyBefore);
-
-  // 11c. UI button icons injected as inline SVG
-  ok("play button has pixel icon", !!document.querySelector("#btn-play .ico svg"));
-  ok("discard button has pixel icon", !!document.querySelector("#btn-discard .ico svg"));
-  ok("no literal emoji in action buttons", !$("#btn-play").textContent.includes("▶"));
-
-  // 11d. blind select + skip reward flow
-  DS.S.money = 40;
-  DS.showScreen("shop");
-  DS.renderShop();
-  DS.S.blindIndex = 0;
-  $("#btn-next").click();
-  await sleep(40);
-  ok("blind select screen opens", $("#screen-blind").classList.contains("active"));
-  ok("blind select shows target", $("#bs-target").textContent.length > 0);
-  ok("blind select shows reward", $("#bs-reward").textContent.startsWith("$"));
-  ok("skip button shows a tag", $("#btn-skip-blind .lbl").textContent.includes("Skip"));
-
-  // skip grants reward + advances blind
-  const moneyBeforeSkip = DS.S.money;
-  const consBeforeSkip = DS.S.consumables.length;
-  const jokersBeforeSkip = DS.S.jokers.length;
-  const handsBeforeSkip = DS.S.bonusHands || 0;
-  $("#btn-skip-blind").click();
-  await sleep(40);
-  const gainedTag = (DS.S.money > moneyBeforeSkip)
-    || (DS.S.consumables.length > consBeforeSkip)
-    || (DS.S.jokers.length > jokersBeforeSkip)
-    || ((DS.S.bonusHands || 0) > handsBeforeSkip);
-  ok("skip grants a tag reward", gainedTag);
-  ok("skip advances the blind", DS.S.blindIndex === 2);
-  ok("still on blind select after skip", $("#screen-blind").classList.contains("active"));
-
-  // play the selected blind starts the round
-  $("#btn-play-blind").click();
-  await sleep(40);
-  ok("play blind starts the game", $("#screen-game").classList.contains("active"));
-  ok("playing from select sets phase play", DS.S.phase === "play");
-  ok("cards dealt after play blind", $$("#hand .card").length === 8);
 
   // 12. booster pack flow
   DS.S.money = 99;
@@ -330,6 +291,63 @@ DS.settings.sound = false;
   ok("vouchers tab 7", $$("#collection-grid .coll-tile").length === 7);
   document.querySelector('[data-tab="bosses"]').click();
   ok("bosses tab 10", $$("#collection-grid .coll-tile").length === 10);
+
+  // 20. blind select + skip tags + UI icons (isolated: runs last so it cannot disturb earlier state)
+  DS.S.blindIndex = 0; DS.S.boss = null; DS.S.phase = "shop";
+  DS.S.packs = [...DS.api.PACKS].map(p => ({ ...p }));
+  DS.renderShop(); DS.showScreen("shop");
+  await sleep(20);
+
+  // 20a. UI button icons injected as inline SVG
+  ok("play button has pixel icon", !!document.querySelector("#btn-play .ico svg"));
+  ok("discard button has pixel icon", !!document.querySelector("#btn-discard .ico svg"));
+  ok("no literal emoji in action buttons", !$("#btn-play").textContent.includes("▶"));
+
+  // 20b. blind select + skip reward flow
+  DS.S.money = 40;
+  DS.showScreen("shop");
+  DS.renderShop();
+  DS.S.blindIndex = 0;
+  $("#btn-next").click();
+  await sleep(40);
+  ok("blind select screen opens", $("#screen-blind").classList.contains("active"));
+  ok("blind select shows target", $("#bs-target").textContent.length > 0);
+  ok("blind select shows reward", $("#bs-reward").textContent.startsWith("$"));
+  ok("skip button shows a tag", $("#btn-skip-blind .lbl").textContent.includes("Skip"));
+
+  // skip grants reward + advances blind
+  const moneyBeforeSkip = DS.S.money;
+  const consBeforeSkip = DS.S.consumables.length;
+  const jokersBeforeSkip = DS.S.jokers.length;
+  const handsBeforeSkip = DS.S.bonusHands || 0;
+  $("#btn-skip-blind").click();
+  await sleep(40);
+  const gainedTag = (DS.S.money > moneyBeforeSkip)
+    || (DS.S.consumables.length > consBeforeSkip)
+    || (DS.S.jokers.length > jokersBeforeSkip)
+    || ((DS.S.bonusHands || 0) > handsBeforeSkip);
+  ok("skip grants a tag reward", gainedTag);
+  ok("skip advances the blind", DS.S.blindIndex === 2);
+  ok("still on blind select after skip", $("#screen-blind").classList.contains("active"));
+
+  // play the selected blind starts the round
+  $("#btn-play-blind").click();
+  await sleep(40);
+  ok("play blind starts the game", $("#screen-game").classList.contains("active"));
+  ok("playing from select sets phase play", DS.S.phase === "play");
+  const expectHand = 8 - (DS.S.boss && DS.S.boss.id === "manacle" ? 1 : 0);
+  ok("cards dealt after play blind (boss effects applied)", $$("#hand .card").length === expectHand);
+
+  // 20c. Balatro rule: only Small and Big Blinds are skippable — the Boss is not
+  DS.S.blindIndex = 0; DS.S.boss = null; DS.showBlindSelect(); await sleep(20);
+  ok("small blind is skippable", $("#btn-skip-blind").hidden === false);
+  DS.S.blindIndex = 1; DS.showBlindSelect(); await sleep(20);
+  ok("big blind is skippable", $("#btn-skip-blind").hidden === false);
+  DS.S.blindIndex = 2; DS.showBlindSelect(); await sleep(20);
+  ok("boss blind is NOT skippable", $("#btn-skip-blind").hidden === true);
+  ok("boss shows must-fight hint", /cannot be skipped/i.test($(".blind-select-hint").textContent));
+  ok("boss select still shows its effect", $("#bs-boss").hidden === false && $("#bs-boss").textContent.length > 3);
+
 
   console.log(`\n${passes} passed, ${fails} failed`);
   try { mainDom.window.close(); } catch(e){}

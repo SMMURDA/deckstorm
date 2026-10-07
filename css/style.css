@@ -1111,15 +1111,29 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .played-info { font-size: 9.5px !important; min-height: 14px !important; }
   .tray-label { font-size: 6px !important; margin-bottom: 2px !important; }
 
-  /* preview row */
+  /* felt children order: strips → featured hand panel → play area → hand → actions */
+  .strips-row        { order: 1 !important; }
+  .preview-panel     { order: 2 !important; }
+  .tray-label        { order: 3 !important; }
+  .played-zone       { order: 4 !important; }
+  .played-info       { order: 5 !important; }
+  .hand-zone         { order: 6 !important; }
+  #target-fab        { order: 7 !important; }
+  .actions           { order: 8 !important; }
+
+  /* featured hand panel: hand name + chips x mult (Balatro portrait style) */
   #screen-game .preview-panel {
-    padding: 3px 8px !important; min-height: 26px !important;
-    gap: 8px !important; flex-shrink: 0 !important;
-    border-radius: 6px !important;
+    flex-direction: column !important;
+    align-items: center !important; justify-content: center !important;
+    padding: 5px 10px !important; min-height: 40px !important;
+    gap: 2px !important; flex-shrink: 0 !important;
+    border-radius: 8px !important;
+    background: rgba(0,0,0,.32) !important;
+    border: 2px solid rgba(255,255,255,.12) !important;
   }
-  #preview-name  { font-size: 7px !important; }
-  .preview-level { font-size: 12px !important; }
-  .preview-score { font-size: 19px !important; }
+  #preview-name  { font-size: 8px !important; }
+  .preview-level { font-size: 11px !important; }
+  .preview-score { font-size: 24px !important; }
 
   /* hand zone */
   .hand-zone.felt {
@@ -1162,8 +1176,13 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .target-fab-icon, .target-fab-icon svg { width: 20px !important; height: 20px !important; }
   .target-fab .btn { font-size: 8px !important; padding: 6px 8px !important; }
 
-  /* deck pile hidden */
-  .deck-pile { display: none !important; }
+  /* deck pile visible in portrait, tucked right of the play area */
+  .deck-pile {
+    display: block !important;
+    width: 42px !important; height: 58px !important;
+    bottom: 108px !important; right: 6px !important;
+  }
+  #deck-pile-count { font-size: 13px !important; }
 
   /* ── SHOP SCREEN PORTRAIT ── */
   #screen-shop.active {
@@ -1289,4 +1308,103 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   .shop-row { gap: 6px; }
   .ico { width: 11px; height: 11px; }
   .btn .ico { margin-right: 4px; }
+}
+
+/* ══════════════════════════════════════════
+   LANDSCAPE MOBILE — Balatro landscape layout
+   (sidebar left with blinds, felt right)
+   ══════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 560px) {
+
+  /* sidebar: narrow but complete */
+  #screen-game .sidebar {
+    width: 150px !important; min-width: 132px !important; max-width: 165px !important;
+    flex-direction: column !important; flex-wrap: nowrap !important;
+    overflow-y: auto !important;
+    border-right: 3px solid #000 !important; border-bottom: none !important;
+    padding: 0 !important; gap: 0 !important;
+  }
+  .blind-panel { flex-direction: column !important; align-items: stretch !important;
+                 padding: 5px 6px !important; gap: 4px !important; width: 100% !important; }
+  .blind-title { font-size: 6.5px !important; padding: 3px 6px !important; text-align: center !important; }
+  .blind-row { gap: 6px !important; }
+  .blind-badge { width: 26px !important; height: 26px !important; }
+  .blind-badge svg { width: 16px !important; height: 16px !important; }
+  .blind-info { flex-direction: column !important; align-items: flex-start !important; gap: 0 !important; }
+  #hud-target { font-size: 16px !important; }
+  .earn-line { font-size: 11px !important; }
+  .score-bar { height: 5px !important; margin: 5px 0 3px !important; display: block !important; }
+  .round-score-row { flex-direction: row !important; justify-content: space-between !important;
+                     align-items: baseline !important; padding: 0 !important; }
+  .round-score-row span { font-size: 10px !important; }
+  .round-score-row b { font-size: 17px !important; }
+  .boss-banner { display: block !important; font-size: 10px !important; padding: 3px 5px !important; }
+  .boss-banner b { font-size: 7px !important; }
+
+  /* stats: compact 2-col grid */
+  #screen-game .stats-panel {
+    display: grid !important; grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important; padding: 5px !important;
+    background: var(--sb-panel) !important; border: none !important;
+  }
+  .stat-box { padding: 2px 3px !important; }
+  .stat-box span { font-size: 6.5px !important; }
+  .stat-box b { font-size: 13px !important; }
+
+  /* sidebar buttons visible in landscape */
+  .btn-run, .btn-options {
+    display: block !important; width: calc(100% - 10px) !important;
+    margin: 3px 5px 0 !important; font-size: 8px !important; padding: 6px !important;
+  }
+  #btn-menu-compact, #btn-menu { display: none !important; }
+
+  /* felt: tighter */
+  #screen-game .felt-table { gap: 3px !important; padding: 5px 7px !important; }
+  .strips-row { flex-shrink: 0 !important; }
+  #screen-game .joker { width: 58px !important; }
+  #screen-game .tile-icon { height: 32px !important; }
+  #screen-game .tile-icon svg { width: 24px !important; height: 24px !important; }
+  #screen-game .slot-empty { min-height: 54px !important; width: 58px !important; }
+
+  .played-zone { min-height: 52px !important; max-height: 60px !important; padding: 4px !important; }
+  .played-info { font-size: 9px !important; min-height: 14px !important; }
+  .tray-label { font-size: 6px !important; }
+
+  .hand-zone.felt { padding: 4px 5px 3px !important; }
+  .hand { padding: 7px 4px 2px !important; min-height: 62px !important; }
+  #screen-game .card { width: 44px !important; height: 61px !important; }
+  #screen-game .card .c-rank { font-size: 7px !important; top: 3px !important; left: 3px !important; }
+  #screen-game .card .c-suit { top: 12px !important; left: 3px !important; }
+  #screen-game .card .c-suit svg { width: 9px !important; height: 9px !important; }
+  #screen-game .card .c-big svg { width: 17px !important; height: 17px !important; }
+  #screen-game .card .c-rank-b { font-size: 7px !important; bottom: 3px !important; right: 3px !important; }
+  #screen-game .hand .card { margin: 0 -5px !important; }
+  .hand-meta { font-size: 10px !important; }
+
+  .preview-panel { padding: 3px 8px !important; min-height: 28px !important; gap: 6px !important; }
+  #preview-name { font-size: 7px !important; }
+  .preview-score { font-size: 19px !important; }
+
+  #screen-game .actions { gap: 5px !important; margin-top: 2px !important; }
+  #screen-game .actions .btn { font-size: 8px !important; padding: 7px 6px !important; }
+
+  .deck-pile { width: 48px !important; height: 66px !important; bottom: 46px !important; right: 8px !important; }
+  #deck-pile-count { font-size: 15px !important; }
+
+  /* shop in landscape: side-by-side bays, actions bottom */
+  .shop-panel { max-height: 100vh !important; overflow-y: auto !important; padding: 8px 10px !important; }
+  .shop-bay { padding: 6px 8px 8px !important; margin-bottom: 7px !important; }
+  .shop-bay-head { font-size: 6.5px !important; margin-bottom: 5px !important; }
+  #screen-shop .shop-offers .joker { width: 84px !important; }
+  .shop-panel .actions { gap: 8px !important; margin-top: 6px !important; }
+  .shop-panel .actions .btn { font-size: 9px !important; padding: 9px 10px !important; }
+
+  /* blind select in landscape */
+  .blind-select-card { flex-direction: row !important; padding: 10px 14px !important; gap: 12px !important; }
+  .blind-select-badge { width: 48px !important; height: 48px !important; }
+  .blind-select-badge svg { width: 30px !important; height: 30px !important; }
+  .blind-select-name { font-size: 10px !important; }
+  .blind-select-actions { gap: 10px !important; }
+  .blind-select-actions .btn { font-size: 10px !important; padding: 10px 16px !important; }
+  .blind-select-hint { font-size: 12px !important; margin-top: 8px !important; }
 }

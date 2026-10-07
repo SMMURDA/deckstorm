@@ -330,7 +330,17 @@ function showBlindSelect() {
   const bossEl = $("#bs-boss");
   if (kind === "boss") { bossEl.hidden = false; bossEl.textContent = S.boss.desc; }
   else bossEl.hidden = true;
-  renderBlindTag();
+
+  // Balatro rule: only Small and Big Blinds can be skipped — the Boss must be fought
+  const canSkip = S.blindIndex !== 2;
+  const skipBtn = $("#btn-skip-blind");
+  skipBtn.hidden = !canSkip;
+  const hint = $(".blind-select-hint");
+  if (hint) hint.innerHTML = canSkip
+    ? "Skipping forfeits this blind's reward but grants a <b>Tag</b> bonus."
+    : "<b>Boss Blinds cannot be skipped</b> — defeat it to clear the ante.";
+
+  if (canSkip) renderBlindTag();
   showScreen("blind");
 }
 
@@ -1290,5 +1300,5 @@ applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
-window.DS = { get S() { return S; }, newRun, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings,
+window.DS = { get S() { return S; }, newRun, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
   api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };
