@@ -16,6 +16,7 @@
   --card-ink: #26232E;
   --font-px: "Press Start 2P", monospace;
   --font-body: "VT323", "Courier New", monospace;
+  --btn-line: #6a5f95;
 }
 
 * { box-sizing: border-box; }
@@ -69,7 +70,7 @@ body {
   font-size: 11px;
   color: var(--ink);
   background: var(--panel-2);
-  border: 3px solid var(--line);
+  border: 3px solid var(--btn-line);
   padding: 13px 18px;
   cursor: pointer;
   filter: drop-shadow(4px 4px 0 rgba(0,0,0,.45));
@@ -87,7 +88,7 @@ body {
   border-color: #FFD6FB;
   color: #24101F;
 }
-.btn-ghost { background: transparent; color: var(--muted); }
+.btn-ghost { background: rgba(255,255,255,.04); color: var(--muted); border-color: var(--btn-line); }
 .btn-big { font-size: 13px; padding: 16px 26px; }
 .btn-small { font-size: 9px; padding: 9px 12px; }
 .btn-toggle { min-width: 88px; }
@@ -659,22 +660,22 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 #screen-game .sidebar {
   width: 240px; min-width: 180px; max-width: 260px;
   flex-shrink: 0;
-  display: flex; flex-direction: column; gap: 0;
+  display: flex; flex-direction: column; gap: 8px;
   background: var(--sidebar-bg);
   border-right: 3px solid #000;
   overflow-y: auto;
   position: static !important;
-  padding: 0;
+  padding: 8px;
 }
 
-/* blind panel */
+/* blind panel — boxed card like the Options / Run Info buttons */
 .blind-panel {
   position: relative;
   background: linear-gradient(180deg, #2a1f40 0%, #1a1528 100%);
-  border-bottom: 2px solid #000;
-  padding: 12px 10px 10px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
   filter: none !important;
-  border-radius: 0 !important;
 }
 .blind-title {
   display: block;
@@ -713,15 +714,16 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .round-score-row span { color: var(--muted); font-size: 13px; }
 .round-score-row b { font-size: 28px; color: var(--blue); line-height: 1; }
 
-/* stats 2×3 grid */
+/* stats 2×3 grid — boxed card matching the blind panel */
 .stats-panel {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  padding: 10px;
+  padding: 8px;
   background: var(--sb-panel);
-  border-bottom: 2px solid #000;
-  filter: none !important; border-radius: 0 !important;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  filter: none !important;
 }
 .stat-box {
   display: flex; flex-direction: column; align-items: center;
@@ -739,8 +741,8 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 
 /* sidebar buttons */
 .btn-run, .btn-options {
-  width: calc(100% - 20px);
-  margin: 5px 10px 0;
+  width: 100%;
+  margin: 0;
   font-size: 11px; padding: 10px;
   border-radius: 6px; display: block;
 }
@@ -751,7 +753,7 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .btn-options {
   background: linear-gradient(180deg,#1565c0,#0d3d73);
   border-color: #5c9fea; color: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 /* ═══ FELT TABLE (main area) ═══ */
@@ -862,17 +864,20 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   gap: 8px !important;
   margin-top: 4px !important;
   justify-content: center;
+  position: relative; z-index: 6; /* stay above the decorative deck pile */
 }
+.actions[hidden] { display: none !important; }
 .actions .btn-primary { padding: 12px 20px; font-size: 12px; }
 .actions .btn { padding: 10px 14px; font-size: 10px; }
 
-/* ── deck pile: bottom-right of felt ── */
+/* ── deck pile: bottom-right of felt (decorative only) ── */
 .deck-pile {
   position: absolute;
   bottom: 76px; right: 16px;
   width: 70px; height: 98px;
   perspective: 500px;
   z-index: 2;
+  pointer-events: none; /* never swallow clicks meant for the action buttons */
 }
 .deck-pile-card {
   width: 100%; height: 100%;
@@ -898,10 +903,10 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   z-index: 1;
 }
 
-/* ── boss banner compact — matches the round-score row width ── */
+/* ── boss banner — full-bleed to the panel edges, no empty right gap ── */
 .boss-banner {
-  margin: 8px 0 0; padding: 5px 8px; border-radius: 5px;
-  width: 100%; box-sizing: border-box; text-align: left;
+  margin: 8px -10px 0; padding: 5px 10px; border-radius: 0;
+  width: calc(100% + 20px); box-sizing: border-box; text-align: left;
 }
 
 /* ═══ RESPONSIVE ═══ */
@@ -1327,7 +1332,8 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
                      align-items: baseline !important; padding: 0 !important; }
   .round-score-row span { font-size: 10px !important; }
   .round-score-row b { font-size: 17px !important; }
-  .boss-banner:not([hidden]) { display: block !important; font-size: 10px !important; padding: 3px 5px !important; }
+  .boss-banner:not([hidden]) { display: block !important; font-size: 10px !important; padding: 3px 6px !important;
+                               margin: 4px -6px 0 !important; border-radius: 0 !important; width: calc(100% + 12px) !important; }
   .boss-banner b { font-size: 7px !important; }
 
   /* stats: compact 2-col grid */

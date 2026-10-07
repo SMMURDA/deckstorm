@@ -1047,8 +1047,16 @@ function renderPreview() {
 
 function refreshControls() {
   const canAct = S && S.phase === "play" && !S.animating && !S.targetMode;
-  $("#btn-play").disabled = !canAct || S.selected.size === 0 || S.handsLeft <= 0;
-  $("#btn-discard").disabled = !canAct || S.selected.size === 0 || S.discardsLeft <= 0;
+  const playBtn = $("#btn-play"), discBtn = $("#btn-discard");
+  const sel = S ? S.selected.size : 0;
+  const hands = S ? S.handsLeft : 0;
+  const discards = S ? S.discardsLeft : 0;
+  playBtn.disabled = !canAct || sel === 0 || hands <= 0;
+  discBtn.disabled = !canAct || sel === 0 || discards <= 0;
+  playBtn.title = hands <= 0 ? "No hands left"
+    : sel === 0 ? "Select cards to play" : "Play the selected cards";
+  discBtn.title = discards <= 0 ? "No discards left this blind"
+    : sel === 0 ? "Select cards to discard" : "Discard the selected cards";
   if (S && S.targetMode) {
     const tm = S.targetMode;
     $("#btn-target-use").disabled = tm.cons.exact ? S.selected.size !== tm.cons.needs : S.selected.size < 1;
