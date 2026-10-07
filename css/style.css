@@ -16,6 +16,7 @@
   --card-ink: #26232E;
   --font-px: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
   --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font-pixel: "Press Start 2P", ui-monospace, monospace;
   --btn-line: #6a5f95;
   /* soft accent glows used for panel outlines */
   --glow-pink:  rgba(252,132,252,.45);
@@ -109,7 +110,7 @@ body {
   padding-top: 12vh; text-align: center;
 }
 .logo {
-  font-family: var(--font-px);
+  font-family: var(--font-pixel);
   font-size: clamp(26px, 6.5vw, 52px);
   letter-spacing: .02em;
   margin: 0;
@@ -118,7 +119,14 @@ body {
 }
 .logo span { color: var(--pink); }
 @keyframes logoPulse { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.tagline { color: var(--muted); font-size: 22px; margin: 14px 0 40px; letter-spacing: .12em; }
+.tagline {
+  font-family: var(--font-pixel);
+  color: var(--muted);
+  font-size: clamp(8px, 2.2vw, 12px);
+  margin: 16px 0 40px;
+  letter-spacing: .08em;
+  line-height: 1.6;
+}
 .menu-nav { display: flex; flex-direction: column; gap: 16px; width: min(320px, 84vw); }
 .menu-foot { margin-top: 46px; color: var(--muted); font-size: 17px; opacity: .7; }
 
@@ -406,8 +414,8 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 /* edition badge — pinned to the tile corner so it never disturbs the text flow */
 .joker .ed-tag {
   position: absolute; top: 4px; right: 4px; z-index: 2;
-  font-family: var(--font-px); font-size: 8px; line-height: 1;
-  padding: 2px 5px; border-radius: 6px; margin: 0;
+  font-family: var(--font-px); font-size: 8px; font-weight: 700; line-height: 1;
+  padding: 2px 7px; border-radius: 999px; margin: 0;
   border: 1px solid transparent;
 }
 .ed-tag.ed-foil { background: rgba(94,200,248,.22); color: var(--blue); border-color: rgba(94,200,248,.45); }
@@ -746,15 +754,20 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .score-bar { height: 8px; margin: 10px 0 6px; border: 2px solid #000; background: rgba(0,0,0,.5); border-radius: 6px; overflow: hidden; }
 #score-bar-fill { background: repeating-linear-gradient(90deg,#e045c8 0 5px,#fc84fc 5px 10px); transition: width .4s steps(10); }
 
+/* required score + progress + round score live in ONE softly-bordered box */
+.score-stack {
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+  padding: 8px 10px 6px;
+}
 .round-score-row {
   display: flex; justify-content: space-between; align-items: baseline;
   font-size: 14px;
-  margin-top: 8px; padding: 6px 10px;
-  border: 1px solid var(--glow-blue);
-  border-radius: 10px;
-  background: rgba(94,200,248,.10);
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,.12);
 }
-.round-score-row span { color: #B9D9EE; font-size: 13px; }
+.round-score-row span { color: var(--muted); font-size: 13px; }
 .round-score-row b { font-size: 28px; color: var(--blue); line-height: 1; text-shadow: 0 0 12px rgba(94,200,248,.35); }
 
 /* stats 2×3 grid — boxed card matching the blind panel */
@@ -780,8 +793,8 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 .stat-hands    { border-color: var(--glow-blue);  background: rgba(94,200,248,.10); }
 .stat-discards { border-color: rgba(255,93,115,.45); background: rgba(255,93,115,.10); }
 .stat-money    { border-color: var(--glow-gold);  background: rgba(252,228,12,.10); }
-.stat-box span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.stat-box b { font-size: 20px; line-height: 1; }
+.stat-box span { font-family: var(--font-px); font-weight: 600; font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+.stat-box b { font-family: var(--font-px); font-weight: 800; font-size: 20px; line-height: 1; }
 .stat-hands b { color: var(--blue); }
 .stat-discards b { color: var(--red); }
 .stat-money b { color: var(--gold); }
@@ -1099,6 +1112,9 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   #hud-target { font-size: 14px !important; display: inline !important; color: #ff8f8f !important; }
   .earn-line { display: none !important; }
   .score-bar { display: none !important; }
+
+  /* in portrait the blind panel itself is the box, so drop the inner one */
+  .score-stack { display: contents !important; }
 
   /* round score sits inline, right after the blind */
   .round-score-row {

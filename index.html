@@ -8,8 +8,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-26">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261007-27">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -36,7 +36,7 @@
         <button id="btn-howto" class="btn btn-big">How to Play</button>
         <button id="btn-settings" class="btn btn-big">Settings</button>
       </nav>
-      <p class="menu-foot">v2.0 · build 2026-10-07.26 · beat 8 antes to win</p>
+      <p class="menu-foot">v2.0 · build 2026-10-07.27 · beat 8 antes to win</p>
     </div>
   </section>
 
@@ -110,16 +110,18 @@
       <aside class="sidebar">
         <div class="panel side-panel blind-panel">
           <div class="blind-title blind-small" id="blind-title">Small Blind</div>
-          <div class="blind-row">
-            <div class="blind-badge blind-small" id="blind-badge"></div>
-            <div class="blind-info">
-              <span class="score-at-least">Score at least</span>
-              <b class="c-red" id="hud-target">300</b>
-              <span class="earn-line">to earn <b class="c-gold" id="hud-earn">$$$</b></span>
+          <div class="score-stack">
+            <div class="blind-row">
+              <div class="blind-badge blind-small" id="blind-badge"></div>
+              <div class="blind-info">
+                <span class="score-at-least">Score at least</span>
+                <b class="c-red" id="hud-target">300</b>
+                <span class="earn-line">to earn <b class="c-gold" id="hud-earn">$$$</b></span>
+              </div>
             </div>
+            <div class="score-bar"><div id="score-bar-fill"></div></div>
+            <div class="round-score-row"><span>Round score</span><b id="hud-score">0</b></div>
           </div>
-          <div class="score-bar"><div id="score-bar-fill"></div></div>
-          <div class="round-score-row"><span>Round score</span><b id="hud-score">0</b></div>
         </div>
 
         <div id="boss-banner" class="boss-banner" hidden>
