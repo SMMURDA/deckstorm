@@ -19,7 +19,7 @@ function suitSVG(suit) {
 
 // ── settings (persisted; storage-safe) ──
 const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
-const settings = Object.assign({ sound: true, anim: true },
+const settings = Object.assign({ sound: true, anim: true, debug: false },
   store ? JSON.parse(store.getItem("deckstorm.settings") || "{}") : {});
 function saveSettings() { if (store) store.setItem("deckstorm.settings", JSON.stringify(settings)); }
 function applySettings() {
@@ -29,6 +29,16 @@ function applySettings() {
   $("#set-sound").classList.toggle("off", !settings.sound);
   $("#set-anim").textContent = settings.anim ? "ON" : "OFF";
   $("#set-anim").classList.toggle("off", !settings.anim);
+  // debug / cheat mode
+  DEBUG.on = !!settings.debug;
+  const dbgToggle = $("#set-debug");
+  if (dbgToggle) {
+    dbgToggle.textContent = settings.debug ? "ON" : "OFF";
+    dbgToggle.classList.toggle("off", !settings.debug);
+  }
+  const dbgPanel = document.getElementById("debug-panel");
+  if (dbgPanel) dbgPanel.hidden = !settings.debug;
+  if (S) renderAll();
 }
 
 // ── state ──
@@ -71,16 +81,25 @@ function handValue(name) {
     mult: base.mult + planet.mult * (lvl - 1),
   };
 }
-const handSize = () => HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0) + (S.boss && S.boss.id === "manacle" ? -1 : 0);
-const maxHands = () => 4 + (S.vouchers.has("grabber") ? 1 : 0);
-const maxDiscards = () => 3 + (S.vouchers.has("wasteful") ? 1 : 0);
+// ── debug-overridable limits (see js/debug.js) ──
+const maxJokers = () => dbgVal("jokers", MAX_JOKERS);
+const maxCons   = () => dbgVal("cons", MAX_CONS);
+// boss effects (debuffs + special rules) can be switched off from the debug panel
+const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect));
+
+const handSize = () => dbgVal("handSize", HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0) + (bossActive() && S.boss.id === "manacle" ? -1 : 0));
+const maxHands = () => dbgVal("hands", 4 + (S.vouchers.has("grabber") ? 1 : 0));
+const maxDiscards = () => dbgVal("discards", 3 + (S.vouchers.has("wasteful") ? 1 : 0));
 const interestCap = () => S.vouchers.has("seedmoney") ? 10 : 5;
+// how many jokers / packs the shop rolls up
+const shopJokerCount = () => dbgVal("shopJokers", 2 + (S.vouchers.has("overstock") ? 1 : 0));
+const shopPackCount = () => dbgVal("shopPacks", 2);
 const priceOf = item => {
   let p = item.cost + (item.edition ? EDITIONS[item.edition].priceAdd : 0);
   if (S.vouchers.has("clearance")) p = Math.ceil(p * 0.75);
   return p;
 };
-const isBossDebuffed = c => S.boss && S.boss.debuffSuit && c.suit === S.boss.debuffSuit && c.enhancement !== "wild" && c.enhancement !== "stone";
+const isBossDebuffed = c => bossActive() && S.boss.debuffSuit && c.suit === S.boss.debuffSuit && c.enhancement !== "wild" && c.enhancement !== "stone";
 
 // ── save / continue (localStorage, autosave on every state change) ──
 const SAVE_KEY = "deckstorm.save";
@@ -215,9 +234,9 @@ function startBlind() {
   S.boss = null;
   if (S.blindIndex === 2) S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
 
-  S.handsLeft = S.boss && S.boss.id === "needle" ? 1 : maxHands();
+  S.handsLeft = bossActive() && S.boss.id === "needle" ? 1 : maxHands();
   if (S.bonusHands) { S.handsLeft += S.bonusHands; S.bonusHands = 0; }
-  S.discardsLeft = S.boss && S.boss.id === "water" ? 0 : maxDiscards();
+  S.discardsLeft = bossActive() && S.boss.id === "water" ? 0 : maxDiscards();
 
   drawUp();
 
@@ -268,9 +287,9 @@ function canSkipCurrentBlind() {
 // ── blind select: play or skip for a tag ──
 const SKIP_TAGS = [
   { id: "coin",    name: "Coin Tag",    desc: "+$5",                apply: () => { S.money += 5; return "+$5"; } },
-  { id: "charm",   name: "Charm Tag",   desc: "Free Tarot card",    apply: () => { if (S.consumables.length >= MAX_CONS) return null; const t = TAROTS[Math.floor(Math.random() * TAROTS.length)]; S.consumables.push({ ...t }); return t.name; } },
-  { id: "meteor",  name: "Meteor Tag",  desc: "Free Planet card",   apply: () => { if (S.consumables.length >= MAX_CONS) return null; const p = PLANETS[Math.floor(Math.random() * PLANETS.length)]; S.consumables.push({ ...p }); return p.name; } },
-  { id: "buffoon", name: "Buffoon Tag", desc: "Free Joker",         apply: () => { if (S.jokers.length >= MAX_JOKERS) return null; const pool = JOKERS.filter(j => !S.jokers.some(o => o.id === j.id)); if (!pool.length) return null; const j = makeJoker(pool[Math.floor(Math.random() * pool.length)]); S.jokers.push(j); return j.name; } },
+  { id: "charm",   name: "Charm Tag",   desc: "Free Tarot card",    apply: () => { if (S.consumables.length >= maxCons()) return null; const t = TAROTS[Math.floor(Math.random() * TAROTS.length)]; S.consumables.push({ ...t }); return t.name; } },
+  { id: "meteor",  name: "Meteor Tag",  desc: "Free Planet card",   apply: () => { if (S.consumables.length >= maxCons()) return null; const p = PLANETS[Math.floor(Math.random() * PLANETS.length)]; S.consumables.push({ ...p }); return p.name; } },
+  { id: "buffoon", name: "Buffoon Tag", desc: "Free Joker",         apply: () => { if (S.jokers.length >= maxJokers()) return null; const pool = JOKERS.filter(j => !S.jokers.some(o => o.id === j.id)); if (!pool.length) return null; const j = makeJoker(pool[Math.floor(Math.random() * pool.length)]); S.jokers.push(j); return j.name; } },
   { id: "handy",   name: "Handy Tag",   desc: "+1 Hand next round", apply: () => { S.bonusHands = (S.bonusHands || 0) + 1; return "+1 hand"; } },
 ];
 
@@ -401,7 +420,7 @@ function scorePlayed() {
     playedCards: played, heldCards,
     discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
     deckCount: S.deck.length, stats: S.stats, money: S.money,
-    emptySlots: MAX_JOKERS - S.jokers.length,
+    emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,
   });
   S.jokers.forEach((j, idx) => {
@@ -443,7 +462,7 @@ function fmtMult(m) { return m % 1 === 0 ? String(m) : m.toFixed(1); }
 async function playHand() {
   if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
   if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); shakeEl($("#btn-play")); return; }
-  if (S.boss && S.boss.id === "psychic" && S.selected.size !== 5) {
+  if (bossActive() && S.boss.id === "psychic" && S.selected.size !== 5) {
     showToast("The Psychic: must play exactly 5 cards");
     AudioFX.play("error");
     shakeEl($("#btn-play"));
@@ -529,7 +548,7 @@ async function playHand() {
   });
 
   // The Hook: discard 2 random held cards
-  if (S.boss && S.boss.id === "hook" && S.hand.length > 0) {
+  if (bossActive() && S.boss.id === "hook" && S.hand.length > 0) {
     const pool = [...S.hand];
     shuffle(pool).slice(0, 2).forEach(c => { S.hand = S.hand.filter(x => x !== c); });
     drawUp();
@@ -655,8 +674,8 @@ function endRoundWin() {
   S.phase = "shop";
   S.rerollCost = 5;
 
-  S.offers = rollShopJokers(2 + (S.vouchers.has("overstock") ? 1 : 0), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
-  S.packs = shuffle([...PACKS]).slice(0, 2).map(p => ({ ...p }));
+  S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
+  S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
   const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id));
   S.voucherOffer = availVouchers.length ? availVouchers[Math.floor(Math.random() * availVouchers.length)] : null;
 
@@ -679,10 +698,10 @@ function renderShop() {
   const rerollLbl = $("#btn-reroll .lbl");
   if (rerollLbl) rerollLbl.textContent = "Reroll $" + S.rerollCost;
   else $("#btn-reroll").textContent = "Reroll $" + S.rerollCost;
-  $("#btn-reroll").disabled = S.money < S.rerollCost;
+  $("#btn-reroll").disabled = !(DEBUG.on && DEBUG.freeReroll) && S.money < S.rerollCost;
   const hint = $("#reroll-hint");
   if (hint) hint.textContent = "reroll $" + S.rerollCost;
-  $("#shop-joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
+  $("#shop-joker-count").textContent = `${S.jokers.length}/${maxJokers()}`;
 
   // owned jokers (click for details / sell)
   const owned = $("#shop-owned");
@@ -693,8 +712,8 @@ function renderShop() {
   // joker offers
   const wrap = $("#shop-offers");
   wrap.innerHTML = "";
-  if (S.jokers.length >= MAX_JOKERS) {
-    wrap.innerHTML = `<p class="shop-empty">Joker slots full (${MAX_JOKERS}/${MAX_JOKERS})</p>`;
+  if (S.jokers.length >= maxJokers()) {
+    wrap.innerHTML = `<p class="shop-empty">Joker slots full (${maxJokers()}/${maxJokers()})</p>`;
   } else if (S.offers.length === 0) {
     wrap.innerHTML = `<p class="shop-empty">Sold out — reroll!</p>`;
   } else {
@@ -782,7 +801,7 @@ function openPack(pack) {
       : consTile(choice, { showDesc: true });
     const btn = document.createElement("button");
     btn.className = "btn";
-    const noRoom = choice.rarity ? S.jokers.length >= MAX_JOKERS : S.consumables.length >= MAX_CONS;
+    const noRoom = choice.rarity ? S.jokers.length >= maxJokers() : S.consumables.length >= maxCons();
     btn.textContent = noRoom ? "No room" : "Take";
     btn.disabled = noRoom;
     btn.onclick = () => {
@@ -910,12 +929,12 @@ function renderJokers() {
   const wrap = $("#jokers");
   wrap.innerHTML = "";
   S.jokers.forEach((j, i) => wrap.appendChild(jokerTile(j, { onClick: () => openJokerModal(j, i) })));
-  for (let i = S.jokers.length; i < MAX_JOKERS; i++) {
+  for (let i = S.jokers.length; i < maxJokers(); i++) {
     const slot = document.createElement("div");
     slot.className = "joker slot-empty";
     wrap.appendChild(slot);
   }
-  $("#joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
+  $("#joker-count").textContent = `${S.jokers.length}/${maxJokers()}`;
 }
 
 function consTile(c, opts = {}) {
@@ -934,12 +953,12 @@ function renderConsumables() {
   const wrap = $("#consumables");
   wrap.innerHTML = "";
   S.consumables.forEach((c, i) => wrap.appendChild(consTile(c, { onClick: () => openConsModal(i) })));
-  for (let i = S.consumables.length; i < MAX_CONS; i++) {
+  for (let i = S.consumables.length; i < maxCons(); i++) {
     const slot = document.createElement("div");
     slot.className = "joker slot-empty";
     wrap.appendChild(slot);
   }
-  $("#cons-count").textContent = `${S.consumables.length}/${MAX_CONS}`;
+  $("#cons-count").textContent = `${S.consumables.length}/${maxCons()}`;
 }
 
 // ── card detail modal ──
@@ -1303,10 +1322,10 @@ $("#btn-target-use").onclick = confirmTarget;
 $("#btn-target-x").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
 $("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
-  if (!S || S.money < S.rerollCost) { AudioFX.play("error"); return; }
-  S.money -= S.rerollCost;
-  S.rerollCost++;
-  S.offers = rollShopJokers(2 + (S.vouchers.has("overstock") ? 1 : 0), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
+  const free = DEBUG.on && DEBUG.freeReroll;
+  if (!S || (!free && S.money < S.rerollCost)) { AudioFX.play("error"); return; }
+  if (!free) { S.money -= S.rerollCost; S.rerollCost++; }
+  S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
   AudioFX.play("click");
   renderShop();
   renderHud();
@@ -1321,6 +1340,8 @@ document.querySelectorAll("[data-menu]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 $("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#set-anim").onclick = () => { settings.anim = !settings.anim; saveSettings(); applySettings(); AudioFX.play("click"); };
+const dbgSettingBtn = $("#set-debug");
+if (dbgSettingBtn) dbgSettingBtn.onclick = () => { settings.debug = !settings.debug; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#mc-close").onclick = () => { AudioFX.play("deselect"); closeModal(); };
 $("#mc-backdrop").onclick = closeModal;
 
@@ -1334,6 +1355,7 @@ document.querySelectorAll(".ico[data-icon]").forEach(el => {
 });
 
 renderHowtoHands();  // How to Play table with card examples
+buildDebugPanel();   // floating debug/cheat panel (hidden unless enabled in Settings)
 applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 

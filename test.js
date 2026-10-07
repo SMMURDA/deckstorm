@@ -1,5 +1,6 @@
 // Smoke test for cards.js + jokers.js + consumables.js (run with: node test.js)
 const fs = require("fs");
+eval(fs.readFileSync("js/debug.js", "utf8") + ";globalThis.DEBUG=DEBUG;");
 eval(fs.readFileSync("js/cards.js", "utf8"));
 eval(fs.readFileSync("js/jokers.js", "utf8") + ";globalThis.JOKERS=JOKERS;globalThis.EDITIONS=EDITIONS;globalThis.rollShopJokers=rollShopJokers;globalThis.rollEdition=rollEdition;globalThis.makeJoker=makeJoker;globalThis.sellValue=sellValue;");
 eval(fs.readFileSync("js/consumables.js", "utf8") + ";globalThis.PLANETS=PLANETS;globalThis.TAROTS=TAROTS;globalThis.VOUCHERS=VOUCHERS;globalThis.PACKS=PACKS;globalThis.BOSSES=BOSSES;");

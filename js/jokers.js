@@ -192,13 +192,21 @@ const EDITIONS = {
   poly:  { name: "Polychrome",   desc: "×1.5 Mult",    priceAdd: 5 },
 };
 
-// Roll a random edition for a shop joker (Hone voucher doubles odds)
+// Roll a random edition for a shop joker (Hone voucher doubles odds).
+// Base odds: foil 4% / holo 3% / poly 2%, so 9% overall.
+// Debug mode can force one edition outright, or scale the overall chance while
+// keeping the 4:3:2 ratio between them.
+const EDITION_TOTAL = 0.09;
 function rollEdition(hone) {
-  const p = Math.random() / (hone ? 2 : 1);
-  if (p < 0.04) return "foil";
-  if (p < 0.07) return "holo";
-  if (p < 0.09) return "poly";
-  return null;
+  const forced = DEBUG.on && DEBUG.editionForce;
+  if (forced) return forced;
+  const boost = (DEBUG.on && DEBUG.editionBoost > 0) ? DEBUG.editionBoost : 1;
+  const chance = Math.min(1, EDITION_TOTAL * (hone ? 2 : 1) * boost);
+  if (Math.random() >= chance) return null;
+  const r = Math.random() * EDITION_TOTAL;
+  if (r < 0.04) return "foil";
+  if (r < 0.07) return "holo";
+  return "poly";
 }
 
 function makeJoker(def, edition) {
@@ -209,7 +217,12 @@ function makeJoker(def, edition) {
 
 function rollShopJokers(count, ownedIds, hone) {
   const weights = { common: 70, uncommon: 25, rare: 5 };
-  const pool = JOKERS.filter(j => !ownedIds.has(j.id));
+  let pool = JOKERS.filter(j => !ownedIds.has(j.id));
+  // debug: pin the rarity of everything the shop rolls
+  if (DEBUG.on && DEBUG.rarityForce) {
+    const forced = pool.filter(j => j.rarity === DEBUG.rarityForce);
+    if (forced.length) pool = forced;
+  }
   const picks = [];
   while (picks.length < count && pool.length > 0) {
     const total = pool.reduce((s, j) => s + weights[j.rarity], 0);

@@ -3,7 +3,7 @@ const fs = require("fs");
 const { JSDOM } = require("jsdom");
 
 // load all game scripts in ONE shared scope, injected as an inline <script>
-const bundle = ["js/cards.js", "js/jokers.js", "js/consumables.js", "js/pixelart.js", "js/audio.js", "js/game.js"]
+const bundle = ["js/debug.js", "js/cards.js", "js/jokers.js", "js/consumables.js", "js/pixelart.js", "js/audio.js", "js/game.js"]
   .map(f => fs.readFileSync(f, "utf8")).join("\n;\n");
 const html = fs.readFileSync("index.html", "utf8")
   .replace(/<script src="[^"]*"><\/script>/g, "")
