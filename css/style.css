@@ -414,18 +414,20 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .ed-tag.ed-holo { background: rgba(255,93,115,.22); color: var(--red); border-color: rgba(255,93,115,.45); }
 .ed-tag.ed-poly { background: rgba(252,228,12,.22); color: var(--gold); border-color: rgba(252,228,12,.45); }
 
-/* rarity / type line — fills the tile so it no longer looks empty */
+/* rarity / type chip — always visible on the tile, no click needed */
 .tile-rarity {
-  font-family: var(--font-px); font-size: 8px; line-height: 1;
-  letter-spacing: .06em; text-transform: capitalize; color: var(--muted);
+  font-family: var(--font-px); font-size: 9px; font-weight: 700; line-height: 1;
+  letter-spacing: .05em; text-transform: capitalize;
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(255,255,255,.08); color: var(--muted);
 }
-.tile-rarity.rar-common   { color: #ADA6C8; }
-.tile-rarity.rar-uncommon { color: var(--pink); }
-.tile-rarity.rar-rare     { color: var(--gold); }
-.tile-rarity.kind-planet  { color: var(--blue); }
-.tile-rarity.kind-tarot   { color: var(--gold); }
-.tile-rarity.kind-voucher { color: var(--pink); }
-.tile-rarity.kind-pack    { color: var(--green); }
+.tile-rarity.rar-common   { color: #C6BFE0; background: rgba(198,191,224,.15); }
+.tile-rarity.rar-uncommon { color: var(--pink); background: rgba(252,132,252,.18); }
+.tile-rarity.rar-rare     { color: var(--gold); background: rgba(252,228,12,.18); }
+.tile-rarity.kind-planet  { color: var(--blue); background: rgba(94,200,248,.18); }
+.tile-rarity.kind-tarot   { color: var(--gold); background: rgba(252,228,12,.18); }
+.tile-rarity.kind-voucher { color: var(--pink); background: rgba(252,132,252,.18); }
+.tile-rarity.kind-pack    { color: var(--green); background: rgba(124,230,178,.18); }
 .joker.ed-foil { box-shadow: inset 0 0 0 2px rgba(94,200,248,.35); }
 .joker.ed-holo { box-shadow: inset 0 0 0 2px rgba(255,93,115,.35); }
 .joker.ed-poly { box-shadow: inset 0 0 0 2px rgba(252,228,12,.35); }
@@ -1524,8 +1526,8 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
   }
   #screen-game .tile-icon { height: 26px !important; }
   #screen-game .tile-icon svg { width: 18px !important; height: 18px !important; }
-  #screen-game .tile-name { font-size: 6px !important; min-height: 1.3em !important; line-height: 1.15 !important; }
-  #screen-game .tile-rarity { font-size: 5.5px !important; }
+  #screen-game .tile-name { font-size: 7px !important; min-height: 1.3em !important; line-height: 1.15 !important; }
+  #screen-game .tile-rarity { font-size: 7px !important; padding: 1px 5px !important; }
   #screen-game .joker .ed-tag { font-size: 5.5px !important; top: 2px !important; right: 2px !important; padding: 1px 3px !important; }
   #screen-game .slot-empty { min-height: 44px !important; }
 
