@@ -3,7 +3,7 @@ const fs = require("fs");
 const { JSDOM } = require("jsdom");
 
 // load all game scripts in ONE shared scope, injected as an inline <script>
-const bundle = ["js/cards.js", "js/jokers.js", "js/consumables.js", "js/audio.js", "js/game.js"]
+const bundle = ["js/cards.js", "js/jokers.js", "js/consumables.js", "js/pixelart.js", "js/audio.js", "js/game.js"]
   .map(f => fs.readFileSync(f, "utf8")).join("\n;\n");
 const html = fs.readFileSync("index.html", "utf8")
   .replace(/<script src="[^"]*"><\/script>/g, "")
@@ -97,10 +97,18 @@ DS.settings.sound = false;
   ok("joker visible in shop owned row", $$("#shop-owned .joker").length === 1);
   ok("joker visible in game HUD", $$("#jokers .joker").length === 1);
   ok("joker count text", $("#joker-count").textContent === "1/5");
+  ok("joker tile has pixel icon svg", !!document.querySelector("#jokers .joker .tile-icon svg"));
+  ok("joker tile shows name", document.querySelector("#jokers .joker .tile-name").textContent.length > 1);
 
-  // 9. sell joker
+  // 9. sell joker via detail modal
   const moneyBefore = DS.S.money;
-  $("#jokers .joker .sell-btn").click();
+  $$("#jokers .joker")[0].click();
+  await sleep(30);
+  ok("joker detail modal opens", $("#modal-card").hidden === false);
+  ok("modal shows name + desc", $("#mc-name").textContent.length > 1 && $("#mc-desc").textContent.length > 3);
+  $("#mc-sell").click();
+  await sleep(30);
+  ok("modal closes after sell", $("#modal-card").hidden === true);
   ok("joker sold", DS.S.jokers.length === 0);
   ok("sell paid money", DS.S.money > moneyBefore);
 
@@ -146,7 +154,11 @@ DS.settings.sound = false;
   DS.S.consumables.push({ ...DS.api.PLANETS.find(p => p.hand === "Pair") });
   DS.renderAll();
   ok("consumable tile shown", $$("#consumables .joker").length === 1);
+  ok("consumable tile has icon", !!document.querySelector("#consumables .joker .tile-icon svg"));
   $$("#consumables .joker")[0].click();
+  await sleep(30);
+  ok("consumable modal opens", $("#modal-card").hidden === false);
+  $("#mc-use").click();
   await sleep(30);
   ok("planet consumed", DS.S.consumables.length === 0);
   ok("pair leveled to 2", DS.S.handLevels["Pair"] === 2);
@@ -157,6 +169,8 @@ DS.settings.sound = false;
   DS.S.consumables.push({ ...DS.api.TAROTS.find(t => t.id === "chariot") });
   DS.renderAll();
   $$("#consumables .joker")[0].click();
+  await sleep(30);
+  $("#mc-use").click();
   await sleep(30);
   ok("target bar appears", $("#target-bar").hidden === false);
   $$("#hand .card")[2].click();

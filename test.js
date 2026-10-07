@@ -3,6 +3,7 @@ const fs = require("fs");
 eval(fs.readFileSync("js/cards.js", "utf8"));
 eval(fs.readFileSync("js/jokers.js", "utf8") + ";globalThis.JOKERS=JOKERS;globalThis.EDITIONS=EDITIONS;globalThis.rollShopJokers=rollShopJokers;globalThis.rollEdition=rollEdition;globalThis.makeJoker=makeJoker;globalThis.sellValue=sellValue;");
 eval(fs.readFileSync("js/consumables.js", "utf8") + ";globalThis.PLANETS=PLANETS;globalThis.TAROTS=TAROTS;globalThis.VOUCHERS=VOUCHERS;globalThis.PACKS=PACKS;globalThis.BOSSES=BOSSES;");
+eval(fs.readFileSync("js/pixelart.js", "utf8") + ";globalThis.ICONS=ICONS;globalThis.iconSVG=iconSVG;globalThis.PAL=PAL;");
 
 const C = (rank, suit, enhancement = null) => ({ rank, suit, enhancement, id: `${suit}-${rank}-${Math.random().toString(36).slice(2, 7)}` });
 let fails = 0;
@@ -176,6 +177,20 @@ function mockS() {
   const ce = PACKS.find(p => p.id === "celestial").open(s);
   eq("celestial opens 3 planets", ce.length, 3);
 }
+
+// ── pixel-art coverage & integrity ──
+const needIcons = [
+  ...JOKERS.map(j => j.id), ...PLANETS.map(p => p.id),
+  ...TAROTS.map(t => t.id), ...VOUCHERS.map(v => v.id), ...PACKS.map(p => p.id),
+];
+needIcons.forEach(id => eq(`icon exists: ${id}`, !!ICONS[id], true));
+Object.entries(ICONS).forEach(([id, grid]) => {
+  const w = grid[0].length;
+  if (grid.some(r => r.length !== w)) { fails++; console.log(`FAIL icon ${id}: ragged rows`); }
+  const badChars = [...grid.join("")].filter(ch => ch !== "." && !PAL[ch]);
+  if (badChars.length) { fails++; console.log(`FAIL icon ${id}: unknown chars ${badChars.join("")}`); }
+});
+eq("all icons render to svg", needIcons.every(id => iconSVG(id).startsWith("<svg")), true);
 
 console.log(fails ? `\n${fails} FAILURES` : "\nALL PASS");
 process.exit(fails ? 1 : 0);

@@ -60,8 +60,6 @@ const SUIT_PIXELS = {
     "....#####....",
   ],
 };
-const PLANET_ICON = ["....#....", "...###...", "..#####..", ".#######.", "#########", ".#######.", "..#####..", "...###...", "....#...."];
-const TAROT_ICON = ["..#..", ".###.", "#####", ".###.", "..#.."];
 const SUIT_COLOR = { hearts: "#E23C50", diamonds: "#E23C50", spades: "#2B2B3A", clubs: "#2B2B3A" };
 
 function pixelSVG(grid, fill) {
@@ -74,10 +72,6 @@ function pixelSVG(grid, fill) {
   return `<svg viewBox='0 0 ${w} ${h}' shape-rendering='crispEdges' fill='${fill}' aria-hidden='true'>${rects}</svg>`;
 }
 function suitSVG(suit) { return pixelSVG(SUIT_PIXELS[suit], SUIT_COLOR[suit]); }
-function consIcon(kind) {
-  return kind === "planet" ? pixelSVG(PLANET_ICON, "#5EC8F8") : pixelSVG(TAROT_ICON, "#FCE40C");
-}
-function rarityColor(r) { return r === "rare" ? "#FCE40C" : r === "uncommon" ? "#FC84FC" : "#C8C2DC"; }
 
 // ── settings (persisted; storage-safe) ──
 const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
@@ -461,27 +455,7 @@ function useConsumable(cons, sel) {
   return true;
 }
 
-function clickConsumable(idx) {
-  if (S.phase !== "play" || S.animating) return;
-  const cons = S.consumables[idx];
-  if (!cons) return;
-  if (cons.kind === "planet" || cons.needs === 0) {
-    if (useConsumable(cons)) {
-      S.consumables.splice(idx, 1);
-      renderAll();
-    }
-    return;
-  }
-  // targeted tarot
-  S.targetMode = { cons, idx };
-  S.selected.clear();
-  const exact = cons.exact ? "exactly" : "up to";
-  $("#target-msg").textContent = `${cons.name}: select ${exact} ${cons.needs} card${cons.needs > 1 ? "s" : ""}`;
-  $("#target-bar").hidden = false;
-  AudioFX.play("click");
-  renderHand();
-  refreshControls();
-}
+function clickConsumable(idx) { openConsModal(idx); }
 
 function cancelTarget() {
   S.targetMode = null;
@@ -564,11 +538,11 @@ function renderShop() {
   $("#btn-reroll").disabled = S.money < S.rerollCost;
   $("#shop-joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
 
-  // owned jokers (sellable)
+  // owned jokers (click for details / sell)
   const owned = $("#shop-owned");
   owned.innerHTML = "";
   if (S.jokers.length === 0) owned.innerHTML = `<p class="shop-empty">No jokers yet</p>`;
-  S.jokers.forEach((j, i) => owned.appendChild(jokerTile(j, () => sellJoker(i))));
+  S.jokers.forEach((j, i) => owned.appendChild(jokerTile(j, { onClick: () => openJokerModal(j, i) })));
 
   // joker offers
   const wrap = $("#shop-offers");
@@ -579,7 +553,7 @@ function renderShop() {
     wrap.innerHTML = `<p class="shop-empty">Sold out — reroll!</p>`;
   } else {
     S.offers.forEach(j => {
-      const tile = jokerTile(j);
+      const tile = jokerTile(j, { showDesc: true });
       const btn = document.createElement("button");
       btn.className = "btn";
       btn.textContent = "Buy $" + priceOf(j);
@@ -602,9 +576,7 @@ function renderShop() {
   const pw = $("#shop-packs");
   pw.innerHTML = "";
   S.packs.forEach(p => {
-    const tile = document.createElement("div");
-    tile.className = "joker j-pack";
-    tile.innerHTML = `<div class="joker-head">${consIcon("tarot")}<b>${p.name}</b></div><span class="jdesc">${p.desc}</span>`;
+    const tile = consTile(p, { showDesc: true });
     const btn = document.createElement("button");
     btn.className = "btn";
     btn.textContent = "Open $" + priceOf(p);
@@ -626,9 +598,8 @@ function renderShop() {
   vw.innerHTML = "";
   if (S.voucherOffer) {
     const v = S.voucherOffer;
-    const tile = document.createElement("div");
-    tile.className = "joker j-voucher";
-    tile.innerHTML = `<div class="joker-head">${consIcon("planet")}<b>${v.name}</b></div><span class="jdesc">${v.desc} (permanent)</span>`;
+    const tile = consTile(v, { showDesc: true });
+    tile.classList.add("j-voucher");
     const btn = document.createElement("button");
     btn.className = "btn";
     btn.textContent = "Buy $" + priceOf(v);
@@ -656,14 +627,9 @@ function openPack(pack) {
   const wrap = $("#pack-choices");
   wrap.innerHTML = "";
   S.packOpen.choices.forEach(choice => {
-    let tile;
-    if (choice.rarity) { // joker
-      tile = jokerTile(choice);
-    } else {
-      tile = document.createElement("div");
-      tile.className = "joker j-" + choice.kind;
-      tile.innerHTML = `<div class="joker-head">${consIcon(choice.kind)}<b>${choice.name}</b></div><span class="jdesc">${consDesc(choice)}</span>`;
-    }
+    const tile = choice.rarity
+      ? jokerTile(choice, { showDesc: true })
+      : consTile(choice, { showDesc: true });
     const btn = document.createElement("button");
     btn.className = "btn";
     const noRoom = choice.rarity ? S.jokers.length >= MAX_JOKERS : S.consumables.length >= MAX_CONS;
@@ -759,41 +725,109 @@ function renderHand() {
   $("#hand-count").textContent = `${S.hand.length}/${handSize()}`;
 }
 
-function jokerTile(j, onSell) {
+function jokerTile(j, opts = {}) {
   const tile = document.createElement("div");
-  tile.className = `joker j-${j.rarity}` + (j.edition ? ` ed-${j.edition}` : "");
+  tile.className = `joker j-${j.rarity}` + (j.edition ? ` ed-${j.edition}` : "") + (opts.onClick ? " clickable" : "");
   tile.innerHTML =
-    `<div class="joker-head"><b>${j.name}</b>${j.edition ? `<span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : ""}</div>` +
-    `<span class="jdesc">${j.desc}</span>`;
-  const sell = document.createElement("button");
-  sell.className = "sell-btn";
-  sell.textContent = "$" + sellValue(j);
-  sell.title = "Sell";
-  sell.onclick = e => { e.stopPropagation(); onSell ? onSell() : null; };
-  if (onSell) tile.appendChild(sell);
+    `<div class="tile-icon">${iconSVG(j.id)}</div>` +
+    `<div class="tile-name">${j.name}${j.edition ? ` <span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : ""}</div>` +
+    (opts.showDesc ? `<span class="jdesc">${j.desc}</span>` : "");
+  if (opts.onClick) tile.onclick = opts.onClick;
   return tile;
 }
 
 function renderJokers() {
   const wrap = $("#jokers");
   wrap.innerHTML = "";
-  S.jokers.forEach((j, i) => wrap.appendChild(jokerTile(j, () => sellJoker(i))));
+  S.jokers.forEach((j, i) => wrap.appendChild(jokerTile(j, { onClick: () => openJokerModal(j, i) })));
   $("#joker-count").textContent = `${S.jokers.length}/${MAX_JOKERS}`;
+}
+
+function consTile(c, opts = {}) {
+  const tile = document.createElement("div");
+  tile.className = `joker j-${c.kind}` + (opts.onClick ? " clickable" : "");
+  tile.innerHTML =
+    `<div class="tile-icon">${iconSVG(c.id)}</div>` +
+    `<div class="tile-name">${c.name}</div>` +
+    (opts.showDesc ? `<span class="jdesc">${consDesc(c)}</span>` : "");
+  if (opts.onClick) tile.onclick = opts.onClick;
+  return tile;
 }
 
 function renderConsumables() {
   const wrap = $("#consumables");
   wrap.innerHTML = "";
-  S.consumables.forEach((c, i) => {
-    const tile = document.createElement("div");
-    tile.className = "joker j-" + c.kind;
-    tile.innerHTML = `<div class="joker-head">${consIcon(c.kind)}<b>${c.name}</b></div><span class="jdesc">${consDesc(c)}</span>`;
-    tile.title = "Click to use · right-click to sell";
-    tile.onclick = () => clickConsumable(i);
-    tile.oncontextmenu = e => { e.preventDefault(); sellConsumable(i); };
-    wrap.appendChild(tile);
-  });
+  S.consumables.forEach((c, i) => wrap.appendChild(consTile(c, { onClick: () => openConsModal(i) })));
   $("#cons-count").textContent = `${S.consumables.length}/${MAX_CONS}`;
+}
+
+// ── card detail modal ──
+function openModal({ icon, name, tags, desc, sellVal, onSell, onUse, useLabel }) {
+  $("#mc-icon").innerHTML = icon;
+  $("#mc-name").textContent = name;
+  $("#mc-tags").textContent = (tags || []).filter(Boolean).join(" · ");
+  $("#mc-desc").textContent = desc;
+  const sb = $("#mc-sell");
+  if (sellVal != null && onSell) {
+    sb.hidden = false;
+    sb.textContent = "Sell $" + sellVal;
+    sb.onclick = () => { closeModal(); onSell(); };
+  } else sb.hidden = true;
+  const ub = $("#mc-use");
+  if (onUse) {
+    ub.hidden = false;
+    ub.textContent = useLabel || "Use";
+    ub.onclick = () => { closeModal(); onUse(); };
+  } else ub.hidden = true;
+  $("#modal-card").hidden = false;
+  AudioFX.play("click");
+}
+function closeModal() { $("#modal-card").hidden = true; }
+
+function openJokerModal(j, idx) {
+  openModal({
+    icon: iconSVG(j.id),
+    name: j.name,
+    tags: [j.rarity, j.edition ? EDITIONS[j.edition].name + " edition" : null],
+    desc: j.desc + (j.edition ? ` · Edition: ${EDITIONS[j.edition].desc}` : ""),
+    sellVal: sellValue(j),
+    onSell: () => sellJoker(idx),
+  });
+}
+
+function openConsModal(idx) {
+  const c = S.consumables[idx];
+  if (!c) return;
+  const canUse = S.phase === "play" && !S.animating;
+  openModal({
+    icon: iconSVG(c.id),
+    name: c.name,
+    tags: [c.kind],
+    desc: consDesc(c),
+    sellVal: sellValue(c),
+    onSell: () => sellConsumable(idx),
+    onUse: canUse ? () => activateConsumable(idx) : null,
+  });
+}
+
+function activateConsumable(idx) {
+  const cons = S.consumables[idx];
+  if (!cons) return;
+  if (cons.kind === "planet" || cons.needs === 0) {
+    if (useConsumable(cons)) {
+      S.consumables.splice(idx, 1);
+      renderAll();
+    }
+    return;
+  }
+  // targeted tarot: enter aiming mode
+  S.targetMode = { cons, idx };
+  S.selected.clear();
+  const exact = cons.exact ? "exactly" : "up to";
+  $("#target-msg").textContent = `${cons.name}: select ${exact} ${cons.needs} card${cons.needs > 1 ? "s" : ""}`;
+  $("#target-bar").hidden = false;
+  renderHand();
+  refreshControls();
 }
 
 function renderBossBanner() {
@@ -936,6 +970,8 @@ document.querySelectorAll("[data-menu]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 $("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#set-anim").onclick = () => { settings.anim = !settings.anim; saveSettings(); applySettings(); AudioFX.play("click"); };
+$("#mc-close").onclick = () => { AudioFX.play("deselect"); closeModal(); };
+$("#mc-backdrop").onclick = closeModal;
 
 document.querySelectorAll(".float-card").forEach(el => {
   el.innerHTML = suitSVG(el.dataset.suit);

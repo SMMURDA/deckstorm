@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-2">
+<link rel="stylesheet" href="css/style.css?v=20261007-3">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -117,11 +117,11 @@
 
       <div class="main-area">
         <div class="joker-strip">
-          <div class="strip-label"><span>Jokers <span id="joker-count">0/5</span></span><span class="hint">click to sell</span></div>
+          <div class="strip-label"><span>Jokers <span id="joker-count">0/5</span></span><span class="hint">click for details</span></div>
           <div id="jokers" class="jokers"></div>
         </div>
         <div class="joker-strip">
-          <div class="strip-label"><span>Consumables <span id="cons-count">0/2</span></span><span class="hint">click to use · right-click to sell</span></div>
+          <div class="strip-label"><span>Consumables <span id="cons-count">0/2</span></span><span class="hint">click to use/sell</span></div>
           <div id="consumables" class="jokers"></div>
         </div>
 
@@ -156,7 +156,7 @@
       <h2 class="panel-title">Blind Beaten!</h2>
       <p id="shop-reward" class="shop-reward"></p>
       <p class="shop-money">Money: <b class="c-gold" id="shop-money">$0</b></p>
-      <div class="strip-label"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click to sell</span></div>
+      <div class="strip-label"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click for details</span></div>
       <div id="shop-owned" class="jokers"></div>
       <div class="strip-label"><span>Cards</span></div>
       <div id="shop-offers" class="shop-offers"></div>
@@ -217,10 +217,27 @@
 
 </main>
 
-<script src="js/cards.js?v=20261007-2"></script>
-<script src="js/jokers.js?v=20261007-2"></script>
-<script src="js/consumables.js?v=20261007-2"></script>
-<script src="js/audio.js?v=20261007-2"></script>
-<script src="js/game.js?v=20261007-2"></script>
+<!-- ══ CARD DETAIL MODAL ══ -->
+<div id="modal-card" class="modal" hidden>
+  <div class="modal-backdrop" id="mc-backdrop"></div>
+  <div class="panel modal-panel">
+    <div id="mc-icon" class="mc-icon"></div>
+    <h3 id="mc-name" class="panel-title"></h3>
+    <p id="mc-tags" class="mc-tags"></p>
+    <p id="mc-desc" class="mc-desc"></p>
+    <div class="actions">
+      <button id="mc-sell" class="btn">Sell</button>
+      <button id="mc-use" class="btn btn-primary">Use</button>
+      <button id="mc-close" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/cards.js?v=20261007-3"></script>
+<script src="js/jokers.js?v=20261007-3"></script>
+<script src="js/consumables.js?v=20261007-3"></script>
+<script src="js/pixelart.js?v=20261007-3"></script>
+<script src="js/audio.js?v=20261007-3"></script>
+<script src="js/game.js?v=20261007-3"></script>
 </body>
 </html>

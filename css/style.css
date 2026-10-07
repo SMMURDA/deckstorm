@@ -412,24 +412,60 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
 .joker.ed-holo { box-shadow: inset 0 0 0 2px rgba(255,93,115,.35); }
 .joker.ed-poly { box-shadow: inset 0 0 0 2px rgba(252,228,12,.35); }
 .joker.j-rare { border-color: var(--gold); }
-.joker.j-rare b { color: var(--gold); }
-.joker.j-planet { border-color: var(--blue); cursor: pointer; }
-.joker.j-planet b { color: var(--blue); }
-.joker.j-tarot { border-color: var(--gold); cursor: pointer; }
-.joker.j-tarot b { color: var(--gold); }
+.joker.j-rare .tile-name { color: var(--gold); }
+.joker.j-planet { border-color: var(--blue); }
+.joker.j-planet .tile-name { color: var(--blue); }
+.joker.j-tarot { border-color: var(--gold); }
+.joker.j-tarot .tile-name { color: var(--gold); }
 .joker.j-pack { border-color: var(--green); }
-.joker.j-pack b { color: var(--green); }
-.joker.j-voucher { border-color: var(--pink-strong); width: 190px; }
-.joker.j-voucher b { color: var(--pink); }
-.sell-btn {
-  position: absolute; top: 4px; right: 4px;
-  font-family: var(--font-px); font-size: 7px;
-  background: rgba(255,93,115,.15); color: var(--red);
-  border: 1px solid var(--red); border-radius: 4px;
-  padding: 3px 5px; cursor: pointer; opacity: .6;
-}
-.sell-btn:hover { opacity: 1; }
+.joker.j-pack .tile-name { color: var(--green); }
+.joker.j-voucher { border-color: var(--pink-strong); }
+.joker.j-voucher .tile-name { color: var(--pink); }
 .strip-label .hint { text-transform: none; letter-spacing: 0; opacity: .6; }
+
+/* ── v3: card-style tiles with pixel icons ── */
+.joker {
+  width: 96px;
+  padding: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.joker.clickable { cursor: pointer; transition: transform .12s ease, border-color .12s ease; }
+.joker.clickable:hover { transform: translateY(-3px); border-color: var(--pink); }
+.tile-icon {
+  width: 100%; height: 52px;
+  background: rgba(0,0,0,.35);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.tile-icon svg { width: 40px; height: 40px; }
+.tile-name {
+  font-family: var(--font-px); font-size: 7px; line-height: 1.6;
+  text-align: center; color: var(--ink);
+  min-height: 2.4em;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+}
+.joker .jdesc { text-align: center; font-size: 15px; }
+.shop-offers .joker { width: 132px; }
+.shop-offers .joker .btn { width: 100%; margin-top: 4px; padding: 8px 4px; font-size: 9px; }
+
+/* ── v3: card detail modal ── */
+.modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; }
+.modal[hidden] { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(6,5,10,.72); backdrop-filter: blur(2px); }
+.modal-panel {
+  position: relative; z-index: 1;
+  width: min(320px, 92vw);
+  text-align: center;
+  animation: popIn .18s steps(3) both;
+}
+.mc-icon {
+  width: 110px; height: 110px; margin: 0 auto 14px;
+  background: rgba(0,0,0,.35); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mc-icon svg { width: 88px; height: 88px; }
+.mc-tags { color: var(--muted); font-size: 17px; margin: -8px 0 10px; text-transform: capitalize; }
+.mc-desc { font-size: 20px; color: #D8CFE8; margin: 0 0 16px; }
 
 /* ── v2: misc ── */
 .pack-sub { text-align: center; color: var(--muted); margin: -8px 0 16px; }
