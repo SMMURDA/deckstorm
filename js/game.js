@@ -493,8 +493,8 @@ async function playHand() {
   S.animating = false;
   refreshControls();
 
-  if (S.roundScore >= blindTarget()) return setTimeout(endRoundWin, 500);
-  if (S.handsLeft <= 0) return setTimeout(gameOver, 500);
+  if (S.roundScore >= blindTarget()) return setTimeout(endRoundWin, settings.anim ? 500 : 30);
+  if (S.handsLeft <= 0) return setTimeout(gameOver, settings.anim ? 500 : 30);
 }
 
 // ── discard ──
@@ -959,19 +959,25 @@ function renderBossBanner() {
 }
 
 function renderHud(skipScore) {
+  const bn = blindName();
+  const blindEl = $("#hud-blind"); if (blindEl) blindEl.textContent = bn;
+  const btEl = $("#blind-title");
+  if (btEl) { btEl.textContent = bn; btEl.className = "blind-title blind-" + (S.blindIndex === 0 ? "small" : S.blindIndex === 1 ? "big" : "boss"); }
   $("#hud-ante").textContent = S.ante + "/8";
-  $("#hud-blind").textContent = blindName();
   const badge = $("#blind-badge");
   const kind = S.blindIndex === 0 ? "small" : S.blindIndex === 1 ? "big" : "boss";
   badge.className = "blind-badge blind-" + kind;
   badge.innerHTML = iconSVG(kind === "boss" ? "death" : kind === "big" ? "blind_big" : "blind_small");
   $("#hud-target").textContent = blindTarget().toLocaleString();
+  const earnEl = $("#hud-earn"); if (earnEl) earnEl.textContent = "$".repeat(Math.min(4, 1 + S.ante));
   if (!skipScore) $("#hud-score").textContent = S.roundScore.toLocaleString();
   $("#score-bar-fill").style.width = Math.min(100, S.roundScore / blindTarget() * 100) + "%";
   $("#hud-hands").textContent = S.handsLeft;
   $("#hud-discards").textContent = S.discardsLeft;
   $("#hud-money").textContent = "$" + S.money;
   $("#hud-deck").textContent = S.deck.length;
+  const roundEl = $("#hud-round"); if (roundEl) roundEl.textContent = S.blindIndex + 1;
+  const pileEl = $("#deck-pile-count"); if (pileEl) pileEl.textContent = S.deck.length;
   flashMoneyIfChanged();
 }
 
@@ -1144,7 +1150,24 @@ $("#btn-next").onclick = nextBlind;
 $("#btn-menu").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
 $("#nav-resume").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = true; };
 $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
-$("#nav-hands").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
+$("#nav-fullscreen").onclick = () => {
+  $("#modal-nav").hidden = true;
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      document.body.classList.add("fullscreen");
+      showToast("Fullscreen ON — press Esc to exit");
+    }).catch(() => showToast("Fullscreen not supported on this browser"));
+  } else {
+    document.exitFullscreen().then(() => {
+      document.body.classList.remove("fullscreen");
+    });
+  }
+  AudioFX.play("click");
+};
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) document.body.classList.remove("fullscreen");
+});
+$("#btn-run-info").onclick = () => { AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
 $("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && S && S.targetMode) cancelTarget(); });

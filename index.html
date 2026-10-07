@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-9">
+<link rel="stylesheet" href="css/style.css?v=20261007-10">
 </head>
 <body>
 <div class="crt" aria-hidden="true"></div>
@@ -109,37 +109,43 @@
     <div class="game-grid">
 
       <aside class="sidebar">
-        <div class="panel side-panel">
+        <div class="panel side-panel blind-panel">
+          <div class="blind-title blind-small" id="blind-title">Small Blind</div>
           <div class="blind-row">
             <div class="blind-badge blind-small" id="blind-badge"></div>
             <div class="blind-info">
-              <span id="hud-blind">Small Blind</span>
-              <span class="ante-sub">Ante <b class="c-pink" id="hud-ante">1/8</b></span>
+              <span class="score-at-least">Score at least</span>
+              <b class="c-red" id="hud-target">300</b>
+              <span class="earn-line">to earn <b class="c-gold" id="hud-earn">$$$</b></span>
             </div>
           </div>
           <div id="boss-banner" class="boss-banner" hidden><b id="boss-name"></b><span id="boss-desc"></span></div>
-          <div class="target-line">score at least<b id="hud-target">300</b></div>
           <div class="score-bar"><div id="score-bar-fill"></div></div>
-          <div class="round-score" id="hud-score">0</div>
+          <div class="round-score-row"><span>Round score</span><b id="hud-score">0</b></div>
         </div>
 
         <div class="panel side-panel stats-panel">
-          <div class="stat"><span>Hands</span><b id="hud-hands">4</b></div>
-          <div class="stat"><span>Discards</span><b id="hud-discards">3</b></div>
-          <div class="stat"><span>Money</span><b class="c-gold" id="hud-money">$4</b></div>
-          <div class="stat"><span>Deck</span><b id="hud-deck">52</b></div>
+          <div class="stat-box stat-hands"><span>Hands</span><b id="hud-hands">4</b></div>
+          <div class="stat-box stat-discards"><span>Discards</span><b id="hud-discards">3</b></div>
+          <div class="stat-box stat-money"><span>Money</span><b class="c-gold" id="hud-money">$4</b></div>
+          <div class="stat-box"><span>Ante</span><b id="hud-ante">1/8</b></div>
+          <div class="stat-box"><span>Round</span><b id="hud-round">1</b></div>
+          <div class="stat-box"><span>Deck</span><b id="hud-deck">52</b></div>
         </div>
-        <button id="btn-menu" class="btn btn-ghost btn-small">☰ Menu</button>
+        <button id="btn-run-info" class="btn btn-run">Run Info</button>
+        <button id="btn-menu" class="btn btn-options">Options</button>
       </aside>
 
-      <div class="main-area">
-        <div class="joker-strip">
-          <div class="strip-label"><span>Jokers <span id="joker-count">0/5</span></span><span class="hint">click for details</span></div>
-          <div id="jokers" class="jokers"></div>
-        </div>
-        <div class="joker-strip">
-          <div class="strip-label"><span>Consumables <span id="cons-count">0/2</span></span><span class="hint">click to use/sell</span></div>
-          <div id="consumables" class="jokers"></div>
+      <div class="main-area felt-table">
+        <div class="strips-row">
+          <div class="joker-strip">
+            <div class="strip-label"><span>Jokers <span id="joker-count">0/5</span></span><span class="hint">click for details</span></div>
+            <div id="jokers" class="jokers"></div>
+          </div>
+          <div class="joker-strip strip-right">
+            <div class="strip-label"><span>Consumables <span id="cons-count">0/2</span></span><span class="hint">click to use/sell</span></div>
+            <div id="consumables" class="jokers"></div>
+          </div>
         </div>
 
         <div class="tray-label">Play Area</div>
@@ -170,6 +176,7 @@
           <button id="btn-sort-rank" class="btn btn-ghost btn-small">Sort: Rank</button>
           <button id="btn-sort-suit" class="btn btn-ghost btn-small">Sort: Suit</button>
         </div>
+        <div class="deck-pile" aria-hidden="true"><div class="deck-pile-card"></div><span id="deck-pile-count">52</span></div>
       </div>
 
     </div>
@@ -249,7 +256,7 @@
     <h3 class="panel-title">Menu</h3>
     <div class="menu-nav">
       <button id="nav-resume" class="btn btn-primary btn-big">Resume</button>
-      <button id="nav-hands" class="btn btn-big">Hand Levels</button>
+      <button id="nav-fullscreen" class="btn btn-big">⛶ Fullscreen</button>
       <button id="nav-abandon" class="btn btn-big btn-ghost">Abandon Run</button>
     </div>
   </div>
@@ -271,11 +278,11 @@
   </div>
 </div>
 
-<script src="js/cards.js?v=20261007-9"></script>
-<script src="js/jokers.js?v=20261007-9"></script>
-<script src="js/consumables.js?v=20261007-9"></script>
-<script src="js/pixelart.js?v=20261007-9"></script>
-<script src="js/audio.js?v=20261007-9"></script>
-<script src="js/game.js?v=20261007-9"></script>
+<script src="js/cards.js?v=20261007-10"></script>
+<script src="js/jokers.js?v=20261007-10"></script>
+<script src="js/consumables.js?v=20261007-10"></script>
+<script src="js/pixelart.js?v=20261007-10"></script>
+<script src="js/audio.js?v=20261007-10"></script>
+<script src="js/game.js?v=20261007-10"></script>
 </body>
 </html>

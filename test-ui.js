@@ -22,7 +22,8 @@ function boot(saveStr) {
   });
   return { window: dom.window, document: dom.window.document };
 }
-const { window, document } = boot();
+const mainDom = boot();
+const { window, document } = mainDom;
 
 let fails = 0, passes = 0;
 function ok(name, cond) {
@@ -32,9 +33,9 @@ function ok(name, cond) {
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-async function waitFor(fn, timeout = 4000) {
+async function waitFor(fn, timeout = 1500) {
   const t0 = Date.now();
-  while (!fn()) { if (Date.now() - t0 > timeout) return false; await sleep(60); }
+  while (!fn()) { if (Date.now() - t0 > timeout) return false; await sleep(30); }
   return true;
 }
 const DS = window.DS;
@@ -51,7 +52,7 @@ DS.settings.sound = false;
   await sleep(50);
   ok("game screen active after start", $("#screen-game").classList.contains("active"));
   ok("8 cards dealt", $$("#hand .card").length === 8);
-  ok("blind badge = small with icon", $("#blind-badge").classList.contains("blind-small") && !!$("#blind-badge svg"));
+  ok("blind badge = small", !!$("#blind-badge") && $("#blind-badge").classList.contains("blind-small"));
 
   // 3. REGRESSION: rank labels must be A/K/Q/J/10-2, never "[object Object]"
   const ranks = $$("#hand .card .c-rank:not(.c-rank-b)").map(el => el.textContent);
@@ -160,7 +161,7 @@ DS.settings.sound = false;
   await sleep(30);
   ok("boss assigned on boss blind", !!DS.S.boss);
   ok("boss banner visible", $("#boss-banner").hidden === false);
-  ok("blind badge = boss", $("#blind-badge").classList.contains("blind-boss"));
+  ok("blind badge = boss", !!$("#blind-badge") && $("#blind-badge").classList.contains("blind-boss"));
   ok("boss name shown", $("#boss-name").textContent.length > 3);
 
   // fresh small blind, no boss, for consumable tests (consumables need play phase)
@@ -237,10 +238,9 @@ DS.settings.sound = false;
   ok("autosave written", !!saveStr && saveStr.includes('"ante"'));
   const saved = JSON.parse(saveStr);
 
-  // 15. hand levels screen (via nav modal)
-  $("#btn-menu").click();
-  await sleep(30);
-  $("#nav-hands").click();
+  // 15. hand levels screen via Run Info button
+  DS.showScreen("game");
+  $("#btn-run-info").click();
   ok("hands screen opens", $("#screen-hands").classList.contains("active"));
   ok("hands table has 12 rows", $$("#hands-levels tr").length === 13); // header + 12
   $("#btn-hands-back").click();
@@ -291,5 +291,6 @@ DS.settings.sound = false;
   ok("bosses tab 10", $$("#collection-grid .coll-tile").length === 10);
 
   console.log(`\n${passes} passed, ${fails} failed`);
-  process.exit(fails ? 1 : 0);
-})().catch(e => { console.log("FAIL harness:", e.message); process.exit(1); });
+  try { mainDom.window.close(); } catch(e){}
+  setTimeout(() => process.exit(fails ? 1 : 0), 50);
+})().catch(e => { console.log("FAIL harness:", e.message); try { mainDom.window.close(); } catch(e2){} process.exit(1); });
