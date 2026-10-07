@@ -1149,7 +1149,9 @@ const HAND_DEMO = {
 };
 function miniCardHTML(rank, suit) {
   const kind = suit === "copy" ? " copy" : (suit === "hearts" || suit === "diamonds") ? " red" : "";
-  return `<span class="mini-card${kind}"><b>${rank}</b><i>${SUIT_GLYPH[suit] || "?"}</i></span>`;
+  const tip = suit === "copy" ? ' title="Copied card (made with a Tarot)"' : "";
+  // deliberately <span>, not <b>/<i>: ancestor rules like `.howto-body b` would recolour them
+  return `<span class="mini-card${kind}"${tip}><span class="mc-r">${rank}</span><span class="mc-s">${SUIT_GLYPH[suit] || "?"}</span></span>`;
 }
 function handDemoHTML(name) {
   const d = HAND_DEMO[name];

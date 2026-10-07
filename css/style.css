@@ -153,11 +153,13 @@ body {
   box-shadow: 1px 1px 0 rgba(0,0,0,.35);
 }
 .mini-card:last-child { margin-right: 0; }
-.mini-card b { font-size: 9px; font-weight: 700; }
-.mini-card i { font-style: normal; font-size: 9px; }
+.mini-card .mc-r, .mini-card .mc-s { font-size: 9px; line-height: 1.05; color: inherit; font-style: normal; }
 .mini-card.red { color: #E23C50; }
 .mini-card.copy { color: #8B5CF6; border-style: dashed; }
 .hands-table .demo-cell { white-space: nowrap; }
+/* legend for the ★ copied-card marker used by Five of a Kind / Flush House / Flush Five */
+.hands-note { color: var(--muted); font-size: 16px; margin: 0 0 10px; }
+.hands-note .star { color: #8B5CF6; font-weight: 700; }
 
 /* floating pixel cards behind menu */
 .float-cards { position: absolute; inset: 0; overflow: hidden; z-index: 1; }

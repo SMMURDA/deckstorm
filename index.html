@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-31">
+<link rel="stylesheet" href="css/style.css?v=20261007-32">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -36,7 +36,7 @@
         <button id="btn-howto" class="btn btn-big">How to Play</button>
         <button id="btn-settings" class="btn btn-big">Settings</button>
       </nav>
-      <p class="menu-foot">Build 07 October 2026 · v31.1</p>
+      <p class="menu-foot">Build 07 October 2026 · v31.2</p>
       <p class="menu-credit">Powered by <a href="https://dev.topup.eu.org" target="_blank" rel="noopener noreferrer">Bovalone Network</a></p>
     </div>
   </section>
@@ -55,7 +55,9 @@
         <p><b class="c-pink">Tarot</b> cards enhance your deck: Bonus, Mult, Wild, Glass, Steel, Gold, Lucky, Stone…
            <b class="c-pink">Planet</b> cards level up a poker hand permanently (+chips / +mult).</p>
         <p><b class="c-pink">Boss Blinds</b> have nasty effects: debuffed suits, no discards, 1-hand-only…</p>
-        <p class="howto-note">Each hand is shown with example cards — the highlighted pattern is what scores.</p>
+        <p class="howto-note">Each hand is shown with example cards — the repeated pattern is what scores.
+           A <span class="star">★</span> card is a <b>copy made with a Tarot card</b>; the last three hands need
+           more copies of a card than a normal deck holds.</p>
         <table class="hands-table" id="howto-hands"></table>
       </div>
       <button class="btn btn-big btn-back" data-back>← Back</button>
@@ -244,6 +246,9 @@
   <section id="screen-hands" class="screen">
     <div class="panel panel-wide">
       <h2 class="panel-title">Hand Levels</h2>
+      <p class="hands-note">Example cards show how each hand is made.
+         A <span class="star">★</span> card is a <b>copy made with a Tarot card</b> — Five of a Kind, Flush House
+         and Flush Five need more copies than a normal deck holds.</p>
       <table class="hands-table" id="hands-levels"></table>
       <button class="btn btn-big btn-back" id="btn-hands-back">← Back</button>
     </div>
