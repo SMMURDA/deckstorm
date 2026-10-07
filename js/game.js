@@ -5,73 +5,17 @@ const ANTE_TARGETS = [300, 800, 2000, 5000, 11000, 20000, 35000, 50000];
 const SUIT_CLASS = { hearts: "red", diamonds: "red", spades: "black", clubs: "black" };
 const $ = s => document.querySelector(s);
 
-// ── pixel-art suits (fine-grained 11-13px grids → smooth look) ──
-const SUIT_PIXELS = {
-  hearts: [
-    "..###...###..",
-    ".#####.#####.",
-    "#############",
-    "#############",
-    "#############",
-    ".###########.",
-    "..#########..",
-    "...#######...",
-    "....#####....",
-    ".....###.....",
-    "......#......",
-  ],
-  diamonds: [
-    ".....#.....",
-    "....###....",
-    "...#####...",
-    "..#######..",
-    ".#########.",
-    "###########",
-    ".#########.",
-    "..#######..",
-    "...#####...",
-    "....###....",
-    ".....#.....",
-  ],
-  spades: [
-    "......#......",
-    ".....###.....",
-    "....#####....",
-    "...#######...",
-    "..#########..",
-    ".###########.",
-    "#############",
-    "#############",
-    ".##.#####.##.",
-    "......#......",
-    ".....###.....",
-    "....#####....",
-  ],
-  clubs: [
-    ".....###.....",
-    "....#####....",
-    "....#####....",
-    ".####.#.####.",
-    ".###########.",
-    ".###########.",
-    "..##.###.##..",
-    "......#......",
-    ".....###.....",
-    "....#####....",
-  ],
-};
+// ── clean vector suits ──
 const SUIT_COLOR = { hearts: "#E23C50", diamonds: "#E23C50", spades: "#2B2B3A", clubs: "#2B2B3A" };
-
-function pixelSVG(grid, fill) {
-  const h = grid.length, w = grid[0].length;
-  let rects = "";
-  grid.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++)
-      if (row[x] === "#") rects += `<rect x='${x}' y='${y}' width='1' height='1'/>`;
-  });
-  return `<svg viewBox='0 0 ${w} ${h}' shape-rendering='crispEdges' fill='${fill}' aria-hidden='true'>${rects}</svg>`;
+const SUIT_SHAPE = {
+  hearts: "<path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/>",
+  diamonds: "<path d='M12 1.6 22.4 12 12 22.4 1.6 12z'/>",
+  spades: "<path d='M12 2C12 2 4.6 7.6 4.6 13.1c0 2.33 1.62 3.74 3.55 3.74 1.14 0 2.17-.55 2.87-1.5-.35 1.9-1.3 3.36-2.72 4.5h7.4c-1.42-1.14-2.37-2.6-2.72-4.5.7.95 1.73 1.5 2.87 1.5 1.93 0 3.55-1.41 3.55-3.74C19.4 7.6 12 2 12 2z'/>",
+  clubs: "<circle cx='12' cy='7.4' r='4'/><circle cx='6.9' cy='14.7' r='4'/><circle cx='17.1' cy='14.7' r='4'/><path d='M10.4 14h3.2l1.3 8h-5.8z'/>",
+};
+function suitSVG(suit) {
+  return `<svg viewBox='0 0 24 24' fill='${SUIT_COLOR[suit]}' aria-hidden='true'>${SUIT_SHAPE[suit]}</svg>`;
 }
-function suitSVG(suit) { return pixelSVG(SUIT_PIXELS[suit], SUIT_COLOR[suit]); }
 
 // ── settings (persisted; storage-safe) ──
 const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();

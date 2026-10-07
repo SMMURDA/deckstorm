@@ -37,16 +37,6 @@ body {
   overflow-x: hidden;
 }
 
-/* CRT scanlines + vignette (subtle) */
-.crt {
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 90;
-  background:
-    repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.26) 100%);
-  opacity: .4;
-}
-
 #fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 95; }
 
 #app { width: min(860px, 100%); position: relative; z-index: 1; }
@@ -55,13 +45,6 @@ body {
 .screen { display: none; }
 .screen.active { display: block; animation: screenIn .3s ease both; }
 @keyframes screenIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-
-/* pixel corners */
-.px-cut, .panel, .btn, .card, .joker, .float-card {
-  clip-path: polygon(0 6px, 6px 6px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px,
-    100% calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) 100%,
-    6px 100%, 6px calc(100% - 6px), 0 calc(100% - 6px));
-}
 
 /* ── panels ── */
 .panel {
@@ -305,8 +288,8 @@ body {
 .card.red { color: var(--red); }
 .card.deal-in { animation: dealIn .34s cubic-bezier(.22,1,.36,1) both; }
 @keyframes dealIn {
-  from { opacity: 0; transform: translateY(46px) scale(.85) rotate(3deg); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(46px) scale(.85) rotate(calc(var(--rot, 0deg) + 10deg)); }
+  to   { opacity: 1; transform: translateY(var(--ty, 0px)) rotate(var(--rot, 0deg)); }
 }
 .card.discard-out { animation: discardOut .26s ease-in both; }
 @keyframes discardOut {
@@ -380,8 +363,8 @@ body.reduced *, body.reduced *::before, body.reduced *::after {
   border: 2px solid var(--red);
   border-radius: 6px;
 }
-.boss-banner b { display: block; font-family: var(--font-px); font-size: 8px; color: var(--red); margin-bottom: 4px; }
-.boss-banner span { font-size: 16px; line-height: 1.25; color: #D8CFE8; }
+.boss-banner b { display: block; font-family: var(--font-px); font-size: 8px; color: var(--red); margin-bottom: 3px; }
+.boss-banner span { font-size: 13px; line-height: 1.2; color: #D8CFE8; }
 
 
 /* ── v2: card enhancements ── */
@@ -654,9 +637,6 @@ body {
   padding: 0 !important;
   overflow: hidden !important;
   height: 100vh;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
 }
 body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 
@@ -848,21 +828,22 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   min-height: 100px;
   overflow-x: auto;
 }
-/* fan: each card slightly rotated and offset */
-.hand .card { margin: 0 -5px; }
-.hand .card:nth-child(1)  { transform: translateY(8px)  rotate(-7deg); }
-.hand .card:nth-child(2)  { transform: translateY(4px)  rotate(-5deg); }
-.hand .card:nth-child(3)  { transform: translateY(2px)  rotate(-3deg); }
-.hand .card:nth-child(4)  { transform: translateY(0)    rotate(-1deg); }
-.hand .card:nth-child(5)  { transform: translateY(0)    rotate(1deg);  }
-.hand .card:nth-child(6)  { transform: translateY(2px)  rotate(3deg);  }
-.hand .card:nth-child(7)  { transform: translateY(4px)  rotate(5deg);  }
-.hand .card:nth-child(8)  { transform: translateY(8px)  rotate(7deg);  }
-.hand .card:nth-child(9)  { transform: translateY(10px) rotate(9deg);  }
+/* fan: each card keeps its own angle (--rot) + vertical offset (--ty);
+   selection lifts the card WITHOUT flattening its tilt, like Balatro */
+.hand .card { margin: 0 -5px; --rot: 0deg; --ty: 0px; transform: translateY(var(--ty)) rotate(var(--rot)); }
+.hand .card:nth-child(1)  { --rot: -8deg;  --ty: 10px; }
+.hand .card:nth-child(2)  { --rot: -6deg;  --ty: 5px;  }
+.hand .card:nth-child(3)  { --rot: -4deg;  --ty: 2px;  }
+.hand .card:nth-child(4)  { --rot: -2deg;  --ty: 0px;  }
+.hand .card:nth-child(5)  { --rot: 0deg;   --ty: -1px; }
+.hand .card:nth-child(6)  { --rot: 2deg;   --ty: 0px;  }
+.hand .card:nth-child(7)  { --rot: 4deg;   --ty: 2px;  }
+.hand .card:nth-child(8)  { --rot: 6deg;   --ty: 5px;  }
+.hand .card:nth-child(9)  { --rot: 8deg;   --ty: 10px; }
 
-/* selected overrides fan */
-.hand .card.selected { transform: translateY(-16px) rotate(0) !important; z-index: 3; }
-.hand .card:hover:not(.selected) { transform: translateY(-10px) rotate(0) !important; z-index: 2; }
+/* selected lifts up but keeps its fan angle */
+.hand .card.selected { transform: translateY(calc(var(--ty) - 20px)) rotate(var(--rot)); z-index: 3; }
+.hand .card:hover:not(.selected) { transform: translateY(calc(var(--ty) - 12px)) rotate(var(--rot)); z-index: 2; }
 
 /* ── preview: inline row ── */
 .preview-panel {
@@ -917,8 +898,11 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
   z-index: 1;
 }
 
-/* ── boss banner compact ── */
-.boss-banner { margin: 6px 0 0; padding: 6px 8px; border-radius: 5px; }
+/* ── boss banner compact — matches the round-score row width ── */
+.boss-banner {
+  margin: 8px 0 0; padding: 5px 8px; border-radius: 5px;
+  width: 100%; box-sizing: border-box; text-align: left;
+}
 
 /* ═══ RESPONSIVE ═══ */
 
@@ -1152,8 +1136,8 @@ body.fullscreen #screen-game { position: fixed; inset: 0; }
     flex-wrap: nowrap !important;
   }
   #screen-game .hand .card { margin: 0 -6px !important; }
-  #screen-game .hand .card.selected { transform: translateY(-12px) rotate(0) !important; z-index: 3 !important; }
-  #screen-game .hand .card:hover:not(.selected) { transform: translateY(-7px) rotate(0) !important; }
+  #screen-game .hand .card.selected { transform: translateY(calc(var(--ty) - 14px)) rotate(var(--rot)) !important; z-index: 3 !important; }
+  #screen-game .hand .card:hover:not(.selected) { transform: translateY(calc(var(--ty) - 8px)) rotate(var(--rot)) !important; }
   .hand-meta { font-size: 11px !important; margin-top: 2px !important; }
 
   /* card sizes */
