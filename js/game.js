@@ -1148,6 +1148,8 @@ $("#btn-sort-rank").onclick = () => { sortMode = "rank"; sortHand(); renderHand(
 $("#btn-sort-suit").onclick = () => { sortMode = "suit"; sortHand(); renderHand(); AudioFX.play("click"); };
 $("#btn-next").onclick = nextBlind;
 $("#btn-menu").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
+const menuCompact = $("#btn-menu-compact");
+if (menuCompact) menuCompact.onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = false; };
 $("#nav-resume").onclick = () => { AudioFX.play("click"); $("#modal-nav").hidden = true; };
 $("#nav-backdrop").onclick = () => { $("#modal-nav").hidden = true; };
 $("#nav-fullscreen").onclick = () => {

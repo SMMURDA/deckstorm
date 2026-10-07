@@ -970,3 +970,184 @@ body.fullscreen, #app.fullscreen { position: fixed; inset: 0; z-index: 999; }
 
 /* FULLSCREEN adjustments */
 body.fullscreen #screen-game { position: fixed; inset: 0; }
+
+/* ═══════════════════════════════════════════════════
+   v11 — MOBILE PORTRAIT + LANDSCAPE FULL OVERHAUL
+   ═══════════════════════════════════════════════════ */
+
+/* ── PORTRAIT MOBILE ── */
+@media (max-width: 680px) and (orientation: portrait) {
+  body { overflow: hidden !important; }
+
+  #screen-game .game-grid {
+    flex-direction: column !important;
+    height: 100%;
+  }
+
+  /* top HUD bar: one compact row */
+  #screen-game .sidebar {
+    width: 100% !important; max-width: 100% !important;
+    height: auto !important; min-height: unset !important;
+    flex-direction: row !important; flex-wrap: nowrap !important;
+    align-items: center;
+    padding: 0 !important; gap: 0 !important;
+    border-right: none !important; border-bottom: 2px solid #000 !important;
+    overflow: hidden !important;
+  }
+
+  /* blind panel: skinny left section */
+  #screen-game .blind-panel {
+    flex: 0 0 auto !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: center !important;
+    width: 58px !important; height: 100% !important;
+    padding: 3px 2px !important;
+    border-bottom: none !important; border-right: 2px solid #000 !important;
+  }
+  .blind-title  { font-size: 5.5px !important; padding: 2px 3px !important; margin-bottom: 3px !important; }
+  .blind-row    { flex-direction: column !important; gap: 2px !important; margin: 0 !important; }
+  .blind-badge  { width: 28px !important; height: 28px !important; }
+  .blind-badge svg { width: 17px !important; height: 17px !important; }
+  .blind-info   { display: none !important; }
+  .score-bar    { display: none !important; }
+  .boss-banner  { display: none !important; }
+
+  /* centre: target score + round score */
+  .round-score-row {
+    flex: 1 1 auto !important;
+    flex-direction: column !important; justify-content: center !important;
+    align-items: center !important; padding: 3px 6px !important;
+    border-right: 2px solid rgba(255,255,255,.08) !important;
+    gap: 1px !important;
+  }
+  .round-score-row span { font-size: 9px !important; }
+  .round-score-row b    { font-size: 20px !important; }
+
+  /* stats: Hands / Discards / Money as compact chips */
+  #screen-game .stats-panel {
+    flex: 0 0 auto !important;
+    display: flex !important; flex-direction: row !important;
+    grid-template-columns: unset !important;
+    gap: 3px !important; padding: 3px 5px !important;
+    align-items: center !important; background: transparent !important;
+    border-bottom: none !important;
+  }
+  .stat-box { padding: 3px 5px !important; gap: 1px !important; border-radius: 3px !important; flex: 0 0 auto !important; }
+  .stat-box span { font-size: 8px !important; }
+  .stat-box b    { font-size: 14px !important; }
+  .stat-box:nth-child(4),
+  .stat-box:nth-child(5),
+  .stat-box:nth-child(6) { display: none !important; }
+
+  /* hide verbose sidebar buttons on portrait */
+  .btn-run, .btn-options { display: none !important; }
+  #btn-menu { display: none !important; }
+  #btn-menu-compact { display: block !important; font-size: 8px !important; padding: 4px 7px !important; margin: 0 4px !important; flex: 0 0 auto !important; }
+
+  /* ── FELT ── */
+  #screen-game .felt-table {
+    flex: 1 1 0 !important; overflow: hidden !important;
+    gap: 3px !important; padding: 5px 7px 3px !important;
+  }
+
+  /* joker/consumable strips: tiny horizontal */
+  .strips-row { gap: 4px !important; flex-shrink: 0 !important; }
+  .strips-row .joker-strip { max-width: 50% !important; }
+  .strip-label { font-size: 5.5px !important; margin-bottom: 2px !important; }
+  .strip-label .hint { display: none !important; }
+  .jokers { gap: 3px !important; flex-wrap: nowrap !important; overflow-x: auto !important; min-height: unset !important; }
+  #screen-game .joker       { width: 52px !important; min-height: unset !important; }
+  #screen-game .tile-icon   { height: 30px !important; }
+  #screen-game .tile-icon svg { width: 22px !important; height: 22px !important; }
+  #screen-game .tile-name   { font-size: 5px !important; min-height: 1.6em !important; }
+  #screen-game .slot-empty  { min-height: 52px !important; width: 52px !important; }
+
+  /* played zone */
+  .played-zone { min-height: 60px !important; max-height: 68px !important; padding: 4px !important; gap: 3px !important; flex-shrink: 0 !important; }
+  .played-info { font-size: 9px !important; min-height: 14px !important; }
+
+  /* hand: smaller cards, tighter fan */
+  .hand-zone.felt { padding: 4px 4px 5px !important; flex-shrink: 0 !important; }
+  .hand { padding: 8px 3px 2px !important; min-height: 64px !important; overflow-x: visible !important; }
+  #screen-game .hand .card { margin: 0 -6px !important; }
+  #screen-game .hand .card.selected { transform: translateY(-12px) rotate(0) !important; }
+  #screen-game .hand .card:hover:not(.selected) { transform: translateY(-7px) rotate(0) !important; }
+  #screen-game .hand-meta { font-size: 11px !important; margin-top: 2px !important; }
+
+  /* card size portrait */
+  #screen-game .card { width: 48px !important; height: 67px !important; }
+  #screen-game .card .c-rank  { font-size: 8px !important; top: 3px !important; left: 3px !important; }
+  #screen-game .card .c-suit  { top: 13px !important; left: 3px !important; }
+  #screen-game .card .c-suit svg { width: 10px !important; height: 10px !important; }
+  #screen-game .card .c-big svg  { width: 19px !important; height: 19px !important; }
+  #screen-game .card .c-rank-b { font-size: 8px !important; bottom: 3px !important; right: 3px !important; }
+
+  /* preview: compact inline */
+  #screen-game .preview-panel {
+    padding: 3px 8px !important; gap: 8px !important;
+    min-height: 28px !important; border-radius: 5px !important; flex-shrink: 0 !important;
+  }
+  #preview-name    { font-size: 7px !important; }
+  .preview-level   { font-size: 11px !important; }
+  .preview-score   { font-size: 18px !important; }
+  .px-mult         { margin: 0 4px !important; }
+
+  /* action buttons: one row at bottom */
+  #screen-game .actions {
+    flex-shrink: 0 !important; gap: 4px !important; margin-top: 2px !important;
+    flex-wrap: nowrap !important;
+  }
+  #screen-game .actions .btn { font-size: 8px !important; padding: 8px 5px !important; flex: 1 !important; }
+  #screen-game .actions .btn-primary { flex: 1.5 !important; }
+  #screen-game .actions .btn-ghost   { flex: 0.7 !important; font-size: 6.5px !important; }
+
+  /* target fab */
+  .target-fab { padding: 5px 8px !important; gap: 7px !important; }
+  #target-fab-msg { font-size: 13px !important; }
+  .target-fab-icon, .target-fab-icon svg { width: 20px !important; height: 20px !important; }
+  .target-fab .btn { font-size: 8px !important; padding: 6px 8px !important; }
+
+  /* deck pile hidden portrait */
+  .deck-pile { display: none !important; }
+}
+
+/* ── LANDSCAPE MOBILE (height ≤ 480px) ── */
+@media (max-height: 480px) and (orientation: landscape) {
+  #screen-game .sidebar { width: 155px !important; min-width: 120px !important; }
+  .blind-panel { padding: 6px 5px !important; }
+  .blind-title  { font-size: 6.5px !important; }
+  #hud-target   { font-size: 16px !important; }
+  .round-score-row b { font-size: 16px !important; }
+  .score-bar { height: 5px !important; margin: 5px 0 4px !important; }
+  .stat-box b    { font-size: 13px !important; }
+  .stat-box span { font-size: 8px !important; }
+  .stat-box:nth-child(4),
+  .stat-box:nth-child(5) { display: none !important; }
+  .btn-run, .btn-options { padding: 7px 8px !important; font-size: 9px !important; width: calc(100% - 12px) !important; }
+
+  #screen-game .felt-table { gap: 3px !important; padding: 5px 7px !important; }
+  #screen-game .joker { width: 58px !important; }
+  #screen-game .tile-icon { height: 32px !important; }
+  #screen-game .tile-icon svg { width: 24px !important; height: 24px !important; }
+  #screen-game .slot-empty { min-height: 56px !important; width: 58px !important; }
+
+  .played-zone { min-height: 50px !important; max-height: 58px !important; padding: 4px !important; }
+  .played-info { font-size: 9px !important; }
+  .hand { padding: 7px 3px 2px !important; min-height: 64px !important; }
+
+  #screen-game .card { width: 44px !important; height: 61px !important; }
+  #screen-game .card .c-rank { font-size: 7px !important; }
+  #screen-game .card .c-suit svg { width: 9px !important; height: 9px !important; }
+  #screen-game .card .c-big svg  { width: 17px !important; height: 17px !important; }
+  #screen-game .hand .card { margin: 0 -7px !important; }
+
+  #screen-game .preview-panel { padding: 3px 6px !important; min-height: 24px !important; }
+  #preview-name  { font-size: 6px !important; }
+  .preview-score { font-size: 17px !important; }
+
+  #screen-game .actions { gap: 4px !important; margin-top: 2px !important; }
+  #screen-game .actions .btn { font-size: 7px !important; padding: 6px 7px !important; }
+
+  .deck-pile { bottom: 46px !important; right: 7px !important; width: 44px !important; height: 62px !important; }
+  #deck-pile-count { font-size: 15px !important; }
+}
