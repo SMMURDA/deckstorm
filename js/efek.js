@@ -420,6 +420,12 @@
       "golden-joker", "rocket", "delayed-gratification", "to-the-moon",
       "throwback", "burnt-joker", "ramen", "hit-the-road", "loyalty-card",
       "popcorn", "acrobat", "oops-all-6s",
+      // pengulang penilaian kartu (bekerja di gelung penilaian, bukan di tabel)
+      "seltzer", "dusk", "hack", "hanging-chad",
+      // pengubah ukuran tangan dan jumlah buang
+      "juggler", "troubadour", "drunkard", "merry-andy", "turtle-bean",
+      // penilai berbasis suit, nilai jual, dan catatan statistik
+      "seeing-double", "swashbuckler", "supernova",
     ]; },
   };
 
