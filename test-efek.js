@@ -174,6 +174,22 @@ uji("Turtle Bean babak 0 memberi +5", uk(["turtle-bean"], 0).tangan, 5);
 uji("Turtle Bean babak 3 memberi +2", uk(["turtle-bean"], 3).tangan, 2);
 uji("Turtle Bean tidak pernah negatif", uk(["turtle-bean"], 9).tangan, 0);
 
+// ── retrigger kartu yang dinilai ─────────────────────────────────────────────
+// Satu kartu 10: chips 10 (kartu) + 10 (dasar) = 20, mult 2 -> 40
+const SATU10 = [{ rank: 10, suit: "spades" }];
+const DASAR10 = { chips: 10, mult: 2 };
+uji("tanpa Joker pengulang", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [] }).skor, 40);
+// Seltzer: kartu dinilai 2 kali -> (10+10+10) x 2 = 60
+uji("Seltzer mengulang kartu", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "seltzer" }] }).skor, 60);
+// Hanging Chad: kartu pertama dinilai 3 kali -> (10+10+10+10) x 2 = 80
+uji("Hanging Chad mengulang kartu pertama", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "hanging-chad" }] }).skor, 80);
+// Dusk: hanya pada hand terakhir -> 60, di luar itu 40
+uji("Dusk pada hand terakhir", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "dusk" }], sisaTangan: 1 }).skor, 60);
+uji("Dusk diam bila bukan hand terakhir", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "dusk" }], sisaTangan: 2 }).skor, 40);
+// Hack: kartu 3 dinilai 2 kali -> (3+3+10) x 2 = 32 ; kartu 10 tidak diulang -> 40
+uji("Hack mengulang kartu 3", E.hitungSkor([{ rank: 3, suit: "spades" }], { dasar: DASAR10, joker: [{ id: "hack" }] }).skor, 32);
+uji("Hack diam pada kartu 10", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "hack" }] }).skor, 40);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

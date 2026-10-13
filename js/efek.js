@@ -248,8 +248,22 @@
     var polyTertunda = [];
 
     // 3. kartu yang dinilai, kiri ke kanan
-    (pilihan || []).forEach(function (card) {
-      var ulang = 1 + (card.seal === "red" ? 1 : 0);
+    // Retrigger kartu yang dinilai dari Joker: Seltzer mengulang semua kartu,
+    // Dusk mengulang semua kartu pada hand terakhir, Hack mengulang kartu 2-5,
+    // Hanging Chad mengulang kartu pertama dua kali.
+    function ulanganJoker(card, indeks) {
+      var n = 0;
+      jokerList.forEach(function (j) {
+        if (j.id === "seltzer") n += 1;
+        else if (j.id === "dusk" && opsi.sisaTangan === 1) n += 1;
+        else if (j.id === "hack" && card.rank >= 2 && card.rank <= 5) n += 1;
+        else if (j.id === "hanging-chad" && indeks === 0) n += 2;
+      });
+      return n;
+    }
+
+    (pilihan || []).forEach(function (card, indeks) {
+      var ulang = 1 + (card.seal === "red" ? 1 : 0) + ulanganJoker(card, indeks);
       for (var i = 0; i < ulang; i++) {
         var e = efekKartu(card);
         chips += e.chips;
