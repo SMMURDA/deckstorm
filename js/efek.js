@@ -19,7 +19,16 @@
     JOKER = require("./data/jokers.js").JOKER_DATA;
   }
 
-  var NILAI_RANK = { 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, J: 10, Q: 10, K: 10, A: 11 };
+  // Nilai chips tiap rank. Repo menyimpan rank sebagai angka (11=J, 12=Q,
+  // 13=K, 14=A), sedangkan sebagian kode lain memakai huruf. Keduanya
+  // didaftarkan supaya kartu wajah dan As tidak pernah dihitung 0 chips -
+  // itu pernah menjadi cacat: J/Q/K memberi 0 padahal seharusnya 10, dan
+  // As 0 padahal seharusnya 11.
+  var NILAI_RANK = {
+    2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
+    11: 10, 12: 10, 13: 10, 14: 11,
+    J: 10, Q: 10, K: 10, A: 11,
+  };
 
   var CHIPS_ENHANCEMENT = { bonus: 30, stone: 50, gold: 0, glass: 0, steel: 0, mult: 0, wild: 0, lucky: 0 };
   var MULT_ENHANCEMENT = { mult: 4 };
@@ -198,7 +207,16 @@
       }, 0);
       return rank ? { mult: 2 * rank } : {};
     },
-    // CATATAN CACAT TERBUKA (belum diperbaiki):
+    // Triboulet: tiap King dan Queen yang dimainkan memberi x2 Mult
+    "triboulet": function (ctx) {
+      var n = (ctx.dinilai || []).filter(function (c) {
+        return c && (c.rank === 13 || c.rank === 12 || c.rank === "K" || c.rank === "Q");
+      }).length;
+      return n ? { multX: Math.pow(2, n) } : {};
+    },
+    // CATATAN: Triboulet sempat dinyatakan cacat karena angka harapan saya
+    // memakai chips kartu wajah yang saat itu keliru dihitung 0. Setelah
+    // NILAI_RANK diperbaiki (J/Q/K = 10, A = 11), Triboulet terbukti bekerja. (belum diperbaiki):
     // Triboulet (tiap King dan Queen dimainkan memberi x2 Mult) sudah dicoba
     // lewat penangan khusus di sini, tetapi TIDAK berpengaruh: dengan satu
     // King, skor tetap 40 padahal seharusnya 80. Penangan sementara ditarik
@@ -452,6 +470,8 @@
       "seeing-double", "swashbuckler", "supernova",
       // penanda aturan kartu wajah
       "pareidolia",
+      // Joker Legendary yang sudah terbukti
+      "triboulet",
     ]; },
   };
 

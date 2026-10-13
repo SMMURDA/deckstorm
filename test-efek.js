@@ -190,6 +190,25 @@ uji("Dusk diam bila bukan hand terakhir", E.hitungSkor(SATU10, { dasar: DASAR10,
 uji("Hack mengulang kartu 3", E.hitungSkor([{ rank: 3, suit: "spades" }], { dasar: DASAR10, joker: [{ id: "hack" }] }).skor, 32);
 uji("Hack diam pada kartu 10", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "hack" }] }).skor, 40);
 
+// ── chips tiap rank (cacat lama: kartu wajah dan As dihitung 0) ──────────────
+// total chips = 10 (dasar) + chips kartu. J/Q/K = 10, As = 11.
+[[2, 2], [5, 5], [10, 10], [11, 10], [12, 10], [13, 10], [14, 11]].forEach(([rank, harap]) => {
+  uji(`rank ${rank} memberi ${harap} chips kartu`,
+    E.hitungSkor([{ rank, suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [] }).chips - 10, harap);
+});
+uji("rank huruf K juga memberi 10 chips",
+  E.hitungSkor([{ rank: "K", suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [] }).chips - 10, 10);
+
+// ── Triboulet (Joker Legendary) ─────────────────────────────────────────────
+// King: chips 10 (kartu) + 10 (dasar) = 20, mult 2 -> 40
+uji("tanpa Triboulet, satu King", E.hitungSkor([{ rank: 13, suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [] }).skor, 40);
+// Triboulet: mult 2 x2 = 4 -> 20 x 4 = 80
+uji("Triboulet x2 untuk satu King", E.hitungSkor([{ rank: 13, suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 80);
+uji("Triboulet x2 untuk satu Queen", E.hitungSkor([{ rank: 12, suit: "hearts" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 80);
+// King + Queen: chips 30, mult 2 x4 = 8 -> 240
+uji("Triboulet x4 untuk King dan Queen", E.hitungSkor([{ rank: 13, suit: "spades" }, { rank: 12, suit: "hearts" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 240);
+uji("Triboulet diam pada kartu 10", E.hitungSkor([{ rank: 10, suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 40);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
