@@ -223,6 +223,12 @@
     // supaya tidak ada kode yang tampak bekerja padahal tidak. Sebabnya belum
     // ditemukan - perlu ditelusuri bagaimana multX dari penangan khusus
     // digabungkan pada langkah 5 hitungSkor.
+    // Driver's License: x3 Mult bila deck memuat 16 kartu ber-enhancement
+    // atau lebih. Deck disalurkan lewat ctx.deck.
+    "driver-s-license": function (ctx) {
+      var n = (ctx.deck || []).filter(function (c) { return c && c.enhancement; }).length;
+      return n >= 16 ? { multX: 3 } : {};
+    },
     // Seeing Double: x2 Mult bila tangan memuat sekop/keriting dan suit lain
     "seeing-double": function (ctx) {
       var suit = {};
@@ -313,7 +319,7 @@
       var k = KHUSUS[j.id];
       if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
-        handName: opsi.handName, stats: opsi.stats,
+        handName: opsi.handName, stats: opsi.stats, deck: opsi.deckKartu,
         jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.retriggerTangan) retriggerTangan += h.retriggerTangan; }
     });
@@ -336,7 +342,7 @@
       if (k) {
         var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
-        handName: opsi.handName, stats: opsi.stats,
+        handName: opsi.handName, stats: opsi.stats, deck: opsi.deckKartu,
           jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.mult) e.mult += h.mult;
         if (h.multX && h.multX !== 1) e.multX *= h.multX;
@@ -367,7 +373,7 @@
       diTangan: c.heldCards || [],
       tanganDinilai: c.scoringCards || [],
       sisaTangan: c.handsLeft,
-      handName: c.handName, stats: c.stats,
+      handName: c.handName, stats: c.stats, deck: c.deckCards,
       ronde: (typeof c.ante === "number" ? (c.ante - 1) * 3 + (c.blindIndex || 0) : undefined),
       slotJoker: (c.emptySlots || 0) + semua.length,
       jumlahJoker: c.jokerCount || semua.length,
@@ -477,6 +483,8 @@
       // Joker toko: kartu Planet gratis, dan toko boleh menawarkan
       // Joker yang sudah dimiliki
       "astronomer", "showman",
+      // kartu wajah yang dimainkan menjadi Emas
+      "midas-mask",
     ]; },
   };
 

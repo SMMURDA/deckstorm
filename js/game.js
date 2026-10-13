@@ -502,7 +502,8 @@ function scorePlayed() {
     scoringCards: scoringCards.filter(c => !isBossDebuffed(c)),
     playedCards: played, heldCards,
     discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
-    deckCount: S.deck.length, stats: S.stats, money: S.money,
+    deckCount: S.deck.length, deckCards: S.deck,
+      stats: S.stats, money: S.money,
     emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,
   });
@@ -582,6 +583,17 @@ if (punyaJoker("8-ball")) {
 }
 
 
+
+  // Midas Mask: kartu wajah yang dimainkan menjadi ber-enhancement Emas
+  if (punyaJoker("midas-mask")) {
+    let jadi = 0;
+    S.hand.forEach(c => {
+      if (S.selected.has(c.id) && c.rank >= 11 && c.rank <= 13 && c.enhancement !== "gold") {
+        c.enhancement = "gold"; jadi++;
+      }
+    });
+    if (jadi) showToast("Midas Mask: " + jadi + " kartu wajah menjadi Emas");
+  }
 
   const result = scorePlayed();
   S.handsLeft--;

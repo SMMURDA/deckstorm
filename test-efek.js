@@ -209,6 +209,18 @@ uji("Triboulet x2 untuk satu Queen", E.hitungSkor([{ rank: 12, suit: "hearts" }]
 uji("Triboulet x4 untuk King dan Queen", E.hitungSkor([{ rank: 13, suit: "spades" }, { rank: 12, suit: "hearts" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 240);
 uji("Triboulet diam pada kartu 10", E.hitungSkor([{ rank: 10, suit: "spades" }], { dasar: { chips: 10, mult: 2 }, joker: [{ id: "triboulet" }] }).skor, 40);
 
+// ── Driver's License ────────────────────────────────────────────────────────
+// satu kartu 10: chips 10 (kartu) + 10 (dasar) = 20, mult 2 -> 40
+const DECK_ENH = (n) => Array.from({ length: n }, (_, i) => ({ rank: 2, suit: "spades", id: "d" + i, enhancement: "bonus" }));
+uji("Driver's License diam dengan 15 kartu ber-enhancement",
+  E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "driver-s-license" }], deckKartu: DECK_ENH(15) }).skor, 40);
+uji("Driver's License x3 dengan 16 kartu ber-enhancement",
+  E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "driver-s-license" }], deckKartu: DECK_ENH(16) }).skor, 120);
+uji("Driver's License x3 dengan 30 kartu ber-enhancement",
+  E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "driver-s-license" }], deckKartu: DECK_ENH(30) }).skor, 120);
+uji("Driver's License diam tanpa deck",
+  E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "driver-s-license" }] }).skor, 40);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
