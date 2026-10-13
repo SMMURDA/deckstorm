@@ -474,6 +474,9 @@
       "triboulet",
       // Joker toko: satu reroll gratis tiap toko
       "chaos-the-clown",
+      // Joker toko: kartu Planet gratis, dan toko boleh menawarkan
+      // Joker yang sudah dimiliki
+      "astronomer", "showman",
     ]; },
   };
 
