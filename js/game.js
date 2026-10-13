@@ -175,7 +175,9 @@ function loadGame() {
   const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
   S.deckId = dk.id;
   S.deckUbah = dk.ubah || {};
-  if (typeof dk.apply === "function") dk.apply(S);
+  // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
+  // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
+  S.deckBelumDiterapkan = true;
   sortMode = d.sortMode || "rank";
   Object.assign(S, {
     ante: d.ante, blindIndex: d.blindIndex, money: d.money,
@@ -246,7 +248,9 @@ function newRun() {
   const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
   S.deckId = dk.id;
   S.deckUbah = dk.ubah || {};
-  if (typeof dk.apply === "function") dk.apply(S);
+  // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
+  // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
+  S.deckBelumDiterapkan = true;
   sortMode = "rank";
   startBlind();
 }
@@ -318,6 +322,13 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
   S.phase = "play";
   S.animating = false;
   S.deck = shuffle(buildDeck());
+  // Efek awal Deck dijalankan di sini karena deck baru saja disusun.
+  // Penanda mencegahnya berjalan lagi di babak-babak berikutnya.
+  if (S.deckBelumDiterapkan) {
+    S.deckBelumDiterapkan = false;
+    const dkAwal = DECKS.find(d => d.id === S.deckId);
+    if (dkAwal && typeof dkAwal.apply === "function") dkAwal.apply(S);
+  }
   S.deckTotal = S.deck.length;
   S.hand = [];
   S.selected.clear();
