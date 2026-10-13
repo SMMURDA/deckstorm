@@ -425,7 +425,17 @@ function scorePlayed() {
   });
   S.jokers.forEach((j, idx) => {
     let label = null;
-    const r = j.effect ? j.effect(ctx()) : { mult: 4 };
+    // Jembatan ke mesin efek: penangan khusus (Popcorn, Ramen, Baron, dan
+    // sejenisnya) ikut terpakai, bukan hanya efek sederhana dari data.
+    const konteks = Object.assign(ctx(), {
+      jokerSelf: j, jokerCount: S.jokers.length, allJokers: S.jokers,
+      ante: S.ante, blindIndex: S.blindIndex,
+    });
+    const r = j.effect
+      ? (typeof DSEfek !== "undefined" && DSEfek.efekLengkap
+          ? DSEfek.efekLengkap(j, konteks)
+          : j.effect(konteks))
+      : { mult: 4 };
     if (r) {
       if (r.chips) chips += r.chips;
       if (r.mult) mult += r.mult;

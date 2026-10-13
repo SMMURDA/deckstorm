@@ -274,6 +274,35 @@
     return { chips: chips, mult: mult, skor: skor, uang: uang, langkah: langkah };
   }
 
+  // Jembatan untuk permainan: js/game.js menilai Joker satu per satu dengan
+  // konteksnya sendiri. Fungsi ini menyadur konteks itu ke bentuk yang dipakai
+  // hitungSkor, lalu memilih penangan khusus bila ada - kalau tidak, efek
+  // terstruktur dari data yang dipakai.
+  function efekLengkap(joker, c) {
+    c = c || {};
+    var semua = c.allJokers || [];
+    var ctx = {
+      dinilai: c.scoringCards || [],
+      diTangan: c.heldCards || [],
+      tanganDinilai: c.scoringCards || [],
+      sisaTangan: c.handsLeft,
+      ronde: (typeof c.ante === "number" ? (c.ante - 1) * 3 + (c.blindIndex || 0) : undefined),
+      slotJoker: (c.emptySlots || 0) + semua.length,
+      jumlahJoker: c.jokerCount || semua.length,
+      semuaJoker: semua,
+      jokerPertama: semua[0],
+      joker: joker,
+    };
+    var k = KHUSUS[joker && joker.id];
+    if (k) {
+      var h = k(ctx) || {};
+      return { chips: h.chips || 0, mult: h.mult || 0, xmult: h.multX || 1,
+               money: h.uang || 0, label: h.label || null };
+    }
+    var e = efekJoker(joker || {}, { diTangan: ctx.diTangan }, false);
+    return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: null };
+  }
+
   var API = {
     NILAI_RANK: NILAI_RANK,
     chipsKartu: chipsKartu,
@@ -283,6 +312,7 @@
     hitungSkor: hitungSkor,
     KHUSUS: KHUSUS,
     bentukTangan: bentukTangan,
+    efekLengkap: efekLengkap,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;
