@@ -292,6 +292,11 @@
   function hitungSkor(pilihan, opsi) {
     opsi = opsi || {};
     var dasar = opsi.dasar || { chips: 5, mult: 1 };
+    // The Flint: chips dan Mult dasar dibagi dua.
+    if (opsi.flint) {
+      dasar = { chips: Math.floor((Number(dasar.chips) || 0) / 2),
+                mult: Math.max(1, Math.ceil((Number(dasar.mult) || 1) / 2)) };
+    }
     var chips = Number(dasar.chips) || 0;
     var mult = Number(dasar.mult) || 1;
     var uang = 0;

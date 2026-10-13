@@ -638,6 +638,7 @@ function scorePlayed() {
     jenisTanganBabak: S.jenisTanganBabak || [],
     idol: S.idolTarget || null,
     debuff: debuffAktif,
+    flint: bossActive() && S.boss && S.boss.id === "flint",
       stats: S.stats, money: S.money,
     emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,
@@ -691,6 +692,23 @@ function fmtMult(m) { return m % 1 === 0 ? String(m) : m.toFixed(1); }
 async function playHand() {
   if (!S || S.phase !== "play" || S.animating || S.targetMode) return;
   if (S.selected.size === 0 || S.handsLeft <= 0) { AudioFX.play("error"); shakeEl($("#btn-play")); return; }
+  // The Eye dan The Mouth membatasi bentuk tangan yang boleh dimainkan.
+  if (bossActive() && (S.boss.id === "eye" || S.boss.id === "mouth") && S.selected.size > 0) {
+    const ev0 = evaluateHand([...S.selected]);
+    const nama0 = (ev0 && ev0.ev && ev0.ev.name) || (ev0 && ev0.name) || "";
+    const sudah = S.jenisTanganBabak || [];
+    const salah = S.boss.id === "eye"
+      ? sudah.indexOf(nama0) >= 0
+      : sudah.length > 0 && sudah.indexOf(nama0) < 0;
+    if (salah) {
+      showToast(S.boss.name + (S.boss.id === "eye"
+        ? ": bentuk tangan ini sudah dimainkan di babak ini"
+        : ": hanya boleh satu bentuk tangan di babak ini"));
+      AudioFX.play("error");
+      shakeEl($("#btn-play"));
+      return;
+    }
+  }
   if (bossActive() && S.boss.id === "psychic" && S.selected.size !== 5) {
     showToast("The Psychic: must play exactly 5 cards");
     AudioFX.play("error");
@@ -813,6 +831,15 @@ if (punyaJoker("8-ball")) {
 
   // score
   const prevScore = S.roundScore;
+  // The Tooth: kehilangan $1 tiap kartu yang dimainkan. Uang tidak boleh
+  // menjadi negatif, jadi dipotong sampai nol saja.
+  if (bossActive() && S.boss && S.boss.id === "tooth" && S.selected.size) {
+    const hilang = Math.min(S.money, S.selected.size);
+    if (hilang > 0) {
+      S.money -= hilang;
+      showToast("The Tooth: -$" + hilang);
+    }
+  }
   S.roundScore += result.total;
   spawnScorePop(`+${result.total.toLocaleString()}`);
   renderHud(true);
