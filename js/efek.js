@@ -325,6 +325,18 @@
     }
   }
 
+  // Pengubah penilaian tangan dari Joker yang sedang terpasang.
+  function aturanTangan(daftar) {
+    var id = {};
+    (daftar || []).forEach(function (j) { if (j && j.id) id[j.id] = true; });
+    return {
+      empatJari: !!id["four-fingers"],
+      jalanPintas: !!id["shortcut"],
+      suitKabur: !!id["smeared-joker"],
+      semuaNilai: !!id["splash"],
+    };
+  }
+
   var API = {
     NILAI_RANK: NILAI_RANK,
     chipsKartu: chipsKartu,
@@ -336,6 +348,7 @@
     bentukTangan: bentukTangan,
     efekLengkap: efekLengkap,
     uangAkhirRonde: uangAkhirRonde,
+    aturanTangan: aturanTangan,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;

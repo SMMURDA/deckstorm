@@ -130,6 +130,17 @@ uji("Delayed Gratification $0 bila sudah discard", E.uangAkhirRonde({ id: "delay
 uji("To the Moon +$1 tiap $5 (uang $23)", E.uangAkhirRonde({ id: "to-the-moon" }, { money: 23 }), 4);
 uji("Joker biasa tidak memberi uang", E.uangAkhirRonde({ id: "joker" }, {}), 0);
 
+// ── aturan penilaian tangan dari Joker ───────────────────────────────────────
+const aturan = (ids) => E.aturanTangan(ids.map(id => ({ id })));
+uji("tanpa Joker pengubah, semua aturan mati",
+  Object.values(aturan([])).filter(Boolean).length, 0);
+uji("Four Fingers menyalakan empatJari", aturan(["four-fingers"]).empatJari ? 1 : 0, 1);
+uji("Shortcut menyalakan jalanPintas", aturan(["shortcut"]).jalanPintas ? 1 : 0, 1);
+uji("Smeared Joker menyalakan suitKabur", aturan(["smeared-joker"]).suitKabur ? 1 : 0, 1);
+uji("Splash menyalakan semuaNilai", aturan(["splash"]).semuaNilai ? 1 : 0, 1);
+uji("Joker lain tidak menyalakan apa pun",
+  Object.values(aturan(["joker", "baron", "popcorn"])).filter(Boolean).length, 0);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

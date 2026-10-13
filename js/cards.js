@@ -53,6 +53,14 @@ function isFace(c) { return c.rank >= 11 && c.rank <= 13; }
 // ── hand evaluation ──
 // Stone cards are excluded from detection but ALWAYS score (+50 chips each).
 // Wild cards count as any suit for flush checks.
+// Aturan penilaian tangan yang bisa diubah Joker. js/game.js mengisinya dari
+// DSEfek.aturanTangan() sebelum memanggil evaluateHand:
+//   empatJari  (Four Fingers)  - Flush dan Straight cukup 4 kartu
+//   jalanPintas (Shortcut)     - Straight boleh melompati satu rank
+//   suitKabur  (Smeared Joker) - hati=wajik, sekop=keriting
+//   semuaNilai (Splash)        - semua kartu yang dimainkan ikut dinilai
+let ATURAN_TANGAN = { empatJari: false, jalanPintas: false, suitKabur: false, semuaNilai: false };
+
 function evaluateHand(cards) {
   const stones = cards.filter(c => c.enhancement === "stone");
   const rest = cards.filter(c => c.enhancement !== "stone");
@@ -60,7 +68,7 @@ function evaluateHand(cards) {
   const stoneIds = new Set(stones.map(c => c.id));
 
   if (rest.length === 0) {
-    return { name: "High Card", scoringIds: scoreAll }; // all stone: just score them
+    return { name: "High Card", scoringIds: scoreAll }; // semua batu: dinilai semua
   }
 
   const ranks = rest.map(c => c.rank).sort((a, b) => a - b);
@@ -72,15 +80,26 @@ function evaluateHand(cards) {
 
   const wilds = rest.filter(c => c.enhancement === "wild");
   const nonWild = rest.filter(c => c.enhancement !== "wild");
+  // Smeared Joker: hati dihitung wajik, sekop dihitung keriting
+  const SUIT_KABUR = { hearts: "diamonds", diamonds: "diamonds", spades: "clubs", clubs: "clubs" };
+  const suitOf = c => ATURAN_TANGAN.suitKabur ? (SUIT_KABUR[c.suit] || c.suit) : c.suit;
   const suitCounts = {};
-  nonWild.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+  nonWild.forEach(c => { const k = suitOf(c); suitCounts[k] = (suitCounts[k] || 0) + 1; });
   const maxSuit = Math.max(0, ...Object.values(suitCounts));
-  const isFlush = rest.length === 5 && (maxSuit + wilds.length === 5);
+  const perlu = ATURAN_TANGAN.empatJari ? 4 : 5;
+  const isFlush = rest.length >= perlu && (maxSuit + wilds.length === rest.length);
 
   const uniq = [...new Set(ranks)];
-  const isStraight = rest.length === 5 && (
-    (uniq.length === 5 && uniq[4] - uniq[0] === 4) ||
-    uniq.join() === "2,3,4,5,14" // wheel
+  const berurutan = (mulai, lompat) => {
+    for (let i = 1; i < mulai.length; i++) {
+      const beda = mulai[i] - mulai[i - 1];
+      if (beda !== 1 && !(lompat && beda === 2)) return false;
+    }
+    return true;
+  };
+  const isStraight = rest.length >= perlu && (
+    (uniq.length === rest.length && berurutan(uniq, ATURAN_TANGAN.jalanPintas)) ||
+    uniq.join() === "2,3,4,5,14" // roda
   );
   const straightHigh = uniq.join() === "2,3,4,5,14" ? 5 : uniq[4];
 
@@ -118,4 +137,13 @@ function evaluateHand(cards) {
   stoneIds.forEach(id => scoring.add(id)); // stones always score
   const base = HAND_BASE[name];
   return { name, chips: base.chips, mult: base.mult, scoringIds: scoring };
+}
+
+// Splash: semua kartu yang dimainkan ikut dinilai, apa pun bentuk tangannya.
+// Dipanggil js/game.js sesudah evaluateHand.
+function terapkanSplash(hasil, cards) {
+  if (ATURAN_TANGAN && ATURAN_TANGAN.semuaNilai) {
+    return { name: hasil.name, scoringIds: new Set(cards.map(c => c.id)) };
+  }
+  return hasil;
 }

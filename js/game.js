@@ -383,12 +383,19 @@ function sortHand() {
 // ── scoring pipeline ──
 function liveEval() {
   if (!S || S.selected.size === 0) return null;
+  ATURAN_TANGAN = typeof DSEfek !== "undefined" && DSEfek.aturanTangan
+    ? DSEfek.aturanTangan(S.jokers) : ATURAN_TANGAN;
   return evaluateHand(S.hand.filter(c => S.selected.has(c.id)));
 }
 
 function scorePlayed() {
   const played = S.hand.filter(c => S.selected.has(c.id));
-  const ev = evaluateHand(played);
+  ATURAN_TANGAN = typeof DSEfek !== "undefined" && DSEfek.aturanTangan
+    ? DSEfek.aturanTangan(S.jokers) : ATURAN_TANGAN;
+  // Splash membuat semua kartu yang dimainkan ikut dinilai
+  const ev = typeof terapkanSplash === "function"
+    ? terapkanSplash(evaluateHand(played), played)
+    : evaluateHand(played);
   const hv = handValue(ev.name);
   let chips = hv.chips, mult = hv.mult;
   const scoringCards = played.filter(c => ev.scoringIds.has(c.id));
