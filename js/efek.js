@@ -349,6 +349,19 @@
     efekLengkap: efekLengkap,
     uangAkhirRonde: uangAkhirRonde,
     aturanTangan: aturanTangan,
+    // Daftar Joker yang punya penangan khusus, supaya bisa dihitung mesin
+    // dan tidak perlu ditebak dari isi berkas.
+    daftarKhusus: function () { return Object.keys(KHUSUS); },
+    // Joker yang efeknya bukan bagian dari penilaian tangan, melainkan
+    // disambungkan js/game.js ke kejadian lain: pembuatan kartu, pembuatan
+    // Joker/Konsumabel, pengubah aturan tangan, dan uang akhir babak.
+    daftarTersambung: function () { return [
+      "dna", "marble-joker", "riff-raff", "8-ball", "certificate",
+      "four-fingers", "shortcut", "smeared-joker", "splash",
+      "golden-joker", "rocket", "delayed-gratification", "to-the-moon",
+      "throwback", "burnt-joker", "ramen", "hit-the-road", "loyalty-card",
+      "popcorn", "acrobat", "oops-all-6s",
+    ]; },
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;
