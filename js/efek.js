@@ -450,6 +450,8 @@
       "juggler", "troubadour", "drunkard", "merry-andy", "turtle-bean",
       // penilai berbasis suit, nilai jual, dan catatan statistik
       "seeing-double", "swashbuckler", "supernova",
+      // penanda aturan kartu wajah
+      "pareidolia",
     ]; },
   };
 
