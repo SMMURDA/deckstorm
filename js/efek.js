@@ -522,6 +522,8 @@
       "card-sharp",
       // kartu pilihan yang berganti tiap babak
       "the-idol",
+      // efek yang berjalan saat Joker dijual
+      "diet-cola", "luchador", "invisible-joker",
     ]; },
   };
 

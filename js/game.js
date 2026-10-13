@@ -90,7 +90,7 @@ const maxCons   = () => dbgVal("cons", MAX_CONS);
 // boss effects (debuffs + special rules) can be switched off from the debug panel
 // Chicot mematikan efek Boss Blind selama ia terpasang.
 const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect)
-  && !punyaJoker("chicot"));
+    && !punyaJoker("chicot") && !S.bossDimatikan);
 
 // Ukuran tangan dan jumlah buang juga dipengaruhi Joker (Troubadour, Juggler,
 // Drunkard, Merry Andy, Turtle Bean) lewat mesin efek.
@@ -847,9 +847,43 @@ function sellConsumable(idx) {
   renderAll();
 }
 
+// Efek khusus saat sebuah Joker dijual.
+function jualEfek(j) {
+  if (!j) return;
+  // Diet Cola: membuat Tag gratis
+  if (j.id === "diet-cola") {
+    S.pendingTag = { id: "double", name: "Double Tag",
+      desc: "Tag berikutnya menjadi ganda" };
+    showToast("Diet Cola: Tag gratis didapat");
+  }
+  // Luchador: mematikan efek Boss Blind saat ini
+  if (j.id === "luchador") {
+    S.bossDimatikan = true;
+    showToast("Luchador: efek Boss Blind dimatikan");
+  }
+  // Invisible Joker: setelah 2 babak, menyalin satu Joker acak
+  if (j.id === "invisible-joker") {
+    if ((j.tumpukan || 0) < 2) {
+      showToast("Invisible Joker: belum 2 babak, tidak menyalin");
+    } else if (S.jokers.length >= maxJokers() + 1) {
+      showToast("Invisible Joker: slot tidak cukup");
+    } else {
+      const lain = S.jokers.filter(x => x !== j);
+      if (lain.length) {
+        const asal = lain[Math.floor(Math.random() * lain.length)];
+        S.jokers.push(Object.assign({}, asal));
+        showToast("Invisible Joker: " + asal.name + " disalin");
+      }
+    }
+  }
+}
+
 function sellJoker(idx) {
   const j = S.jokers[idx];
   if (!j) return;
+  // Efek saat dijual. Dijalankan SEBELUM Joker dibuang dari daftar,
+  // karena sebagian efeknya membaca Joker yang dijual itu sendiri.
+  jualEfek(j);
   const v = sellValue(j);
   S.money += v;
   S.jokers.splice(idx, 1);
@@ -875,6 +909,8 @@ function endRoundWin() {
   })
   // Kartu ber-enhancement emas yang dipegang memberi $3 masing-masing.
   // Baris ini sempat terhapus tanpa sengaja saat menyisipkan blok Seal Biru.
+  // Invisible Joker menghitung babaknya sendiri
+  tambahPencatat("invisible-joker", 1);
   const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
   const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney;
   S.money += reward;
