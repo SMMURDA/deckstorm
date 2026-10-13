@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
 <meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261021-7">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261021-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261021-7">
+<link rel="stylesheet" href="css/style.css?v=20261021-8">
 <style>
   /* Pemilih Deck/Stake/Challenge di menu. Memakai palet gelap yang sudah
      dipakai layar lain supaya menyatu, bukan menempel di luar tema. */
@@ -29,6 +29,42 @@
     appearance: none; text-align: center; cursor: pointer;
   }
   .menu-pilih select:focus-visible { outline: 2px solid #E9A13B; outline-offset: 2px; }
+</style>
+<style>
+  /* ── Rombak layar toko ──
+     Sebelumnya keempat bagian bertumpuk ke bawah sebagai satu kotak gelap
+     rata, sehingga Joker yang dijual dan Joker milik pemain sulit dibedakan
+     sekilas. Sekarang: susunan dua kolom pada layar lebar, tiap bagian
+     menjadi kartu dengan garis warna di tepi kirinya, dan bagian yang dijual
+     diberi warna aksen supaya langsung terbaca sebagai "yang bisa dibeli". */
+  #screen-shop .shop-panel { max-width: 1080px; width: min(96vw, 1080px); }
+  #screen-shop .shop-bays {
+    display: grid; gap: .9rem; margin: .4rem 0 1rem;
+    grid-template-columns: 1.35fr 1fr; align-items: start;
+  }
+  #screen-shop .shop-bay {
+    background: #1A1626; border: 1px solid #0D0A15; border-radius: .7rem;
+    padding: .7rem .8rem .85rem; border-left: 3px solid #4A415F;
+  }
+  #screen-shop .bay-owned  { border-left-color: #7CE6B2; }
+  #screen-shop .bay-offers { border-left-color: #E9A13B; }
+  #screen-shop .bay-packs  { border-left-color: #5EC8F8; }
+  #screen-shop .bay-voucher{ border-left-color: #FC84FC; }
+  #screen-shop .shop-bay-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: .5rem; margin-bottom: .55rem; padding-bottom: .4rem;
+    border-bottom: 1px solid #0D0A15;
+    font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+    color: #9C93B8;
+  }
+  #screen-shop .shop-bay-head b, #screen-shop .shop-bay-head span:last-child {
+    color: #EFE9F7; letter-spacing: .04em;
+  }
+  #screen-shop .shop-money { font-size: 1.05rem; margin: .1rem 0 .7rem; color: #9C93B8; }
+  #screen-shop .shop-money b { font-size: 1.35rem; }
+  #screen-shop .shop-reward { color: #7CE6B2; font-size: .85rem; margin: .2rem 0 .1rem; }
+  #screen-shop .actions { margin-top: .2rem; justify-content: center; }
+  @media (max-width: 900px) { #screen-shop .shop-bays { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -222,6 +258,7 @@
       <h2 class="panel-title">Blind Beaten!</h2>
       <p id="shop-reward" class="shop-reward"></p>
       <p class="shop-money">Money: <b class="c-gold" id="shop-money">$0</b></p>
+      <div class="shop-bays">
       <div class="shop-bay bay-owned">
         <div class="shop-bay-head"><span>Your Jokers <span id="shop-joker-count">0/5</span></span><span class="hint">click to inspect / sell</span></div>
         <div id="shop-owned" class="jokers"></div>
@@ -237,6 +274,7 @@
       <div class="shop-bay bay-voucher">
         <div class="shop-bay-head"><span>Voucher</span></div>
         <div id="shop-voucher" class="shop-row"></div>
+      </div>
       </div>
       <div class="actions">
         <button id="btn-reroll" class="btn"><span class="ico" data-icon="reroll"></span><span class="lbl">Reroll $5</span></button>
@@ -345,19 +383,19 @@
   </div>
 </div>
 
-<script src="js/debug.js?v=20261021-7"></script>
-<script src="js/cards.js?v=20261021-7"></script>
-<script src="js/jokers.js?v=20261021-7"></script>
+<script src="js/debug.js?v=20261021-8"></script>
+<script src="js/cards.js?v=20261021-8"></script>
+<script src="js/jokers.js?v=20261021-8"></script>
 <script src="js/data/jokers-pool.js?v=20261014-1"></script>
-<script src="js/consumables.js?v=20261021-7"></script>
-<script src="js/pixelart.js?v=20261021-7"></script>
-<script src="js/audio.js?v=20261021-7"></script>
+<script src="js/consumables.js?v=20261021-8"></script>
+<script src="js/pixelart.js?v=20261021-8"></script>
+<script src="js/audio.js?v=20261021-8"></script>
 <script src="js/data/jokers.js?v=20261014-1"></script>
 <script src="js/data/joker-effects.js?v=20261014-1"></script>
 <script src="js/efek.js?v=20261014-1"></script>
-<script src="js/data/decks.js?v=20261021-7"></script>
-<script src="js/data/challenges.js?v=20261021-7"></script>
-<script src="js/data/stakes.js?v=20261021-7"></script>
-<script src="js/game.js?v=20261021-7"></script>
+<script src="js/data/decks.js?v=20261021-8"></script>
+<script src="js/data/challenges.js?v=20261021-8"></script>
+<script src="js/data/stakes.js?v=20261021-8"></script>
+<script src="js/game.js?v=20261021-8"></script>
 </body>
 </html>
