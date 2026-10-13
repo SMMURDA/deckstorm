@@ -524,6 +524,8 @@
       "the-idol",
       // efek yang berjalan saat Joker dijual
       "diet-cola", "luchador", "invisible-joker",
+      // membuat kartu saat paket dibuka
+      "hallucination",
     ]; },
   };
 

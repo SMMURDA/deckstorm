@@ -1039,6 +1039,11 @@ function renderShop() {
 
 // ── booster pack opening ──
 function openPack(pack) {
+  // Hallucination: peluang 1 banding 2 membuat satu kartu tiap kali
+  // paket dibuka. Kartu Tarot, karena kartu Spectral tersendiri juga.
+  if (punyaJoker("hallucination") && Math.random() < 0.5) {
+    if (tambahKonsumabelAcak("tarot")) showToast("Hallucination: satu Tarot dibuat");
+  }
   S.packOpen = { pack, choices: pack.open(S) };
   $("#pack-title").textContent = pack.name;
   const wrap = $("#pack-choices");
