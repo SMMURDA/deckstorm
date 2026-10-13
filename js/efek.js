@@ -485,6 +485,8 @@
       "astronomer", "showman",
       // kartu wajah yang dimainkan menjadi Emas
       "midas-mask",
+      // Space Joker menaikkan level tangan; Superposition membuat Tarot
+      "space-joker", "superposition",
     ]; },
   };
 

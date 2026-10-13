@@ -596,6 +596,25 @@ if (punyaJoker("8-ball")) {
   }
 
   const result = scorePlayed();
+  // Space Joker: peluang 1 banding 4 menaikkan level bentuk tangan ini
+  if (punyaJoker("space-joker") && Math.random() < 0.25) {
+    const kunci = result.ev.name === "Royal Flush" ? "Straight Flush" : result.ev.name;
+    S.handLevels[kunci] = (S.handLevels[kunci] || 1) + 1;
+    showToast("Space Joker: " + kunci + " naik ke Lv." + S.handLevels[kunci]);
+  }
+
+  // Superposition: Tarot dibuat bila tangan berisi As dan berbentuk Straight
+  if (punyaJoker("superposition")) {
+    const adaAs = result.ev.scoringIds && [...result.ev.scoringIds].some(id => {
+      const c = S.hand.find(x => x.id === id); return c && c.rank === 14;
+    });
+    const straight = /Straight/.test(result.ev.name);
+    if (adaAs && straight) {
+      tambahKonsumabelAcak("tarot");
+      showToast("Superposition: satu Tarot dibuat");
+    }
+  }
+
   S.handsLeft--;
   S.stats.handsPlayed = S.stats.handsPlayed || {};
 
