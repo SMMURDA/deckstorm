@@ -92,6 +92,32 @@ uji("Jolly di kiri Baseball Card", E.hitungSkor(PAIR10,
 uji("Baseball Card diam tanpa Uncommon lain", E.hitungSkor(PAIR10,
   { dasar: { chips: 10, mult: 2 }, joker: [{ id: "baseball-card" }] }).skor, 60);
 
+// ── Joker berbasis pencatat keadaan ──────────────────────────────────────────
+// Ramen itu pengganda: mult dasar 2 menjadi 4, jadi 30 x 4 = 120.
+uji("Ramen x2 utuh", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "ramen", tumpukan: 0 }] }).skor, 120);
+uji("Ramen setelah 50 kartu dibuang", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "ramen", tumpukan: 50 }] }).skor, 90);
+// Popcorn mulai +20 Mult dan turun 4 tiap ronde: ronde 0 -> mult 22
+uji("Popcorn ronde 0", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "popcorn" }], ronde: 0 }).skor, 660);
+uji("Popcorn ronde 3", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "popcorn" }], ronde: 3 }).skor, 300);
+uji("Burnt Joker setelah 4 discard", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "burnt-joker", tumpukan: 4 }] }).skor, 120);
+uji("Ceremonial Dagger menyerap 3 kali", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "ceremonial-dagger", tumpukan: 3 }] }).skor, 240);
+uji("Loyalty Card hand ke-6", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "loyalty-card", tumpukan: 6 }] }).skor, 240);
+uji("Loyalty Card hand ke-5 diam", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "loyalty-card", tumpukan: 5 }] }).skor, 60);
+uji("Throwback 2 Blind dilewati", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "throwback", tumpukan: 2 }] }).skor, 93);
+uji("Acrobat x3 pada hand terakhir", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "acrobat" }], sisaTangan: 1 }).skor, 180);
+uji("Acrobat diam di hand lain", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "acrobat" }], sisaTangan: 3 }).skor, 60);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

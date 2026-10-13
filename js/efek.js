@@ -162,6 +162,33 @@
       }).length;
       return lain ? { multX: Math.pow(1.5, lain) } : {};
     },
+    // Joker yang nilainya berubah sepanjang run. Angkanya disimpan di
+    // joker.tumpukan oleh js/game.js pada kejadian yang sesuai.
+    // Popcorn: -4 Mult tiap ronde, mulai dari +20
+    "popcorn": function (ctx) { return { mult: Math.max(0, 20 - 4 * (ctx.ronde || 0)) }; },
+    // Ramen: x2 Mult, berkurang 0,01 tiap kartu yang dibuang
+    "ramen": function (ctx) {
+      var x = 2 - 0.01 * (ctx.joker && ctx.joker.tumpukan || 0);
+      return x > 0 ? { multX: x } : {};
+    },
+    // Burnt Joker: +0,5 Mult tiap discard
+    "burnt-joker": function (ctx) { return { mult: 0.5 * (ctx.joker && ctx.joker.tumpukan || 0) }; },
+    // Ceremonial Dagger: +2 Mult tiap kali menyerap Joker
+    "ceremonial-dagger": function (ctx) { return { mult: 2 * (ctx.joker && ctx.joker.tumpukan || 0) }; },
+    // Loyalty Card: x4 Mult tiap 6 hand yang dimainkan
+    "loyalty-card": function (ctx) {
+      var n = ctx.joker && ctx.joker.tumpukan || 0;
+      return n > 0 && n % 6 === 0 ? { multX: 4 } : {};
+    },
+    // Throwback: x1,25 Mult tiap Blind yang dilewati
+    "throwback": function (ctx) {
+      var n = ctx.joker && ctx.joker.tumpukan || 0;
+      return n ? { multX: Math.pow(1.25, n) } : {};
+    },
+    // Acrobat: x3 Mult pada hand terakhir
+    "acrobat": function (ctx) { return ctx.sisaTangan === 1 ? { multX: 3 } : {}; },
+    // Oops! All 6s: menggandakan semua peluang
+    "oops-all-6s": function () { return { gandakanPeluang: true }; },
     "joker-stencil": function (ctx) {
       // x1 Mult untuk tiap slot Joker kosong, dan Stencil sendiri ikut dihitung
       var kosong = Math.max(1, ctx.slotJoker - ctx.jumlahJoker + 1);
@@ -206,6 +233,7 @@
     jokerList.forEach(function (j) {
       var k = KHUSUS[j.id];
       if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
+        sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
         jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.retriggerTangan) retriggerTangan += h.retriggerTangan; }
     });
@@ -227,6 +255,7 @@
       var e = efekJoker(j, { undian: opsi.undian }, !!k);
       if (k) {
         var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
+        sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
           jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.mult) e.mult += h.mult;
         if (h.multX && h.multX !== 1) e.multX *= h.multX;
