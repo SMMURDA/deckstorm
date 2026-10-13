@@ -325,12 +325,15 @@
     (pilihan || []).forEach(function (card, indeks) {
       var ulang = 1 + (card.seal === "red" ? 1 : 0) + ulanganJoker(card, indeks);
       for (var i = 0; i < ulang; i++) {
-        var e = efekKartu(card);
+        // Kartu yang dilemahkan Boss Blind tidak menyumbang apa pun:
+        // chips, Mult, tambahan, maupun edisinya diabaikan seluruhnya.
+        var lemah = typeof opsi.debuff === "function" && opsi.debuff(card);
+        var e = lemah ? { chips: 0, mult: 0, multX: 1, uang: 0 } : efekKartu(card);
         chips += e.chips;
         mult += e.mult;
         mult *= e.multX;
         if (card.seal === "gold") uang += 3;
-        catat("kartu " + card.rank, e.chips, e.mult, e.multX);
+        catat("kartu " + card.rank + (lemah ? " (lemah)" : ""), e.chips, e.mult, e.multX);
       }
     });
 

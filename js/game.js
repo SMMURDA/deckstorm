@@ -276,6 +276,16 @@ S.stakeId = stakeTerpilih;
   startBlind();
 }
 
+// Kartu yang dilemahkan Boss Blind. Boss dengan debuff.suit melemahkan
+// seluruh kartu bergambar suit itu, debuff.face melemahkan kartu wajah.
+function debuffAktif(kartu) {
+  if (!kartu || !bossActive() || !S.boss || !S.boss.debuff) return false;
+  const d = S.boss.debuff;
+  if (d.suit && kartu.suit === d.suit) return true;
+  if (d.face && kartu.rank >= 11) return true;
+  return false;
+}
+
 function blindTarget() {
   const base = ANTE_TARGETS[S.ante - 1];
   const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
@@ -627,6 +637,7 @@ function scorePlayed() {
     deckCount: S.deck.length, deckCards: S.deck,
     jenisTanganBabak: S.jenisTanganBabak || [],
     idol: S.idolTarget || null,
+    debuff: debuffAktif,
       stats: S.stats, money: S.money,
     emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,
