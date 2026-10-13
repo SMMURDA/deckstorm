@@ -151,6 +151,116 @@ function convertSuit(sel, suit) {
 }
 
 // ── VOUCHERS ($10, one per shop, permanent, once per run) ──
+// ── Kartu Spectral (18) ──────────────────────────────────────────────────────
+// Repo sebelumnya hanya punya gambar kartu Spectral tanpa datanya, sehingga
+// tidak satu pun dapat diperoleh dalam permainan. Daftar ini melengkapinya.
+//
+// needs = jumlah kartu yang harus dipilih sebelum kartu dapat dipakai.
+// apply = efeknya; null berarti efeknya BELUM dibuat, dan kartu itu belum
+// boleh muncul di permainan supaya tidak ada yang tampak bekerja padahal tidak.
+const SPECTRALS = [
+  { id: "familiar", name: "Familiar", needs: 0,
+    desc: "Hancurkan 1 kartu acak, tambah 3 kartu wajah ber-enhancement",
+    apply: (S) => {
+      if (!S.deck.length) return { ok: false, msg: "Deck kosong" };
+      S.deck.splice(Math.floor(Math.random() * S.deck.length), 1);
+      const wajah = [11, 12, 13], jenis = ["bonus", "mult", "wild", "glass", "steel", "gold"];
+      for (let i = 0; i < 3; i++) tambahKartuKeDeck(wajah[i % 3], ["spades", "hearts", "clubs", "diamonds"][i % 4], jenis[Math.floor(Math.random() * jenis.length)]);
+      return { ok: true, msg: "Familiar: 3 kartu wajah ditambahkan" };
+    } },
+  { id: "grim", name: "Grim", needs: 0,
+    desc: "Hancurkan 1 kartu acak, tambah 2 As ber-enhancement",
+    apply: (S) => {
+      if (!S.deck.length) return { ok: false, msg: "Deck kosong" };
+      S.deck.splice(Math.floor(Math.random() * S.deck.length), 1);
+      const jenis = ["bonus", "mult", "wild", "glass", "steel", "gold"];
+      for (let i = 0; i < 2; i++) tambahKartuKeDeck(14, ["spades", "hearts"][i], jenis[Math.floor(Math.random() * jenis.length)]);
+      return { ok: true, msg: "Grim: 2 As ditambahkan" };
+    } },
+  { id: "incantation", name: "Incantation", needs: 0,
+    desc: "Hancurkan 1 kartu acak, tambah 4 kartu angka ber-enhancement",
+    apply: (S) => {
+      if (!S.deck.length) return { ok: false, msg: "Deck kosong" };
+      S.deck.splice(Math.floor(Math.random() * S.deck.length), 1);
+      const jenis = ["bonus", "mult", "wild", "glass", "steel", "gold"];
+      for (let i = 0; i < 4; i++) tambahKartuKeDeck(2 + i, ["spades", "hearts", "clubs", "diamonds"][i], jenis[Math.floor(Math.random() * jenis.length)]);
+      return { ok: true, msg: "Incantation: 4 kartu angka ditambahkan" };
+    } },
+  { id: "talisman", name: "Talisman", needs: 1,
+    desc: "Beri Seal Emas pada 1 kartu terpilih",
+    apply: (S, sel) => { const c = (sel || [])[0]; if (!c) return { ok: false, msg: "Pilih 1 kartu" };
+      c.seal = "gold"; return { ok: true, msg: "Talisman: Seal Emas diberikan" }; } },
+  { id: "deja-vu", name: "Deja Vu", needs: 1,
+    desc: "Beri Seal Merah pada 1 kartu terpilih",
+    apply: (S, sel) => { const c = (sel || [])[0]; if (!c) return { ok: false, msg: "Pilih 1 kartu" };
+      c.seal = "red"; return { ok: true, msg: "Deja Vu: Seal Merah diberikan" }; } },
+  { id: "trance", name: "Trance", needs: 1,
+    desc: "Beri Seal Biru pada 1 kartu terpilih",
+    apply: (S, sel) => { const c = (sel || [])[0]; if (!c) return { ok: false, msg: "Pilih 1 kartu" };
+      c.seal = "blue"; return { ok: true, msg: "Trance: Seal Biru diberikan" }; } },
+  { id: "medium", name: "Medium", needs: 1,
+    desc: "Beri Seal Ungu pada 1 kartu terpilih",
+    apply: (S, sel) => { const c = (sel || [])[0]; if (!c) return { ok: false, msg: "Pilih 1 kartu" };
+      c.seal = "purple"; return { ok: true, msg: "Medium: Seal Ungu diberikan" }; } },
+  { id: "aura", name: "Aura", needs: 1,
+    desc: "Beri edisi Foil, Holographic, atau Polychrome pada 1 kartu terpilih",
+    apply: (S, sel) => { const c = (sel || [])[0]; if (!c) return { ok: false, msg: "Pilih 1 kartu" };
+      const r = Math.random(); c.edition = r < 0.6 ? "foil" : r < 0.9 ? "holo" : "poly";
+      return { ok: true, msg: "Aura: edisi " + c.edition + " diberikan" }; } },
+  { id: "black-hole", name: "Black Hole", needs: 0,
+    desc: "Naikkan level semua bentuk tangan sebanyak 1",
+    apply: (S) => {
+      const kunci = ["High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush",
+        "Full House", "Four of a Kind", "Straight Flush"];
+      kunci.forEach(k => { S.handLevels[k] = (S.handLevels[k] || 1) + 1; });
+      return { ok: true, msg: "Black Hole: semua bentuk tangan naik 1 level" };
+    } },
+  { id: "immolate", name: "Immolate", needs: 0,
+    desc: "Hancurkan 5 kartu acak, dapat $20",
+    apply: (S) => {
+      if (S.deck.length < 5) return { ok: false, msg: "Deck kurang dari 5 kartu" };
+      for (let i = 0; i < 5; i++) S.deck.splice(Math.floor(Math.random() * S.deck.length), 1);
+      S.money += 20;
+      return { ok: true, msg: "Immolate: 5 kartu dihancurkan, +$20" };
+    } },
+  { id: "sigil", name: "Sigil", needs: 0,
+    desc: "Ubah semua kartu di tangan menjadi satu suit acak",
+    apply: (S) => {
+      const suit = ["spades", "hearts", "clubs", "diamonds"][Math.floor(Math.random() * 4)];
+      S.hand.forEach(c => { c.suit = suit; });
+      return { ok: true, msg: "Sigil: semua kartu menjadi " + suit };
+    } },
+  { id: "ouija", name: "Ouija", needs: 0,
+    desc: "Ubah semua kartu di tangan menjadi satu rank acak",
+    apply: (S) => {
+      const rank = 2 + Math.floor(Math.random() * 13);
+      S.hand.forEach(c => { c.rank = rank; });
+      return { ok: true, msg: "Ouija: semua kartu menjadi rank " + rank };
+    } },
+  { id: "wraith", name: "Wraith", needs: 0,
+    desc: "Buat 1 Joker Rare acak, uang menjadi $0",
+    apply: (S) => {
+      const j = tambahJokerAcak("rare");
+      if (!j) return { ok: false, msg: "Slot Joker penuh atau tidak ada Joker Rare" };
+      S.money = 0;
+      return { ok: true, msg: "Wraith: " + j.name + " didapat, uang menjadi $0" };
+    } },
+  { id: "ectoplasm", name: "Ectoplasm", needs: 0,
+    desc: "Beri edisi Negative pada 1 Joker acak",
+    apply: (S) => {
+      if (!S.jokers.length) return { ok: false, msg: "Belum ada Joker" };
+      const j = S.jokers[Math.floor(Math.random() * S.jokers.length)];
+      j.edition = "negative";
+      return { ok: true, msg: "Ectoplasm: " + j.name + " menjadi Negative" };
+    } },
+  // Belum dibuat: efeknya butuh kemampuan yang belum ada di repo, jadi kartu
+  // ini sengaja tidak punya apply dan tidak akan muncul di permainan.
+  { id: "seance", name: "Séance", needs: 1, desc: "Ubah 1 kartu terpilih menjadi kartu Spectral", apply: null },
+  { id: "hex", name: "Hex", needs: 0, desc: "Beri Polychrome pada 1 Joker acak, hancurkan Joker lain", apply: null },
+  { id: "ankh", name: "Ankh", needs: 0, desc: "Salin 1 Joker acak, hancurkan Joker lain", apply: null },
+  { id: "cryptid", name: "Cryptid", needs: 1, desc: "Buat 2 salinan kartu terpilih", apply: null },
+];
+
 const VOUCHERS = [
   { id: "overstock",  name: "Overstock",      desc: "+1 Joker slot in shop" },
   { id: "clearance",  name: "Clearance Sale", desc: "Everything 25% off" },

@@ -265,9 +265,10 @@ function tambahJokerAcak(kelangkaan) {
 // 8 Ball dan Hallucination memakai ini untuk membuat Tarot.
 function tambahKonsumabelAcak(jenis) {
   if (!S || S.consumables.length >= maxCons()) return null;
-  // CATATAN: repo belum punya data kartu Spectral (hanya gambarnya), jadi
-  // jenis "spectral" belum bisa dibuat di sini. Séance menunggu kolam itu.
-  const kolam = (jenis === "tarot" ? TAROTS : PLANETS);
+  // Kartu yang efeknya belum dibuat (apply null) tidak boleh muncul, supaya
+  // tidak ada yang tampak bekerja padahal tidak.
+  let kolam = jenis === "tarot" ? TAROTS : jenis === "spectral" ? SPECTRALS : PLANETS;
+  if (jenis === "spectral") kolam = kolam.filter(x => typeof x.apply === "function");
   if (!kolam || !kolam.length) return null;
   const pilih = kolam[Math.floor(Math.random() * kolam.length)];
   S.consumables.push(Object.assign({}, pilih));
