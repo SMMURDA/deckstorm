@@ -472,6 +472,8 @@
       "pareidolia",
       // Joker Legendary yang sudah terbukti
       "triboulet",
+      // Joker toko: satu reroll gratis tiap toko
+      "chaos-the-clown",
     ]; },
   };
 

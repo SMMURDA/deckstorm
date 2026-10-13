@@ -808,6 +808,8 @@ function endRoundWin() {
   S.money += reward;
   S.phase = "shop";
   S.rerollCost = 5;
+  // Chaos the Clown: satu reroll gratis di tiap toko
+  S.chaosGratis = punyaJoker("chaos-the-clown");
 
   S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
   S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
@@ -1558,7 +1560,10 @@ $("#btn-target-use").onclick = confirmTarget;
 $("#btn-target-x").onclick = () => { AudioFX.play("deselect"); cancelTarget(); };
 $("#btn-pack-skip").onclick = () => { S.packOpen = null; AudioFX.play("click"); showScreen("shop"); renderShop(); };
 $("#btn-reroll").onclick = () => {
-  const free = DEBUG.on && DEBUG.freeReroll;
+  // Jatah gratis dari Chaos the Clown dipakai sebelum membayar
+  const gratis = S && S.chaosGratis;
+  if (gratis) { S.chaosGratis = false; }
+  const free = (DEBUG.on && DEBUG.freeReroll) || gratis;
   if (!S || (!free && S.money < S.rerollCost)) { AudioFX.play("error"); return; }
   if (!free) { S.money -= S.rerollCost; S.rerollCost++; }
   S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
