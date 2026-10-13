@@ -122,6 +122,14 @@ uji("Acrobat diam di hand lain", E.hitungSkor(PAIR10,
 uji("Hit the Road setelah 1 Jack dibuang", E.hitungSkor(PAIR10,
   { dasar: { chips: 10, mult: 2 }, joker: [{ id: "hit-the-road", tumpukan: 1 }] }).skor, 90);
 
+// ── uang akhir babak ─────────────────────────────────────────────────────────
+uji("Golden Joker memberi $4", E.uangAkhirRonde({ id: "golden-joker" }, {}), 4);
+uji("Rocket memberi $2", E.uangAkhirRonde({ id: "rocket" }, {}), 2);
+uji("Delayed Gratification $2 bila tanpa discard", E.uangAkhirRonde({ id: "delayed-gratification" }, { discardsLeft: 3 }), 2);
+uji("Delayed Gratification $0 bila sudah discard", E.uangAkhirRonde({ id: "delayed-gratification" }, { discardsLeft: 1 }), 0);
+uji("To the Moon +$1 tiap $5 (uang $23)", E.uangAkhirRonde({ id: "to-the-moon" }, { money: 23 }), 4);
+uji("Joker biasa tidak memberi uang", E.uangAkhirRonde({ id: "joker" }, {}), 0);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

@@ -308,6 +308,23 @@
     return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: null };
   }
 
+  // Uang yang diterima di akhir babak. Dipanggil js/game.js saat menghitung
+  // hadiah, jadi Joker pemberi uang tetap bekerja walau efeknya bukan bagian
+  // dari penilaian tangan.
+  function uangAkhirRonde(joker, keadaan) {
+    if (!joker) return 0;
+    var k = keadaan || {};
+    switch (joker.id) {
+      case "golden-joker": return 4;
+      case "rocket": return 2;
+      // Delayed Gratification: $2 bila tidak ada discard yang terpakai
+      case "delayed-gratification": return (k.discardsLeft === 3 || k.discardsLeft === k.discardMaks) ? 2 : 0;
+      // To the Moon: tambahan $1 untuk tiap $5 yang dimiliki
+      case "to-the-moon": return Math.floor((k.money || 0) / 5);
+      default: return 0;
+    }
+  }
+
   var API = {
     NILAI_RANK: NILAI_RANK,
     chipsKartu: chipsKartu,
@@ -318,6 +335,7 @@
     KHUSUS: KHUSUS,
     bentukTangan: bentukTangan,
     efekLengkap: efekLengkap,
+    uangAkhirRonde: uangAkhirRonde,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;

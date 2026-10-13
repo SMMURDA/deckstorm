@@ -694,7 +694,13 @@ function endRoundWin() {
   const interest = Math.min(Math.floor(S.money / 5), interestCap());
   const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
   let jokerMoney = 0;
-  S.jokers.forEach(j => { if (j.onRoundEnd) { const m = j.onRoundEnd(j, S); if (m) jokerMoney += m; } });
+  S.jokers.forEach(j => {
+    if (j.onRoundEnd) { const m = j.onRoundEnd(j, S); if (m) jokerMoney += m; }
+    // Joker pemberi uang dari data wiki (Golden Joker, Rocket, dan sejenisnya)
+    if (typeof DSEfek !== "undefined" && DSEfek.uangAkhirRonde) {
+      jokerMoney += DSEfek.uangAkhirRonde(j, { money: S.money, discardsLeft: S.discardsLeft, discardMaks: 3 });
+    }
+  })
   const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney;
   S.money += reward;
   S.phase = "shop";
