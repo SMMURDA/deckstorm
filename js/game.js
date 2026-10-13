@@ -464,16 +464,23 @@ function scorePlayed() {
   let firstScoringFace = false, sawFace = false, debuffedCount = 0;
 
   // 1. per-card triggers (Balatro order: each scoring card, left to right)
+  // Seal pada kartu yang dinilai:
+  //   Merah  - kartu dinilai dua kali (chips dan efeknya berlipat)
+  //   Emas   - memberi $3 tiap kali kartu dinilai
+  // Seal Biru (Planet tiap akhir babak) dan Ungu (Tarot saat dibuang)
+  // ditangani di kejadian masing-masing.
   scoringCards.forEach(c => {
+    const sealKali = c.seal === "red" ? 2 : 1;
+    if (c.seal === "gold") S.money += 3;
     if (isBossDebuffed(c)) { debuffedCount++; return; } // debuffed: no chips, no effects
-    chips += cardChips(c);
+    chips += cardChips(c) * sealKali;
     if (isFace(c)) { if (!sawFace) firstScoringFace = true; sawFace = true; }
     switch (c.enhancement) {
-      case "bonus": chips += 30; break;
-      case "mult": mult += 4; break;
+      case "bonus": chips += 30 * sealKali; break;
+      case "mult": mult += 4 * sealKali; break;
       case "glass":
-        mult *= 2;
-        if (Math.random() < 0.25) destroyed.push(c);
+        mult *= Math.pow(2, sealKali);
+          if (Math.random() < 0.25) destroyed.push(c);
         break;
       case "lucky":
         if (Math.random() < 1 / 5) mult += 20;
@@ -681,6 +688,13 @@ async function discardHand() {
   tambahPencatat("burnt-joker", 1);
   tambahPencatat("ramen", dibuang);
   tambahPencatat("hit-the-road", jackDibuang);
+  // Seal Ungu: tiap kartu ber-seal ungu yang dibuang membuat satu Tarot
+  const unguDibuang = [...S.selected].filter(id => {
+    const c = S.hand.find(x => x.id === id);
+    return c && c.seal === "purple";
+  }).length;
+  for (let i = 0; i < unguDibuang; i++) tambahKonsumabelAcak("tarot");
+  if (unguDibuang) showToast("Seal Ungu: " + unguDibuang + " Tarot dibuat");
 
   const els = [...document.querySelectorAll("#hand .card")].filter(el => S.selected.has(el.dataset.id));
   els.forEach((el, i) => {
@@ -776,7 +790,9 @@ function sellJoker(idx) {
 // ── round end / shop ──
 function endRoundWin() {
   const interest = Math.min(Math.floor(S.money / 5), interestCap());
-  const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
+  // Seal Biru: tiap kartu ber-seal biru yang dipegang membuat satu Planet
+  const biruDiTangan = S.hand.filter(c => c.seal === "blue").length;
+  for (let i = 0; i < biruDiTangan; i++) tambahKonsumabelAcak("planet");S.hand.filter(c => c.enhancement === "gold").length * 3;
   let jokerMoney = 0;
   S.jokers.forEach(j => {
     if (j.onRoundEnd) { const m = j.onRoundEnd(j, S); if (m) jokerMoney += m; }
@@ -785,6 +801,9 @@ function endRoundWin() {
       jokerMoney += DSEfek.uangAkhirRonde(j, { money: S.money, discardsLeft: S.discardsLeft, discardMaks: 3 });
     }
   })
+  // Kartu ber-enhancement emas yang dipegang memberi $3 masing-masing.
+  // Baris ini sempat terhapus tanpa sengaja saat menyisipkan blok Seal Biru.
+  const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
   const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney;
   S.money += reward;
   S.phase = "shop";
