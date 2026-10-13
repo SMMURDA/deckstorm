@@ -851,6 +851,34 @@ const ICONS = {
   ],
 };
 
+// ─── Ikon Boss Blind tambahan ───
+// Digambar tangan seperti ikon lain. Tiap boss diberi bentuk yang mewakili
+// namanya, bukan pola acak, supaya bisa dibedakan sekilas.
+Object.assign(ICONS, {
+  ox:       ["..D.....D..", ".DDD...DDD.", "..D..D..D..", "..DDDDDDD..", "...D...D...", "..DD...DD..", "..........."],
+  house:    [".....D.....", "....DDD....", "...DDDDD...", "..DDDDDDD..", ".DDDDDDDDD.", ".D.DDDDD.D.", ".D.D...D.D."],
+  wheel:    ["...DDDDD...", ".DD..D..DD.", ".D..DDD..D.", ".DDDDDDDDD.", ".D..DDD..D.", ".DD..D..DD.", "...DDDDD..."],
+  arm:      ["...DDDD....", "..DDDDDD...", ".DDD..DDD..", ".DD....DDD.", ".DD.....DD.", ".DDD...DDD.", "..DDDDDDD.."],
+  club:     ["...NNN.....", "..NNNNN....", "...NNN.....", ".NN.N.NN...", "NNNN.NNNN..", ".NN.N.NN...", "...NNN....."],
+  fish:     ["........D..", "..BBBB.DD..", ".BBBBBBBB..", "BB.B.BBBB..", ".BBBBBBBB..", "..BBBB.DD..", "........D.."],
+  goad:     ["....W......", "...WWW.....", "..WWWWW....", ".WWWWWWW...", "...WWW.....", "...WWW.....", "..WWWWW...."],
+  head:     ["..RR.RR....", ".RRRRRRR...", "RRRRRRRRR..", "RRRRRRRRR..", ".RRRRRRR...", "..RRRRR....", "...RRR....."],
+  window:   ["....B......", "...BBB.....", "..BBBBB....", ".BBBBBBB...", "..BBBBB....", "...BBB.....", "....B......"],
+  eye:      ["...........", "..WWWWWWW..", ".WW..B..WW.", "WW..BBB..WW", ".WW..B..WW.", "..WWWWWWW..", "..........."],
+  mouth:    ["...........", "..RRRRRRR..", ".RR.....RR.", "RR.......RR", ".RR.....RR.", "..RRRRRRR..", "..........."],
+  plant:    [".....NN....", "..N..NN....", ".NNN.NNNN..", "..NNNNNNN..", ".b.NNNNN...", ".b..NNN....", ".b........."],
+  serpent:  ["..NN.......", ".NNNN......", "NN..N......", ".NN.NN.....", "..NNNNN....", "....NNNN...", "......NN..."],
+  pillar:   ["..SSSSSS...", ".SSSSSSSS..", "..S....S...", "..S....S...", "..S....S...", ".SSSSSSSS..", "..SSSSSS..."],
+  tooth:    ["..WWWWW....", ".WWWWWWW...", ".WW...WW...", ".WW...WW...", "..WW.WW....", "...WWW.....", "....W......"],
+  flint:    ["....OO.....", "..O.OO..O..", "...OOOO....", "..OOOOOO...", "...OOOO....", "..O..OO.O..", "....OO....."],
+  mark:     ["...VVVVV...", "..VV...VV..", ".......VV..", "....VVVV...", "....VV.....", "...........", "....VV....."],
+  crimson:  ["..RR.RR....", ".RRRRRRR...", "RRRRRRRRR..", ".RRRRRRR...", "..RRRRR....", "....R......", "..........."],
+  cerulean: ["...CCCC....", "..CCCCCC...", ".CC....CC..", ".CC....CC..", ".CC....CC..", "..CCCCCC...", "...CCCC...."],
+  verdant:  ["....NN.....", "...NNNN....", "..NNNNNN...", ".NNNNNNNN..", "..NNNNNN...", "...NNNN....", "....NN....."],
+  amber:    ["....bb.....", "...bbbb....", "..bbbbbb...", ".bbbbbbbb..", "..bbbbbb...", "...bbbb....", "....bb....."],
+  violet:   ["..VV...VV..", "..VV...VV..", "..VVVVVVV..", "...VVVVV...", "...VVVVV...", "..VVVVVVV..", ".VVVVVVVVV."],
+});
+
 function iconSVG(id) {
   const grid = ICONS[id];
   if (!grid) return "";

@@ -93,7 +93,7 @@ eq("12 planets", PLANETS.length, 12);
 eq("22 tarots", TAROTS.length, 22);
 eq("7 vouchers", VOUCHERS.length, 7);
 eq("3 packs", PACKS.length, 3);
-eq("10 bosses", BOSSES.length, 10);
+eq("28 bosses", BOSSES.length, 28);
 eq("planet ids unique", new Set(PLANETS.map(p => p.id)).size, 12);
 eq("tarot ids unique", new Set(TAROTS.map(t => t.id)).size, 22);
 eq("voucher ids unique", new Set(VOUCHERS.map(v => v.id)).size, 7);
