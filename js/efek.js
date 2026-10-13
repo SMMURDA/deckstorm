@@ -190,6 +190,33 @@
       var n = ctx.joker && ctx.joker.tumpukan || 0;
       return n ? { multX: Math.pow(1.5, n) } : {};
     },
+    // Seeing Double: x2 Mult bila tangan memuat sekop/keriting dan suit lain
+    "seeing-double": function (ctx) {
+      var suit = {};
+      (ctx.dinilai || []).forEach(function (c) { if (c.suit) suit[c.suit] = true; });
+      var klub = suit.clubs || suit.spades;
+      var lain = Object.keys(suit).some(function (k) { return k !== "clubs" && k !== "spades"; });
+      return klub && lain ? { multX: 2 } : {};
+    },
+    // Swashbuckler: +Mult sebesar total nilai jual Joker lain
+    "swashbuckler": function (ctx) {
+      var total = (ctx.semuaJoker || []).reduce(function (n, j) {
+        if (!j || j.id === "swashbuckler") return n;
+        return n + Math.max(1, Math.floor((j.cost || 0) / 2));
+      }, 0);
+      return total ? { mult: total } : {};
+    },
+    // Supernova: +Mult sebesar berapa kali bentuk tangan ini sudah dimainkan.
+    // Bentuk catatan statistik belum dipastikan, jadi dibaca hati-hati dan
+    // menghasilkan 0 bila tidak ada - tidak pernah menebak angka.
+    "supernova": function (ctx) {
+      var st = ctx.stats || {};
+      var nama = String(ctx.handName || "").toLowerCase().replace(/\s+/g, "_");
+      var n = 0;
+      if (st.handsPlayed && typeof st.handsPlayed === "object") n = st.handsPlayed[nama] || 0;
+      else if (typeof st[nama] === "number") n = st[nama];
+      return n ? { mult: n } : {};
+    },
     // Acrobat: x3 Mult pada hand terakhir
     "acrobat": function (ctx) { return ctx.sisaTangan === 1 ? { multX: 3 } : {}; },
     // Oops! All 6s: menggandakan semua peluang
@@ -239,6 +266,7 @@
       var k = KHUSUS[j.id];
       if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
+        handName: opsi.handName, stats: opsi.stats,
         jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.retriggerTangan) retriggerTangan += h.retriggerTangan; }
     });
@@ -261,6 +289,7 @@
       if (k) {
         var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
+        handName: opsi.handName, stats: opsi.stats,
           jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.mult) e.mult += h.mult;
         if (h.multX && h.multX !== 1) e.multX *= h.multX;
@@ -291,6 +320,7 @@
       diTangan: c.heldCards || [],
       tanganDinilai: c.scoringCards || [],
       sisaTangan: c.handsLeft,
+      handName: c.handName, stats: c.stats,
       ronde: (typeof c.ante === "number" ? (c.ante - 1) * 3 + (c.blindIndex || 0) : undefined),
       slotJoker: (c.emptySlots || 0) + semua.length,
       jumlahJoker: c.jokerCount || semua.length,

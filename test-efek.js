@@ -141,6 +141,22 @@ uji("Splash menyalakan semuaNilai", aturan(["splash"]).semuaNilai ? 1 : 0, 1);
 uji("Joker lain tidak menyalakan apa pun",
   Object.values(aturan(["joker", "baron", "popcorn"])).filter(Boolean).length, 0);
 
+// ── Joker berbasis suit, nilai jual, dan catatan statistik ───────────────────
+const KLUB = [{ rank: 10, suit: "clubs" }, { rank: 10, suit: "clubs" }, { rank: 5, suit: "hearts" }];
+const SEKOP = [{ rank: 10, suit: "spades" }, { rank: 10, suit: "spades" }];
+// (10 dasar + 10 + 10 + 5) = 35 chips x (2 x 2) = 140
+uji("Seeing Double x2 saat ada keriting dan suit lain", E.hitungSkor(KLUB,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "seeing-double" }] }).skor, 140);
+uji("Seeing Double diam saat hanya sekop", E.hitungSkor(SEKOP,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "seeing-double" }] }).skor, 60);
+// nilai jual Joker lain: cost 8 -> 4, cost 5 -> 2, total +6 Mult
+uji("Swashbuckler +6 Mult", E.hitungSkor(SEKOP,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "swashbuckler", cost: 0 }, { id: "a", cost: 8 }, { id: "b", cost: 5 }] }).skor, 240);
+uji("Supernova +7 Mult bila Pair sudah 7 kali", E.hitungSkor(SEKOP,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "supernova" }], handName: "Pair", stats: { handsPlayed: { pair: 7 } } }).skor, 270);
+uji("Supernova menghasilkan 0 tanpa catatan", E.hitungSkor(SEKOP,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "supernova" }] }).skor, 60);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
