@@ -190,6 +190,21 @@
       var n = ctx.joker && ctx.joker.tumpukan || 0;
       return n ? { multX: Math.pow(1.5, n) } : {};
     },
+    // Raised Fist: +Mult sebesar dua kali rank terendah kartu yang dipegang
+    "raised-fist": function (ctx) {
+      var rank = (ctx.diTangan || []).reduce(function (m, c) {
+        var r = typeof c.rank === "number" ? c.rank : 0;
+        return r && (!m || r < m) ? r : m;
+      }, 0);
+      return rank ? { mult: 2 * rank } : {};
+    },
+    // CATATAN CACAT TERBUKA (belum diperbaiki):
+    // Triboulet (tiap King dan Queen dimainkan memberi x2 Mult) sudah dicoba
+    // lewat penangan khusus di sini, tetapi TIDAK berpengaruh: dengan satu
+    // King, skor tetap 40 padahal seharusnya 80. Penangan sementara ditarik
+    // supaya tidak ada kode yang tampak bekerja padahal tidak. Sebabnya belum
+    // ditemukan - perlu ditelusuri bagaimana multX dari penangan khusus
+    // digabungkan pada langkah 5 hitungSkor.
     // Seeing Double: x2 Mult bila tangan memuat sekop/keriting dan suit lain
     "seeing-double": function (ctx) {
       var suit = {};
@@ -370,6 +385,13 @@
   }
 
   // Pengubah penilaian tangan dari Joker yang sedang terpasang.
+  // Pareidolia: semua kartu dianggap kartu wajah. Dipakai pemeriksa efek
+  // supaya Joker berbasis kartu wajah ikut berlaku untuk kartu apa pun.
+  function kartuWajah(card, aturan) {
+    if (aturan && aturan.semuaWajah) return true;
+    return !!card && typeof card.rank === "number" && card.rank >= 11;
+  }
+
   function aturanTangan(daftar) {
     var id = {};
     (daftar || []).forEach(function (j) { if (j && j.id) id[j.id] = true; });
@@ -378,6 +400,7 @@
       jalanPintas: !!id["shortcut"],
       suitKabur: !!id["smeared-joker"],
       semuaNilai: !!id["splash"],
+      semuaWajah: !!id["pareidolia"],
     };
   }
 
@@ -407,6 +430,7 @@
     efekLengkap: efekLengkap,
     uangAkhirRonde: uangAkhirRonde,
     aturanTangan: aturanTangan,
+    kartuWajah: kartuWajah,
     ukuranTangan: ukuranTangan,
     // Daftar Joker yang punya penangan khusus, supaya bisa dihitung mesin
     // dan tidak perlu ditebak dari isi berkas.
