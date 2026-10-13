@@ -234,6 +234,12 @@
       var n = Math.floor(((ctx.joker && ctx.joker.tumpukan) || 0) / 23);
       return n ? { mult: n } : {};
     },
+    // Card Sharp: x3 Mult bila bentuk tangan ini sudah dimainkan di babak ini.
+    // Daftar bentuk tangan babak ini dikirim permainan lewat ctx.
+    "card-sharp": function (ctx) {
+      var sudah = ctx.jenisTanganBabak || [];
+      return sudah.indexOf(ctx.handName) >= 0 ? { multX: 3 } : {};
+    },
     // Seeing Double: x2 Mult bila tangan memuat sekop/keriting dan suit lain
     "seeing-double": function (ctx) {
       var suit = {};
@@ -325,6 +331,7 @@
       if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
         handName: opsi.handName, stats: opsi.stats, deck: opsi.deckKartu,
+        jenisTanganBabak: opsi.jenisTanganBabak,
         jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.retriggerTangan) retriggerTangan += h.retriggerTangan; }
     });
@@ -348,6 +355,7 @@
         var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         sisaTangan: opsi.sisaTangan, ronde: opsi.ronde,
         handName: opsi.handName, stats: opsi.stats, deck: opsi.deckKartu,
+        jenisTanganBabak: opsi.jenisTanganBabak,
           jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.mult) e.mult += h.mult;
         if (h.multX && h.multX !== 1) e.multX *= h.multX;
@@ -498,6 +506,8 @@
       "yorick",
       // Joker yang membuat kartu Spectral
       "s-ance", "sixth-sense",
+      // Joker berbasis bentuk tangan yang sudah dimainkan babak ini
+      "card-sharp",
     ]; },
   };
 

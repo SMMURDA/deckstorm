@@ -280,6 +280,8 @@ function punyaJoker(id) {
 }
 
 function startBlind() {
+// Card Sharp mencatat bentuk tangan yang sudah dimainkan babak ini.
+S.jenisTanganBabak = [];
   S.phase = "play";
   S.animating = false;
   S.deck = shuffle(buildDeck());
@@ -508,6 +510,7 @@ function scorePlayed() {
     playedCards: played, heldCards,
     discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
     deckCount: S.deck.length, deckCards: S.deck,
+    jenisTanganBabak: S.jenisTanganBabak || [],
       stats: S.stats, money: S.money,
     emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,
@@ -602,6 +605,10 @@ if (punyaJoker("8-ball")) {
 
   const result = scorePlayed();
   // Séance: Straight Flush membuat satu kartu Spectral
+  // Catat bentuk tangan babak ini untuk Card Sharp, SESUDAH penilaian
+  // supaya hand pertama belum ikut terhitung.
+  if (S.jenisTanganBabak) S.jenisTanganBabak.push(result.ev.name);
+
   if (punyaJoker("s-ance") && /Straight Flush|Royal Flush/.test(result.ev.name)) {
     if (tambahKonsumabelAcak("spectral")) showToast("Séance: satu kartu Spectral dibuat");
   }

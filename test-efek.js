@@ -228,6 +228,16 @@ uji("Yorick 22 kartu dibuang (belum cukup)", E.hitungSkor(SATU10, { dasar: DASAR
 uji("Yorick 23 kartu dibuang (+1 Mult)", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 23 }] }).skor, 60);
 uji("Yorick 46 kartu dibuang (+2 Mult)", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 46 }] }).skor, 80);
 
+// ── Card Sharp ──────────────────────────────────────────────────────────────
+// Pair 10-10: chips 10 (dasar) + 10 + 10 (kartu) = 30, mult 2 -> 60
+const PASANGAN = [{ rank: 10, suit: "spades" }, { rank: 10, suit: "hearts" }];
+uji("Card Sharp diam bila bentuk ini belum dimainkan",
+  E.hitungSkor(PASANGAN, { dasar: DASAR10, joker: [{ id: "card-sharp" }], handName: "Pair", jenisTanganBabak: [] }).skor, 60);
+uji("Card Sharp x3 bila Pair sudah dimainkan",
+  E.hitungSkor(PASANGAN, { dasar: DASAR10, joker: [{ id: "card-sharp" }], handName: "Pair", jenisTanganBabak: ["Pair"] }).skor, 180);
+uji("Card Sharp diam bila yang tercatat bentuk lain",
+  E.hitungSkor(PASANGAN, { dasar: DASAR10, joker: [{ id: "card-sharp" }], handName: "Pair", jenisTanganBabak: ["Flush"] }).skor, 60);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
