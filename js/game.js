@@ -1927,6 +1927,27 @@ $("#btn-reroll").onclick = () => {
 };
 $("#btn-retry").onclick = () => { AudioFX.play("click"); newRun(); };
 $("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
+
+// ── Pemilih Deck, Stake, dan Challenge di menu ──
+// Sebelumnya ketiganya hanya bisa diubah lewat API. Pemain sekarang memilihnya
+// langsung, dan pilihannya dipakai saat Start Run.
+function isiPemilih() {
+  const isi = (sel, daftar, terpilih, fn) => {
+    const el = $(sel);
+    if (!el) return;
+    el.innerHTML = daftar.map(x =>
+      `<option value="${x.id}"${x.id === terpilih ? " selected" : ""}>${x.name}</option>`).join("");
+    el.onchange = () => { if (fn(el.value)) AudioFX.play("click"); };
+  };
+  if (typeof DECKS !== "undefined") isi("#pilih-deck", DECKS, deckTerpilih, setDeck);
+  if (typeof STAKES !== "undefined") isi("#pilih-stake", STAKES, stakeTerpilih, setStake);
+  if (typeof CHALLENGES !== "undefined") isi("#pilih-challenge", CHALLENGES, challengeTerpilih, setChallenge);
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", isiPemilih);
+} else {
+  isiPemilih();
+}
 if ($("#btn-endless")) $("#btn-endless").onclick = () => { AudioFX.play("click"); lanjutEndless(); };
 document.querySelectorAll("[data-back]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
