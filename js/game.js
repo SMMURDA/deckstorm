@@ -334,6 +334,7 @@ function renderBlindTag() {
 }
 
 function skipBlind() {
+  tambahPencatat("throwback", 1);
   const tag = S.pendingTag || SKIP_TAGS[0];
   const res = tag.apply();
   if (res === null) {
@@ -357,6 +358,13 @@ function playSelectedBlind() {
 }
 
 // ── drawing / sorting ──
+// Pencatat keadaan Joker: angka yang naik sepanjang run (Burnt Joker, Ramen,
+// Hit the Road, Throwback). Dibaca mesin efek dari joker.tumpukan.
+function tambahPencatat(id, jumlah) {
+  if (!S || !jumlah) return;
+  S.jokers.forEach(j => { if (j.id === id) j.tumpukan = (j.tumpukan || 0) + jumlah; });
+}
+
 function drawUp() {
   const need = handSize() - S.hand.length;
   if (need <= 0) return;
@@ -581,6 +589,14 @@ async function discardHand() {
   refreshControls();
   AudioFX.play("discard");
   S.discardsLeft--;
+  const dibuang = S.selected.size;
+  const jackDibuang = [...S.selected].filter(id => {
+    const c = S.hand.find(x => x.id === id);
+    return c && c.rank === 11;
+  }).length;
+  tambahPencatat("burnt-joker", 1);
+  tambahPencatat("ramen", dibuang);
+  tambahPencatat("hit-the-road", jackDibuang);
 
   const els = [...document.querySelectorAll("#hand .card")].filter(el => S.selected.has(el.dataset.id));
   els.forEach((el, i) => {

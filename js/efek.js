@@ -185,6 +185,11 @@
       var n = ctx.joker && ctx.joker.tumpukan || 0;
       return n ? { multX: Math.pow(1.25, n) } : {};
     },
+    // Hit the Road: x0,5 Mult tiap Jack yang dibuang ronde ini
+    "hit-the-road": function (ctx) {
+      var n = ctx.joker && ctx.joker.tumpukan || 0;
+      return n ? { multX: Math.pow(1.5, n) } : {};
+    },
     // Acrobat: x3 Mult pada hand terakhir
     "acrobat": function (ctx) { return ctx.sisaTangan === 1 ? { multX: 3 } : {}; },
     // Oops! All 6s: menggandakan semua peluang

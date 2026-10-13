@@ -118,6 +118,10 @@ uji("Acrobat x3 pada hand terakhir", E.hitungSkor(PAIR10,
 uji("Acrobat diam di hand lain", E.hitungSkor(PAIR10,
   { dasar: { chips: 10, mult: 2 }, joker: [{ id: "acrobat" }], sisaTangan: 3 }).skor, 60);
 
+// Hit the Road: x1,5 Mult tiap Jack yang dibuang. Satu Jack -> mult 2 x 1,5 = 3
+uji("Hit the Road setelah 1 Jack dibuang", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "hit-the-road", tumpukan: 1 }] }).skor, 90);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
