@@ -88,7 +88,9 @@ const jumlahNegative = () => (S && S.jokers)
 const maxJokers = () => dbgVal("jokers", MAX_JOKERS + jumlahNegative());
 const maxCons   = () => dbgVal("cons", MAX_CONS);
 // boss effects (debuffs + special rules) can be switched off from the debug panel
-const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect));
+// Chicot mematikan efek Boss Blind selama ia terpasang.
+const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect)
+  && !punyaJoker("chicot"));
 
 // Ukuran tangan dan jumlah buang juga dipengaruhi Joker (Troubadour, Juggler,
 // Drunkard, Merry Andy, Turtle Bean) lewat mesin efek.

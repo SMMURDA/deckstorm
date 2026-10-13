@@ -487,6 +487,8 @@
       "midas-mask",
       // Space Joker menaikkan level tangan; Superposition membuat Tarot
       "space-joker", "superposition",
+      // mematikan efek Boss Blind
+      "chicot",
     ]; },
   };
 
