@@ -157,6 +157,23 @@ uji("Supernova +7 Mult bila Pair sudah 7 kali", E.hitungSkor(SEKOP,
 uji("Supernova menghasilkan 0 tanpa catatan", E.hitungSkor(SEKOP,
   { dasar: { chips: 10, mult: 2 }, joker: [{ id: "supernova" }] }).skor, 60);
 
+// ── Joker pengubah ukuran tangan dan jumlah buang ────────────────────────────
+const uk = (ids, ronde) => E.ukuranTangan(ids.map(id => ({ id })), ronde || 0);
+uji("tanpa Joker: ukuran tangan tetap", uk([]).tangan, 0);
+uji("tanpa Joker: jumlah buang tetap", uk([]).buang, 0);
+// Troubadour: +2 ukuran tangan, -1 buang
+uji("Troubadour +2 ukuran tangan", uk(["troubadour"]).tangan, 2);
+uji("Troubadour -1 buang", uk(["troubadour"]).buang, -1);
+uji("Juggler +1 ukuran tangan", uk(["juggler"]).tangan, 1);
+uji("Drunkard +1 buang", uk(["drunkard"]).buang, 1);
+// Merry Andy: +3 buang, -1 ukuran tangan
+uji("Merry Andy -1 ukuran tangan", uk(["merry-andy"]).tangan, -1);
+uji("Merry Andy +3 buang", uk(["merry-andy"]).buang, 3);
+// Turtle Bean menyusut satu tiap babak: +5, +2 di babak 3, 0 di babak 9
+uji("Turtle Bean babak 0 memberi +5", uk(["turtle-bean"], 0).tangan, 5);
+uji("Turtle Bean babak 3 memberi +2", uk(["turtle-bean"], 3).tangan, 2);
+uji("Turtle Bean tidak pernah negatif", uk(["turtle-bean"], 9).tangan, 0);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

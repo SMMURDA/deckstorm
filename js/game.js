@@ -87,9 +87,16 @@ const maxCons   = () => dbgVal("cons", MAX_CONS);
 // boss effects (debuffs + special rules) can be switched off from the debug panel
 const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect));
 
-const handSize = () => dbgVal("handSize", HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0) + (bossActive() && S.boss.id === "manacle" ? -1 : 0));
+// Ukuran tangan dan jumlah buang juga dipengaruhi Joker (Troubadour, Juggler,
+// Drunkard, Merry Andy, Turtle Bean) lewat mesin efek.
+const ukuranJoker = () => (typeof DSEfek !== "undefined" && DSEfek.ukuranTangan)
+  ? DSEfek.ukuranTangan(S.jokers, (S.ante - 1) * 3 + S.blindIndex) : { tangan: 0, buang: 0 };
+const handSize = () => dbgVal("handSize", Math.max(1,
+  HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0)
+  + (bossActive() && S.boss.id === "manacle" ? -1 : 0) + ukuranJoker().tangan));
 const maxHands = () => dbgVal("hands", 4 + (S.vouchers.has("grabber") ? 1 : 0));
-const maxDiscards = () => dbgVal("discards", 3 + (S.vouchers.has("wasteful") ? 1 : 0));
+const maxDiscards = () => dbgVal("discards", Math.max(0,
+  3 + (S.vouchers.has("wasteful") ? 1 : 0) + ukuranJoker().buang));
 const interestCap = () => S.vouchers.has("seedmoney") ? 10 : 5;
 // how many jokers / packs the shop rolls up
 const shopJokerCount = () => dbgVal("shopJokers", 2 + (S.vouchers.has("overstock") ? 1 : 0));

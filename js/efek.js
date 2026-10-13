@@ -367,6 +367,20 @@
     };
   }
 
+  // Joker yang mengubah ukuran tangan dan jumlah buang.
+  // Turtle Bean menyusut satu tiap babak, jadi perlu nomor babak.
+  function ukuranTangan(daftar, ronde) {
+    var id = {};
+    (daftar || []).forEach(function (j) { if (j && j.id) id[j.id] = true; });
+    var tangan = 0, buang = 0;
+    if (id["troubadour"]) { tangan += 2; buang -= 1; }
+    if (id["juggler"]) tangan += 1;
+    if (id["merry-andy"]) { tangan -= 1; buang += 3; }
+    if (id["drunkard"]) buang += 1;
+    if (id["turtle-bean"]) tangan += Math.max(0, 5 - (ronde || 0));
+    return { tangan: tangan, buang: buang };
+  }
+
   var API = {
     NILAI_RANK: NILAI_RANK,
     chipsKartu: chipsKartu,
@@ -379,6 +393,7 @@
     efekLengkap: efekLengkap,
     uangAkhirRonde: uangAkhirRonde,
     aturanTangan: aturanTangan,
+    ukuranTangan: ukuranTangan,
     // Daftar Joker yang punya penangan khusus, supaya bisa dihitung mesin
     // dan tidak perlu ditebak dari isi berkas.
     daftarKhusus: function () { return Object.keys(KHUSUS); },
