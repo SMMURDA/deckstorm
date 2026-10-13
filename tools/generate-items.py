@@ -497,7 +497,13 @@ def main():
         return
     if mode == "sisa":
         import json
-        data = json.loads(pathlib.Path("/tmp/balatro-items.json").read_text())
+        # Data ini dulu hanya ada di /tmp sehingga aset tidak dapat dibuat ulang
+        # oleh orang lain, dan salah tulis nama di dalamnya tidak terlihat.
+        # Kini disimpan di dalam repo.
+        berkas_data = pathlib.Path(__file__).parent / "data" / "balatro-items.json"
+        if not berkas_data.exists():
+            berkas_data = pathlib.Path("/tmp/balatro-items.json")
+        data = json.loads(berkas_data.read_text())
         peta = [("voucher", "vouchers", "VOUCHER"), ("pack", "packs", "PACK"),
                 ("boss", "bosses", "BOSS"), ("seal", "seals", "SEAL"),
                 ("edition", "editions", "EDITION"), ("enhance", "enhancements", "ENHANCE"),
