@@ -152,6 +152,16 @@
       var e = efekJoker(kiri, ctx, !!KHUSUS[kiri.id]);
       return { chips: e.chips, mult: e.mult, multX: e.multX, uang: e.uang };
     },
+    // pengganda datar: Cavendish x3 dan Gros Michel +15 Mult
+    "cavendish": function () { return { multX: 3 }; },
+    "gros-michel": function () { return { mult: 15 }; },
+    // x1.5 untuk tiap Joker kelangkaan Uncommon lain yang dimiliki
+    "baseball-card": function (ctx) {
+      var lain = (ctx.semuaJoker || []).filter(function (j) {
+        return j && j.id !== "baseball-card" && j.rarity === "uncommon";
+      }).length;
+      return lain ? { multX: Math.pow(1.5, lain) } : {};
+    },
     "joker-stencil": function (ctx) {
       // x1 Mult untuk tiap slot Joker kosong, dan Stencil sendiri ikut dihitung
       var kosong = Math.max(1, ctx.slotJoker - ctx.jumlahJoker + 1);
@@ -195,7 +205,7 @@
     var retriggerTangan = 1;
     jokerList.forEach(function (j) {
       var k = KHUSUS[j.id];
-      if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0],
+      if (k) { var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
         jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.retriggerTangan) retriggerTangan += h.retriggerTangan; }
     });
@@ -216,7 +226,7 @@
       // Joker yang punya logika khusus tidak dihitung lagi dari data mentah
       var e = efekJoker(j, { undian: opsi.undian }, !!k);
       if (k) {
-        var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0],
+        var h = k({ diTangan: diTangan, dinilai: pilihan || [], joker: j, jokerPertama: jokerList[0], semuaJoker: jokerList,
           jumlahJoker: jokerList.length, slotJoker: opsi.slotJoker || 5 });
         if (h.mult) e.mult += h.mult;
         if (h.multX && h.multX !== 1) e.multX *= h.multX;

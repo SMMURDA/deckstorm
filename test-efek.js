@@ -75,6 +75,23 @@ uji("Blackboard diam saat suit bercampur", E.hitungSkor(PAIR10,
 uji("Brainstorm menyalin Joker paling kiri", E.hitungSkor(PAIR10,
   { dasar: { chips: 10, mult: 2 }, joker: [{ id: "joker" }, { id: "brainstorm" }] }).skor, 300);
 
+// ── pengganda datar dan kelangkaan ───────────────────────────────────────────
+uji("Cavendish x3", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "cavendish" }] }).skor, 180);
+uji("Gros Michel +15 Mult", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "gros-michel" }] }).skor, 30 * 17);
+// Urutan Joker berpengaruh, persis seperti Balatro: yang di kiri dihitung lebih dulu.
+// Baseball Card di kiri: (2 x 1.5) + 8 = 11 -> 30 x 11 = 330
+uji("Baseball Card di kiri Jolly", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 },
+    joker: [{ id: "baseball-card" }, { id: "jolly", rarity: "uncommon" }] }).skor, 330);
+// Jolly di kiri: (2 + 8) x 1.5 = 15 -> 30 x 15 = 450
+uji("Jolly di kiri Baseball Card", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 },
+    joker: [{ id: "jolly", rarity: "uncommon" }, { id: "baseball-card" }] }).skor, 450);
+uji("Baseball Card diam tanpa Uncommon lain", E.hitungSkor(PAIR10,
+  { dasar: { chips: 10, mult: 2 }, joker: [{ id: "baseball-card" }] }).skor, 60);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
