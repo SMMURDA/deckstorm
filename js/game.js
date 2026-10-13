@@ -85,8 +85,8 @@ function handValue(name) {
 // Setiap Joker ber-edisi Negative menambah satu slot Joker.
 const jumlahNegative = () => (S && S.jokers)
   ? S.jokers.filter(j => j && j.edition === "negative").length : 0;
-const maxJokers = () => dbgVal("jokers", MAX_JOKERS + jumlahNegative());
-const maxCons   = () => dbgVal("cons", MAX_CONS);
+const maxJokers = () => dbgVal("jokers", Math.max(1, MAX_JOKERS + (deckUbah(S).slotJoker || 0)));
+const maxCons   = () => dbgVal("cons", Math.max(1, MAX_CONS + (deckUbah(S).slotKonsumabel || 0)));
 // boss effects (debuffs + special rules) can be switched off from the debug panel
 // Chicot mematikan efek Boss Blind selama ia terpasang.
 const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect)
@@ -98,11 +98,16 @@ const ukuranJoker = () => (typeof DSEfek !== "undefined" && DSEfek.ukuranTangan)
   ? DSEfek.ukuranTangan(S.jokers, (S.ante - 1) * 3 + S.blindIndex) : { tangan: 0, buang: 0 };
 const handSize = () => dbgVal("handSize", Math.max(1,
   HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0)
-  + (bossActive() && S.boss.id === "manacle" ? -1 : 0) + ukuranJoker().tangan));
-const maxHands = () => dbgVal("hands", 4 + (S.vouchers.has("grabber") ? 1 : 0));
+    + (bossActive() && S.boss.id === "manacle" ? -1 : 0) + ukuranJoker().tangan
+    + (deckUbah(S).ukuranTangan || 0)));
+const maxHands = () => dbgVal("hands", Math.max(1,
+  4 + (S.vouchers.has("grabber") ? 1 : 0) + (deckUbah(S).tangan || 0)));
 const maxDiscards = () => dbgVal("discards", Math.max(0,
-  3 + (S.vouchers.has("wasteful") ? 1 : 0) + ukuranJoker().buang));
-const interestCap = () => S.vouchers.has("seedmoney") ? 10 : 5;
+  3 + (S.vouchers.has("wasteful") ? 1 : 0) + ukuranJoker().buang
+  + (deckUbah(S).buang || 0)));
+// Green Deck mematikan bunga toko sepenuhnya
+const interestCap = () => deckUbah(S).bungaNol ? 0
+  : (S.vouchers.has("seedmoney") ? 10 : 5);
 // how many jokers / packs the shop rolls up
 const shopJokerCount = () => dbgVal("shopJokers", 2 + (S.vouchers.has("overstock") ? 1 : 0));
 const shopPackCount = () => dbgVal("shopPacks", 2);
@@ -165,6 +170,12 @@ function loadGame() {
   try { d = JSON.parse(store.getItem(SAVE_KEY)); } catch (e) { return false; }
   if (!d || d.v !== 3) return false;
   S = freshState();
+  // Deck yang dipilih diterapkan: pengubah tetap disimpan, efek awal
+  // dijalankan. Berlaku di kedua jalur yang memulai run.
+  const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
+  S.deckId = dk.id;
+  S.deckUbah = dk.ubah || {};
+  if (typeof dk.apply === "function") dk.apply(S);
   sortMode = d.sortMode || "rank";
   Object.assign(S, {
     ante: d.ante, blindIndex: d.blindIndex, money: d.money,
@@ -219,8 +230,23 @@ function showScreen(name) {
 }
 
 // ── run / blind flow ──
+// Deck yang dipilih pemain. Bisa diganti lewat DS.setDeck(id).
+let deckTerpilih = "red";
+function setDeck(id) {
+  if (typeof DECKS !== "undefined" && DECKS.some(d => d.id === id)) {
+    deckTerpilih = id; return true;
+  }
+  return false;
+}
+
 function newRun() {
   S = freshState();
+  // Deck yang dipilih diterapkan: pengubah tetap disimpan, efek awal
+  // dijalankan. Berlaku di kedua jalur yang memulai run.
+  const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
+  S.deckId = dk.id;
+  S.deckUbah = dk.ubah || {};
+  if (typeof dk.apply === "function") dk.apply(S);
   sortMode = "rank";
   startBlind();
 }
@@ -932,7 +958,10 @@ function endRoundWin() {
   // Invisible Joker menghitung babaknya sendiri
   tambahPencatat("invisible-joker", 1);
   const goldHeld = S.hand.filter(c => c.enhancement === "gold").length * 3;
-  const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney;
+  // Green Deck: +$2 per sisa hand dan +$1 per sisa buang
+  const sisaUang = deckUbah(S).uangPerSisa
+    ? S.handsLeft * 2 + S.discardsLeft : 0;
+  const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney + sisaUang;
   S.money += reward;
   S.phase = "shop";
   S.rerollCost = 5;
@@ -1740,5 +1769,5 @@ applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
-window.DS = { get S() { return S; }, newRun, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
+window.DS = { get S() { return S; }, newRun, setDeck, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
   api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };
