@@ -282,6 +282,13 @@ function punyaJoker(id) {
 function startBlind() {
 // Card Sharp mencatat bentuk tangan yang sudah dimainkan babak ini.
 S.jenisTanganBabak = [];
+// The Idol: kartu pilihannya berganti tiap babak, diambil dari deck
+if (punyaJoker("the-idol") && S.deck && S.deck.length) {
+  const dasar = S.deck[Math.floor(Math.random() * S.deck.length)];
+  S.idolTarget = { rank: dasar.rank, suit: dasar.suit };
+} else {
+  S.idolTarget = null;
+}
   S.phase = "play";
   S.animating = false;
   S.deck = shuffle(buildDeck());
@@ -511,6 +518,7 @@ function scorePlayed() {
     discardsLeft: S.discardsLeft, handsLeft: S.handsLeft,
     deckCount: S.deck.length, deckCards: S.deck,
     jenisTanganBabak: S.jenisTanganBabak || [],
+    idol: S.idolTarget || null,
       stats: S.stats, money: S.money,
     emptySlots: maxJokers() - S.jokers.length,
     firstScoringFace,

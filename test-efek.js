@@ -238,6 +238,20 @@ uji("Card Sharp x3 bila Pair sudah dimainkan",
 uji("Card Sharp diam bila yang tercatat bentuk lain",
   E.hitungSkor(PASANGAN, { dasar: DASAR10, joker: [{ id: "card-sharp" }], handName: "Pair", jenisTanganBabak: ["Flush"] }).skor, 60);
 
+// ── The Idol ────────────────────────────────────────────────────────────────
+// n kartu 10 sekop: chips = 10 (dasar) + 10n, mult 2, dikali 2^n
+const SEKOP10 = (n) => Array.from({ length: n }, () => ({ rank: 10, suit: "spades" }));
+uji("The Idol tanpa kartu pilihan tetap 60",
+  E.hitungSkor(SEKOP10(2), { dasar: DASAR10, joker: [{ id: "the-idol" }], idol: null }).skor, 60);
+uji("The Idol 2 kartu cocok: 30 x (2x4) = 240",
+  E.hitungSkor(SEKOP10(2), { dasar: DASAR10, joker: [{ id: "the-idol" }], idol: { rank: 10, suit: "spades" } }).skor, 240);
+uji("The Idol 3 kartu cocok: 40 x (2x8) = 640",
+  E.hitungSkor(SEKOP10(3), { dasar: DASAR10, joker: [{ id: "the-idol" }], idol: { rank: 10, suit: "spades" } }).skor, 640);
+uji("The Idol diam bila suit tidak cocok",
+  E.hitungSkor([{ rank: 10, suit: "hearts" }, { rank: 10, suit: "hearts" }], { dasar: DASAR10, joker: [{ id: "the-idol" }], idol: { rank: 10, suit: "spades" } }).skor, 60);
+uji("The Idol diam bila rank tidak cocok",
+  E.hitungSkor(SEKOP10(2), { dasar: DASAR10, joker: [{ id: "the-idol" }], idol: { rank: 9, suit: "spades" } }).skor, 60);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);
