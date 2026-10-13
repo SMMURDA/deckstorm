@@ -748,7 +748,19 @@ if (punyaJoker("8-ball")) {
   refreshControls();
 
   if (S.roundScore >= blindTarget()) return setTimeout(endRoundWin, settings.anim ? 500 : 30);
-  if (S.handsLeft <= 0) return setTimeout(gameOver, settings.anim ? 500 : 30);
+  if (S.handsLeft <= 0) {
+    // Mr. Bones: mencegah kalah bila skor sudah mencapai minimal 25%
+    // dari target. Joker-nya hancur sendiri setelah menyelamatkan.
+    const bones = S.jokers.findIndex(j => j.id === "mr-bones");
+    if (bones >= 0 && S.roundScore >= blindTarget() * 0.25) {
+      const nama = S.jokers[bones].name || "Mr. Bones";
+      S.jokers.splice(bones, 1);
+      showToast(nama + " menyelamatkanmu, lalu hancur");
+      renderAll();
+      return setTimeout(endRoundWin, settings.anim ? 500 : 30);
+    }
+    return setTimeout(gameOver, settings.anim ? 500 : 30);
+  }
 }
 
 // ── discard ──

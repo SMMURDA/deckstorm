@@ -528,6 +528,8 @@
       "hallucination",
       // menyalin konsumabel di akhir toko
       "perkeo",
+      // mencegah kalah
+      "mr-bones",
     ]; },
   };
 
