@@ -323,6 +323,14 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
 }
 
 function nextBlind() {
+  // Perkeo: di akhir toko, satu konsumabel acak yang dimiliki disalin.
+  // Salinan hanya dibuat bila masih ada slot kosong.
+  if (punyaJoker("perkeo") && S.consumables.length
+      && S.consumables.length < maxCons()) {
+    const asal = S.consumables[Math.floor(Math.random() * S.consumables.length)];
+    S.consumables.push(Object.assign({}, asal));
+    showToast("Perkeo: " + asal.name + " disalin");
+  }
   AudioFX.play("click");
   advanceBlindIndex();
   if (S.gameWon) return; // winRun already fired

@@ -526,6 +526,8 @@
       "diet-cola", "luchador", "invisible-joker",
       // membuat kartu saat paket dibuka
       "hallucination",
+      // menyalin konsumabel di akhir toko
+      "perkeo",
     ]; },
   };
 
