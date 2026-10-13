@@ -107,6 +107,8 @@ const shopPackCount = () => dbgVal("shopPacks", 2);
 const priceOf = item => {
   let p = item.cost + (item.edition ? EDITIONS[item.edition].priceAdd : 0);
   if (S.vouchers.has("clearance")) p = Math.ceil(p * 0.75);
+  // Astronomer: seluruh kartu Planet menjadi gratis
+  if (punyaJoker("astronomer") && PLANETS.some(x => x.id === item.id)) p = 0;
   return p;
 };
 const isBossDebuffed = c => bossActive() && S.boss.debuffSuit && c.suit === S.boss.debuffSuit && c.enhancement !== "wild" && c.enhancement !== "stone";
@@ -811,7 +813,10 @@ function endRoundWin() {
   // Chaos the Clown: satu reroll gratis di tiap toko
   S.chaosGratis = punyaJoker("chaos-the-clown");
 
-  S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
+  // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
+    S.offers = rollShopJokers(shopJokerCount(),
+      punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
+      S.vouchers.has("hone"));
   S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
   const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id));
   S.voucherOffer = availVouchers.length ? availVouchers[Math.floor(Math.random() * availVouchers.length)] : null;
@@ -1566,7 +1571,10 @@ $("#btn-reroll").onclick = () => {
   const free = (DEBUG.on && DEBUG.freeReroll) || gratis;
   if (!S || (!free && S.money < S.rerollCost)) { AudioFX.play("error"); return; }
   if (!free) { S.money -= S.rerollCost; S.rerollCost++; }
-  S.offers = rollShopJokers(shopJokerCount(), new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone"));
+  // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
+    S.offers = rollShopJokers(shopJokerCount(),
+      punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
+      S.vouchers.has("hone"));
   AudioFX.play("click");
   renderShop();
   renderHud();
