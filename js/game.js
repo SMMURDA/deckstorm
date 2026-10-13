@@ -95,9 +95,10 @@ function handValue(name) {
 // Setiap Joker ber-edisi Negative menambah satu slot Joker.
 const jumlahNegative = () => (S && S.jokers)
   ? S.jokers.filter(j => j && j.edition === "negative").length : 0;
-const maxJokers = () => dbgVal("jokers", Math.max(1,
+const maxJokers = () => challengeUbah(S).tanpaJoker ? 0 : dbgVal("jokers", Math.max(1,
   MAX_JOKERS + (deckUbah(S).slotJoker || 0)
-  + (S.vouchers.has("antimatter") ? 1 : 0)));
+  + (S.vouchers.has("antimatter") ? 1 : 0)
+  + (challengeUbah(S).slotJoker || 0)));
 const maxCons   = () => dbgVal("cons", Math.max(1,
   MAX_CONS + (deckUbah(S).slotKonsumabel || 0)
   + (S.vouchers.has("crystalball") ? 1 : 0)));
@@ -114,15 +115,17 @@ const handSize = () => dbgVal("handSize", Math.max(1,
   HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0)
     + (S.vouchers.has("palette") ? 1 : 0)
     + (bossActive() && S.boss.id === "manacle" ? -1 : 0) + ukuranJoker().tangan
-    + (deckUbah(S).ukuranTangan || 0)));
+    + (deckUbah(S).ukuranTangan || 0) + (challengeUbah(S).ukuranTangan || 0)));
 const maxHands = () => dbgVal("hands", Math.max(1,
-  4 + (S.vouchers.has("grabber") ? 1 : 0) + (deckUbah(S).tangan || 0)));
+  4 + (S.vouchers.has("grabber") ? 1 : 0) + (deckUbah(S).tangan || 0)
+  + (challengeUbah(S).tangan || 0)));
 const maxDiscards = () => dbgVal("discards", Math.max(0,
   3 + (S.vouchers.has("wasteful") ? 1 : 0)
   + (S.vouchers.has("nachotong") ? 1 : 0) + ukuranJoker().buang
-    + (deckUbah(S).buang || 0) + (stakeUbah(S).buang || 0)));
+    + (deckUbah(S).buang || 0) + (stakeUbah(S).buang || 0)
+  + (challengeUbah(S).buang || 0)));
 // Green Deck mematikan bunga toko sepenuhnya
-const interestCap = () => deckUbah(S).bungaNol ? 0
+const interestCap = () => (deckUbah(S).bungaNol || challengeUbah(S).bungaNol) ? 0
     : (S.vouchers.has("moneytree") ? 20
      : S.vouchers.has("seedmoney") ? 10 : 5);
 // how many jokers / packs the shop rolls up
@@ -197,6 +200,7 @@ function loadGame() {
   S.deckId = dk.id;
   
 S.stakeId = stakeTerpilih;
+S.challengeId = challengeTerpilih;
   // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
   // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
   S.deckBelumDiterapkan = true;
@@ -258,6 +262,14 @@ function showScreen(name) {
 let deckTerpilih = "red";
 // Stake yang dipilih pemain. Bisa diganti lewat DS.setStake(id).
 let stakeTerpilih = "white";
+// Challenge yang dipilih. Bisa diganti lewat DS.setChallenge(id).
+let challengeTerpilih = "polos";
+function setChallenge(id) {
+  if (typeof CHALLENGES !== "undefined" && CHALLENGES.some(c => c.id === id)) {
+    challengeTerpilih = id; return true;
+  }
+  return false;
+}
 function setStake(id) {
   if (typeof STAKES !== "undefined" && STAKES.some(s => s.id === id)) {
     stakeTerpilih = id; return true;
@@ -279,6 +291,7 @@ function newRun() {
   S.deckId = dk.id;
   
 S.stakeId = stakeTerpilih;
+S.challengeId = challengeTerpilih;
   // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
   // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
   S.deckBelumDiterapkan = true;
@@ -303,7 +316,7 @@ function blindTarget() {
   // Angka 8% per Ante per tingkat adalah pendekatan Deckstorm, bukan
   // angka Balatro yang sudah diverifikasi - dicatat supaya jujur.
   const laju = (stakeUbah(S).lajuTarget || 0) * 0.08 * (S.ante - 1);
-  return Math.round(base * mult * (1 + laju));
+  return Math.round(base * mult * (1 + laju) * (challengeUbah(S).targetKali || 1));
 }
 function blindName() {
   return S.blindIndex === 2 ? (showdown() ? "Showdown" : S.boss.name)
@@ -379,6 +392,7 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
     S.deckBelumDiterapkan = false;
     const dkAwal = DECKS.find(d => d.id === S.deckId);
     if (dkAwal && typeof dkAwal.apply === "function") dkAwal.apply(S);
+    terapkanChallenge(S);
   }
   S.deckTotal = S.deck.length;
   S.hand = [];
@@ -1289,6 +1303,25 @@ function lanjutEndless() {
   return true;
 }
 
+// Challenge diterapkan sesudah deck disusun, karena sebagiannya mengubah deck.
+function terapkanChallenge(St) {
+  const u = challengeUbah(St);
+  if (!u) return;
+  if (u.uang) St.money = Math.max(0, St.money + u.uang);
+  if (u.kartuAwal === "tanpaWajah") {
+    St.deck = St.deck.filter(c => c.rank < 11);
+  } else if (u.kartuAwal === "hanyaSekopHati") {
+    while (St.deck.length > 26) St.deck.pop();
+    St.deck.forEach(c => { if (c.suit !== "spades" && c.suit !== "hearts") c.suit = "spades"; });
+  } else if (u.kartuAwal === "acak") {
+    const suit = ["spades", "hearts", "clubs", "diamonds"];
+    St.deck.forEach(c => {
+      c.rank = 2 + Math.floor(Math.random() * 13);
+      c.suit = suit[Math.floor(Math.random() * 4)];
+    });
+  }
+}
+
 function winRun() {
   S.phase = "win";
   S.gameWon = true;
@@ -1923,5 +1956,5 @@ applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
-window.DS = { get S() { return S; }, newRun, setDeck, setStake, lanjutEndless, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
+window.DS = { get S() { return S; }, newRun, setDeck, setStake, setChallenge, lanjutEndless, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
   api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };
