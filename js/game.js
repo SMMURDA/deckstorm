@@ -237,6 +237,27 @@ function tambahKartuKeDeck(rank, suit, enhancement) {
   return kartu;
 }
 
+// Riff-Raff memakai ini untuk menambah Joker Common acak.
+function tambahJokerAcak(kelangkaan) {
+  if (!S || S.jokers.length >= maxJokers()) return null;
+  const kolam = JOKERS.filter(j => j.rarity === (kelangkaan || "common") && !j.legendary);
+  if (!kolam.length) return null;
+  const pilih = kolam[Math.floor(Math.random() * kolam.length)];
+  if (S.jokers.some(j => j.id === pilih.id)) return null;
+  S.jokers.push(Object.assign({}, pilih));
+  return pilih;
+}
+
+// 8 Ball dan Hallucination memakai ini untuk membuat Tarot.
+function tambahKonsumabelAcak(jenis) {
+  if (!S || S.consumables.length >= maxCons()) return null;
+  const kolam = (jenis === "tarot" ? TAROTS : PLANETS);
+  if (!kolam || !kolam.length) return null;
+  const pilih = kolam[Math.floor(Math.random() * kolam.length)];
+  S.consumables.push(Object.assign({}, pilih));
+  return pilih;
+}
+
 function punyaJoker(id) {
   return !!(S && S.jokers && S.jokers.some(j => j.id === id));
 }
@@ -357,6 +378,12 @@ function skipBlind() {
   tambahPencatat("throwback", 1);
   // Marble Joker: menambah satu kartu Stone setiap Blind dimulai
   if (punyaJoker("marble-joker")) tambahKartuKeDeck(14, "spades", "stone");
+  // Riff-Raff: menambah dua Joker Common saat Blind dimulai
+  if (punyaJoker("riff-raff")) {
+    const a = tambahJokerAcak("common");
+    const b = tambahJokerAcak("common");
+    if (a || b) showToast("Riff-Raff: Joker Common ditambahkan");
+  }
   const tag = S.pendingTag || SKIP_TAGS[0];
   const res = tag.apply();
   if (res === null) {
@@ -526,6 +553,15 @@ if (S.selected.size === 1 && punyaJoker("dna")) {
     showToast("DNA: kartu disalin ke deck");
   }
 }
+// 8 Ball: tiap kartu 8 yang dimainkan berpeluang 1 banding 4 membuat Tarot
+if (punyaJoker("8-ball")) {
+  const delapan = S.hand.filter(c => S.selected.has(c.id) && c.rank === 8).length;
+  let dapat = 0;
+  for (let i = 0; i < delapan; i++) if (Math.random() < 0.25) dapat++;
+  for (let i = 0; i < dapat; i++) tambahKonsumabelAcak("tarot");
+  if (dapat) showToast("8 Ball: " + dapat + " Tarot dibuat");
+}
+
 
 
   const result = scorePlayed();
