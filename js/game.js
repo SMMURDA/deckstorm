@@ -85,8 +85,12 @@ function handValue(name) {
 // Setiap Joker ber-edisi Negative menambah satu slot Joker.
 const jumlahNegative = () => (S && S.jokers)
   ? S.jokers.filter(j => j && j.edition === "negative").length : 0;
-const maxJokers = () => dbgVal("jokers", Math.max(1, MAX_JOKERS + (deckUbah(S).slotJoker || 0)));
-const maxCons   = () => dbgVal("cons", Math.max(1, MAX_CONS + (deckUbah(S).slotKonsumabel || 0)));
+const maxJokers = () => dbgVal("jokers", Math.max(1,
+  MAX_JOKERS + (deckUbah(S).slotJoker || 0)
+  + (S.vouchers.has("antimatter") ? 1 : 0)));
+const maxCons   = () => dbgVal("cons", Math.max(1,
+  MAX_CONS + (deckUbah(S).slotKonsumabel || 0)
+  + (S.vouchers.has("crystalball") ? 1 : 0)));
 // boss effects (debuffs + special rules) can be switched off from the debug panel
 // Chicot mematikan efek Boss Blind selama ia terpasang.
 const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect)
@@ -98,22 +102,29 @@ const ukuranJoker = () => (typeof DSEfek !== "undefined" && DSEfek.ukuranTangan)
   ? DSEfek.ukuranTangan(S.jokers, (S.ante - 1) * 3 + S.blindIndex) : { tangan: 0, buang: 0 };
 const handSize = () => dbgVal("handSize", Math.max(1,
   HAND_SIZE + (S.vouchers.has("paintbrush") ? 1 : 0)
+    + (S.vouchers.has("palette") ? 1 : 0)
     + (bossActive() && S.boss.id === "manacle" ? -1 : 0) + ukuranJoker().tangan
     + (deckUbah(S).ukuranTangan || 0)));
 const maxHands = () => dbgVal("hands", Math.max(1,
   4 + (S.vouchers.has("grabber") ? 1 : 0) + (deckUbah(S).tangan || 0)));
 const maxDiscards = () => dbgVal("discards", Math.max(0,
-  3 + (S.vouchers.has("wasteful") ? 1 : 0) + ukuranJoker().buang
+  3 + (S.vouchers.has("wasteful") ? 1 : 0)
+  + (S.vouchers.has("nachotong") ? 1 : 0) + ukuranJoker().buang
     + (deckUbah(S).buang || 0) + (stakeUbah(S).buang || 0)));
 // Green Deck mematikan bunga toko sepenuhnya
 const interestCap = () => deckUbah(S).bungaNol ? 0
-  : (S.vouchers.has("seedmoney") ? 10 : 5);
+    : (S.vouchers.has("moneytree") ? 20
+     : S.vouchers.has("seedmoney") ? 10 : 5);
 // how many jokers / packs the shop rolls up
-const shopJokerCount = () => dbgVal("shopJokers", 2 + (S.vouchers.has("overstock") ? 1 : 0));
+const shopJokerCount = () => dbgVal("shopJokers",
+  2 + (S.vouchers.has("overstock") ? 1 : 0)
+    + (S.vouchers.has("overstockplus") ? 1 : 0));
 const shopPackCount = () => dbgVal("shopPacks", 2);
 const priceOf = item => {
   let p = item.cost + (item.edition ? EDITIONS[item.edition].priceAdd : 0);
+  // Clearance Sale 25%, Liquidation 50%; keduanya bisa menumpuk
   if (S.vouchers.has("clearance")) p = Math.ceil(p * 0.75);
+  if (S.vouchers.has("liquidation")) p = Math.ceil(p * 0.75);
   // Astronomer: seluruh kartu Planet menjadi gratis
   if (punyaJoker("astronomer") && PLANETS.some(x => x.id === item.id)) p = 0;
   return p;
@@ -1005,7 +1016,10 @@ function endRoundWin() {
     + jokerMoney + sisaUang - sewa;
   S.money += reward;
   S.phase = "shop";
-  S.rerollCost = 5;
+  // Reroll Surplus dan Reroll Glut menurunkan harga awal reroll
+  S.rerollCost = Math.max(0, 5
+    - (S.vouchers.has("rerollsurplus") ? 2 : 0)
+    - (S.vouchers.has("rerollglut") ? 2 : 0));
   // Chaos the Clown: satu reroll gratis di tiap toko
   S.chaosGratis = punyaJoker("chaos-the-clown");
 
