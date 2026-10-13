@@ -104,7 +104,7 @@ const maxHands = () => dbgVal("hands", Math.max(1,
   4 + (S.vouchers.has("grabber") ? 1 : 0) + (deckUbah(S).tangan || 0)));
 const maxDiscards = () => dbgVal("discards", Math.max(0,
   3 + (S.vouchers.has("wasteful") ? 1 : 0) + ukuranJoker().buang
-  + (deckUbah(S).buang || 0)));
+    + (deckUbah(S).buang || 0) + (stakeUbah(S).buang || 0)));
 // Green Deck mematikan bunga toko sepenuhnya
 const interestCap = () => deckUbah(S).bungaNol ? 0
   : (S.vouchers.has("seedmoney") ? 10 : 5);
@@ -174,7 +174,8 @@ function loadGame() {
   // dijalankan. Berlaku di kedua jalur yang memulai run.
   const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
   S.deckId = dk.id;
-  S.deckUbah = dk.ubah || {};
+  
+S.stakeId = stakeTerpilih;
   // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
   // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
   S.deckBelumDiterapkan = true;
@@ -234,6 +235,14 @@ function showScreen(name) {
 // ── run / blind flow ──
 // Deck yang dipilih pemain. Bisa diganti lewat DS.setDeck(id).
 let deckTerpilih = "red";
+// Stake yang dipilih pemain. Bisa diganti lewat DS.setStake(id).
+let stakeTerpilih = "white";
+function setStake(id) {
+  if (typeof STAKES !== "undefined" && STAKES.some(s => s.id === id)) {
+    stakeTerpilih = id; return true;
+  }
+  return false;
+}
 function setDeck(id) {
   if (typeof DECKS !== "undefined" && DECKS.some(d => d.id === id)) {
     deckTerpilih = id; return true;
@@ -247,7 +256,8 @@ function newRun() {
   // dijalankan. Berlaku di kedua jalur yang memulai run.
   const dk = DECKS.find(d => d.id === deckTerpilih) || DECKS[0];
   S.deckId = dk.id;
-  S.deckUbah = dk.ubah || {};
+  
+S.stakeId = stakeTerpilih;
   // Efek awal Deck TIDAK dijalankan di sini: deck baru disusun di
   // startBlind(), sesudah baris ini. Dijalankan di sana lewat penanda.
   S.deckBelumDiterapkan = true;
@@ -258,12 +268,20 @@ function newRun() {
 function blindTarget() {
   const base = ANTE_TARGETS[S.ante - 1];
   const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
-  return Math.round(base * mult);
+  // Green dan Purple Stake menaikkan laju kenaikan target antar Ante.
+  // Angka 8% per Ante per tingkat adalah pendekatan Deckstorm, bukan
+  // angka Balatro yang sudah diverifikasi - dicatat supaya jujur.
+  const laju = (stakeUbah(S).lajuTarget || 0) * 0.08 * (S.ante - 1);
+  return Math.round(base * mult * (1 + laju));
 }
 function blindName() {
   return S.blindIndex === 2 ? S.boss.name : (S.blindIndex === 0 ? "Small Blind" : "Big Blind");
 }
-function blindReward() { return S.blindIndex === 2 ? 5 : S.blindIndex === 1 ? 4 : 3; }
+// Red Stake: Small Blind tidak memberi hadiah uang
+function blindReward() {
+  if (S.blindIndex === 0 && stakeUbah(S).kecilTanpaHadiah) return 0;
+  return S.blindIndex === 2 ? 5 : S.blindIndex === 1 ? 4 : 3;
+}
 
 // Menambah kartu baru ke deck. Dipakai Joker pembuat kartu (DNA, Marble Joker).
 // Id diberi awalan "buat-" supaya tidak bertabrakan dengan kartu bawaan deck
@@ -905,6 +923,11 @@ function sellConsumable(idx) {
 }
 
 // Efek khusus saat sebuah Joker dijual.
+// Black Stake: Joker menjadi Abadi dan tidak dapat dijual.
+function bolehDijual(j) {
+  return !(stakeUbah(S).abadi && j && !j.sementara);
+}
+
 function jualEfek(j) {
   if (!j) return;
   // Diet Cola: membuat Tag gratis
@@ -937,6 +960,10 @@ function jualEfek(j) {
 
 function sellJoker(idx) {
   const j = S.jokers[idx];
+    if (j && !bolehDijual(j)) {
+      showToast("Joker Abadi tidak dapat dijual");
+      return;
+    }
   if (!j) return;
   // Efek saat dijual. Dijalankan SEBELUM Joker dibuang dari daftar,
   // karena sebagian efeknya membaca Joker yang dijual itu sendiri.
@@ -972,7 +999,10 @@ function endRoundWin() {
   // Green Deck: +$2 per sisa hand dan +$1 per sisa buang
   const sisaUang = deckUbah(S).uangPerSisa
     ? S.handsLeft * 2 + S.discardsLeft : 0;
-  const reward = blindReward() + S.handsLeft + interest + goldHeld + jokerMoney + sisaUang;
+  // Gold Stake: tiap Joker menyewa sejumlah uang tiap akhir babak
+  const sewa = (stakeUbah(S).sewa || 0) * S.jokers.length;
+  const reward = blindReward() + S.handsLeft + interest + goldHeld
+    + jokerMoney + sisaUang - sewa;
   S.money += reward;
   S.phase = "shop";
   S.rerollCost = 5;
@@ -1780,5 +1810,5 @@ applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
-window.DS = { get S() { return S; }, newRun, setDeck, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
+window.DS = { get S() { return S; }, newRun, setDeck, setStake, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
   api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };
