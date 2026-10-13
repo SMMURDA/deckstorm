@@ -601,6 +601,24 @@ if (punyaJoker("8-ball")) {
   }
 
   const result = scorePlayed();
+  // Séance: Straight Flush membuat satu kartu Spectral
+  if (punyaJoker("s-ance") && /Straight Flush|Royal Flush/.test(result.ev.name)) {
+    if (tambahKonsumabelAcak("spectral")) showToast("Séance: satu kartu Spectral dibuat");
+  }
+
+  // Sixth Sense: bila hand pertama babak ini hanya satu kartu 6, kartu itu
+  // dihancurkan dan satu kartu Spectral dibuat
+  // hand pertama = belum ada hand yang terpakai babak ini. Dipakai dua
+  // kemungkinan urutan (sebelum atau sesudah pengurangan sisa tangan).
+  if (punyaJoker("sixth-sense") && (S.handsLeft === maxHands() || S.handsLeft === maxHands() - 1)) {
+    const dimainkan = S.hand.filter(c => S.selected.has(c.id));
+    if (dimainkan.length === 1 && dimainkan[0].rank === 6) {
+      const buang = dimainkan[0];
+      S.deck = S.deck.filter(c => c.id !== buang.id);
+      if (tambahKonsumabelAcak("spectral")) showToast("Sixth Sense: kartu 6 dihancurkan, satu Spectral dibuat");
+    }
+  }
+
   // Space Joker: peluang 1 banding 4 menaikkan level bentuk tangan ini
   if (punyaJoker("space-joker") && Math.random() < 0.25) {
     const kunci = result.ev.name === "Royal Flush" ? "Straight Flush" : result.ev.name;

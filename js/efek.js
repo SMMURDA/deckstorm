@@ -496,6 +496,8 @@
       "chicot",
       // Joker Legendary berbasis jumlah kartu yang dibuang
       "yorick",
+      // Joker yang membuat kartu Spectral
+      "s-ance", "sixth-sense",
     ]; },
   };
 
