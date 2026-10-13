@@ -2,6 +2,16 @@
 "use strict";
 const HAND_SIZE = 8, MAX_SELECT = 5, MAX_JOKERS = 5, MAX_CONS = 2;
 const ANTE_TARGETS = [300, 800, 2000, 5000, 11000, 20000, 35000, 50000];
+// Endless Mode: Ante 9 ke atas. Angka pengali 1,6 per Ante adalah PENDEKATAN
+// Deckstorm, bukan angka Balatro yang sudah diverifikasi - dicatat supaya jujur.
+function dasarTarget(ante) {
+  if (ante <= 8) return ANTE_TARGETS[ante - 1];
+  let t = ANTE_TARGETS[7];
+  for (let a = 9; a <= ante; a++) t = Math.round(t * 1.6);
+  return t;
+}
+// Setiap Ante kelipatan 8 blind terakhirnya adalah Showdown.
+function showdown() { return S.ante % 8 === 0; }
 const SUIT_CLASS = { hearts: "red", diamonds: "red", spades: "black", clubs: "black" };
 const $ = s => document.querySelector(s);
 
@@ -287,7 +297,7 @@ function debuffAktif(kartu) {
 }
 
 function blindTarget() {
-  const base = ANTE_TARGETS[S.ante - 1];
+  const base = dasarTarget(S.ante);
   const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
   // Green dan Purple Stake menaikkan laju kenaikan target antar Ante.
   // Angka 8% per Ante per tingkat adalah pendekatan Deckstorm, bukan
@@ -296,12 +306,14 @@ function blindTarget() {
   return Math.round(base * mult * (1 + laju));
 }
 function blindName() {
-  return S.blindIndex === 2 ? S.boss.name : (S.blindIndex === 0 ? "Small Blind" : "Big Blind");
+  return S.blindIndex === 2 ? (showdown() ? "Showdown" : S.boss.name)
+    : (S.blindIndex === 0 ? "Small Blind" : "Big Blind");
 }
 // Red Stake: Small Blind tidak memberi hadiah uang
 function blindReward() {
   if (S.blindIndex === 0 && stakeUbah(S).kecilTanpaHadiah) return 0;
-  return S.blindIndex === 2 ? 5 : S.blindIndex === 1 ? 4 : 3;
+  if (S.blindIndex === 2) return showdown() ? 8 : 5;
+  return S.blindIndex === 1 ? 4 : 3;
 }
 
 // Menambah kartu baru ke deck. Dipakai Joker pembuat kartu (DNA, Marble Joker).
@@ -419,7 +431,10 @@ function advanceBlindIndex() {
     S.blindIndex = 0;
     S.skipsThisAnte = 0; // fresh ante → skips available again
     S.boss = null;
-    if (S.ante > 8) { winRun(); return; }
+    // Ante 8 adalah Showdown terakhir pada run biasa. Bila pemain memilih
+    // Endless, run berlanjut sampai batas praktis Ante 39.
+    if (S.ante === 9 && !S.endless) { winRun(); return; }
+    if (S.ante > 39) { winRun(); return; }
   } else {
     S.blindIndex++;
     // landing on the boss blind: roll it now so targets/renders are valid
@@ -1263,6 +1278,17 @@ function gameOver() {
   AudioFX.play("lose");
   showScreen("over");
 }
+// Melanjutkan run ke Endless Mode sesudah Ante 8 ditaklukkan.
+function lanjutEndless() {
+  if (!S || S.ante < 9) return false;
+  S.endless = true;
+  S.gameWon = false;
+  showScreen("game");
+  startBlind();
+  renderAll();
+  return true;
+}
+
 function winRun() {
   S.phase = "win";
   S.gameWon = true;
@@ -1868,6 +1894,7 @@ $("#btn-reroll").onclick = () => {
 };
 $("#btn-retry").onclick = () => { AudioFX.play("click"); newRun(); };
 $("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
+if ($("#btn-endless")) $("#btn-endless").onclick = () => { AudioFX.play("click"); lanjutEndless(); };
 document.querySelectorAll("[data-back]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 document.querySelectorAll(".coll-tab").forEach(b =>
@@ -1896,5 +1923,5 @@ applySettings();
 showScreen("menu"); // init: refresh Continue button visibility
 
 // debug/testing hooks
-window.DS = { get S() { return S; }, newRun, setDeck, setStake, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
+window.DS = { get S() { return S; }, newRun, setDeck, setStake, lanjutEndless, startBlind, endRoundWin, renderAll, renderShop, showScreen, openPack, settings, showBlindSelect, skipBlind,
   api: { PLANETS, TAROTS, VOUCHERS, PACKS, BOSSES, JOKERS } };
