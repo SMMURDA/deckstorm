@@ -3,6 +3,6 @@
   "version": "2.0.0",
   "description": "Poker roguelike deckbuilder (Balatro-faithful)",
   "scripts": {
-    "test": "node test.js && NODE_PATH=/usr/share/nodejs node test-ui.js"
+    "test": "node test.js && node test-efek.js && NODE_PATH=/usr/share/nodejs node test-ui.js"
   }
 }

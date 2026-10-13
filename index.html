@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
 <meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261007-33">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261014-11">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261007-33">
+<link rel="stylesheet" href="css/style.css?v=20261014-11">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -20,15 +20,23 @@
   <!-- ══ MAIN MENU ══ -->
   <section id="screen-menu" class="screen active">
     <div class="float-cards" aria-hidden="true">
-      <div class="float-card" style="--x:8%;  --r:-14deg; --d:0s"   data-suit="hearts"></div>
-      <div class="float-card" style="--x:24%; --r:10deg;  --d:1.4s" data-suit="spades"></div>
-      <div class="float-card" style="--x:46%; --r:-6deg;  --d:.7s"  data-suit="diamonds"></div>
-      <div class="float-card" style="--x:66%; --r:16deg;  --d:2s"   data-suit="clubs"></div>
-      <div class="float-card" style="--x:84%; --r:-10deg; --d:.3s"  data-suit="hearts"></div>
+         <img class="float-card" style="--x:6%;  --r:-16deg; --d:0s"   src="assets/img/cards/hearts/A.png" alt="">
+         <img class="float-card" style="--x:22%; --r:11deg;  --d:1.4s" src="assets/img/cards/spades/K.png" alt="">
+         <img class="float-card" style="--x:44%; --r:-7deg;  --d:.7s"  src="assets/img/cards/diamonds/Q.png" alt="">
+         <img class="float-card" style="--x:66%; --r:17deg;  --d:2s"   src="assets/img/cards/clubs/J.png" alt="">
+         <img class="float-card" style="--x:84%; --r:-11deg; --d:.3s"  src="assets/img/cards/hearts/10.png" alt="">
+       </div>
     </div>
     <div class="menu-inner">
       <h1 class="logo">DECK<span>STORM</span></h1>
-      <p class="tagline">— a poker roguelike —</p>
+      <p class="tagline">poker roguelike · 150 Joker · 12 Planet · 22 Tarot</p>
+         <div class="menu-showcase" aria-hidden="true">
+           <img src="assets/img/items/joker/blueprint.png" alt="">
+           <img src="assets/img/items/joker/baron.png" alt="">
+           <img src="assets/img/items/joker/joker.png" alt="">
+           <img src="assets/img/items/joker/canio.png" alt="">
+           <img src="assets/img/items/joker/perkeo.png" alt="">
+         </div>
       <nav class="menu-nav">
         <button id="btn-continue" class="btn btn-primary btn-big" hidden>↻ Continue</button>
         <button id="btn-start" class="btn btn-primary btn-big">▶ Start Run</button>
@@ -311,12 +319,16 @@
   </div>
 </div>
 
-<script src="js/debug.js?v=20261007-33"></script>
-<script src="js/cards.js?v=20261007-33"></script>
-<script src="js/jokers.js?v=20261007-33"></script>
-<script src="js/consumables.js?v=20261007-33"></script>
-<script src="js/pixelart.js?v=20261007-33"></script>
-<script src="js/audio.js?v=20261007-33"></script>
-<script src="js/game.js?v=20261007-33"></script>
+<script src="js/debug.js?v=20261014-11"></script>
+<script src="js/cards.js?v=20261014-11"></script>
+<script src="js/jokers.js?v=20261014-11"></script>
+<script src="js/data/jokers-pool.js?v=20261014-1"></script>
+<script src="js/consumables.js?v=20261014-11"></script>
+<script src="js/pixelart.js?v=20261014-11"></script>
+<script src="js/audio.js?v=20261014-11"></script>
+<script src="js/data/jokers.js?v=20261014-1"></script>
+<script src="js/data/joker-effects.js?v=20261014-1"></script>
+<script src="js/efek.js?v=20261014-1"></script>
+<script src="js/game.js?v=20261014-11"></script>
 </body>
 </html>

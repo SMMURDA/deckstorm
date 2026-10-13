@@ -866,13 +866,11 @@ function cardEl(c) {
   if (c.enhancement === "stone") {
     el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML;
   } else {
-    const svg = suitSVG(c.suit);
+    // Kartu memakai PNG hasil generator sendiri (tools/generate-cards.py)
+    const berkas = rankLabel(c.rank);
     el.innerHTML =
-      `<span class="c-rank">${rankLabel(c.rank)}</span>` +
-      `<span class="c-suit">${svg}</span>` +
-      `<span class="c-big">${svg}</span>` +
-      `<span class="c-rank c-rank-b">${rankLabel(c.rank)}</span>` +
-      badgeHTML;
+      `<img class="c-img" draggable="false" alt="${berkas} ${c.suit}" ` +
+      `src="assets/img/cards/${c.suit}/${berkas}.png">` + badgeHTML;
   }
   el.onclick = () => toggleCard(c.id, el);
   return el;
@@ -912,12 +910,49 @@ function renderHand() {
   $("#hand-count").textContent = `${S.hand.length}/${handSize()}`;
 }
 
+// Gambar Joker: PNG hasil generator sendiri (assets/img/items/joker/).
+// 107 Joker baru membawa jalur gambarnya langsung; 43 Joker lama dicocokkan
+// lewat nama dengan data 150 Joker. Yang tidak ketemu tetap memakai ikon lama.
+function jokerArt(j) {
+  if (j.gambar) return j.gambar;
+  if (typeof JOKER_DATA !== "undefined" && j.name) {
+    const d = JOKER_DATA.find(x => x.nama.toLowerCase() === j.name.toLowerCase());
+    if (d) return d.gambar;
+  }
+  return null;
+}
+
+// Penolong tunggal untuk semua jenis kartu di koleksi dan jendela rincian.
+// Urutannya: jalur langsung -> cocok nama Joker -> jenis konsumabel -> bos.
+function artForCalon(item) {
+  if (!item) return [];
+  if (item.gambar) return [item.gambar];
+  const lewatNama = jokerArt(item);
+  if (lewatNama) return [lewatNama];
+  if (item.kind) return consArt(item);
+  if (item.id) {
+    // nama berkas bos memakai awalan "the-", sedangkan id di repo tidak
+    const id = String(item.id).toLowerCase();
+    // "heart" di repo adalah bos yang men-debuff kartu Hati; namanya yang benar
+    // di Balatro adalah The Head, jadi berkasnya dipetakan ke sana.
+    if (id === "heart") return ["assets/img/items/boss/the-head.png"];
+    return [`assets/img/items/boss/${id}.png`, `assets/img/items/boss/the-${id}.png`];
+  }
+  return [];
+}
+
+function artFor(item) {
+  return artForCalon(item)[0] || null;
+}
+
 function jokerTile(j, opts = {}) {
   const tile = document.createElement("div");
   tile.className = `joker j-${j.rarity}` + (j.edition ? ` ed-${j.edition}` : "") + (opts.onClick ? " clickable" : "");
   tile.innerHTML =
     (j.edition ? `<span class="ed-tag ed-${j.edition}">${EDITIONS[j.edition].name}</span>` : "") +
-    `<div class="tile-icon">${iconSVG(j.id)}</div>` +
+    `<div class="tile-icon">${jokerArt(j)
+      ? `<img class="j-art" draggable="false" alt="" src="${jokerArt(j)}">`
+      : iconSVG(j.id)}</div>` +
     `<div class="tile-name">${j.name}</div>` +
     `<div class="tile-rarity rar-${j.rarity}">${j.rarity}</div>` +
     (opts.showDesc ? `<span class="jdesc">${j.desc}</span>` : "");
@@ -937,14 +972,74 @@ function renderJokers() {
   $("#joker-count").textContent = `${S.jokers.length}/${maxJokers()}`;
 }
 
+// Gambar kartu item memakai PNG hasil generator sendiri. Sebagian id di repo
+// lebih pendek daripada nama berkasnya ("fool" vs "the-fool.png"), jadi dipakai
+// rantai jalur cadangan; kalau semuanya gagal, ikon lama tetap dipasang.
+function itemArt(calon, nama, svgCadangan) {
+  const img = document.createElement("img");
+  img.className = "c-art";
+  img.draggable = false;
+  img.alt = nama || "";
+  let i = 0;
+  img.onerror = () => {
+    i += 1;
+    if (i < calon.length) { img.src = calon[i]; return; }
+    if (svgCadangan) img.parentNode.innerHTML = svgCadangan;
+  };
+  img.src = calon[0];
+  return img;
+}
+
+// Id di repo sering disingkat dan tidak bisa ditebak dari nama berkasnya,
+// jadi yang tidak sama dipetakan langsung - bukan ditebak lewat jalur gagal,
+// supaya konsol tetap bersih.
+const ALIAS_BARANG = {
+  planetx: "planet-x", priestess: "high-priestess", wheel: "wheel-of-fortune", hanged: "the-hanged-man",
+  clearance: "clearance-sale", seedmoney: "seed-money", paintbrush: "paint-brush",
+};
+
+function consArt(c) {
+  const id = String(c.id || "").toLowerCase();
+  const kind = String(c.kind || "").toLowerCase();
+
+  if (kind === "pack") {
+    const tingkat = String(c.tier || c.size || "").toLowerCase();
+    const dasar = `assets/img/items/pack/${id}-pack.png`;
+    return (tingkat && tingkat !== "normal")
+      ? [`assets/img/items/pack/${tingkat}-${id}-pack.png`, dasar]
+      : [dasar];
+  }
+  if (kind === "voucher") {
+    return [`assets/img/items/voucher/${ALIAS_BARANG[id] || id}.png`];
+  }
+
+  const dir = ["planet", "tarot", "spectral"].includes(kind) ? kind : "tarot";
+  // Nama berkas memakai tanda hubung; sebagian id repo memakai garis bawah,
+  // dan sebagian nama Tarot diawali "the-". Semua bentuk dicoba berurutan.
+  // bentuk bertanda hubung dicoba lebih dulu: itu bentuk yang dipakai berkas,
+  // sehingga jalur yang gagal jarang tersentuh dan konsol tetap bersih
+  // Sebagian id repo disingkat dan tidak bisa ditebak dari namanya, jadi
+  // dipetakan langsung. Sisanya dicoba dalam dua bentuk: bertanda hubung
+  // (bentuk nama berkas) lalu apa adanya, dengan awalan "the-" sebagai cadangan.
+  if (ALIAS_BARANG[id]) return [`assets/img/items/${dir}/${ALIAS_BARANG[id]}.png`];
+  const bentuk = [...new Set([id.replace(/_/g, "-"), id])];
+  const calon = [];
+  bentuk.forEach(b => {
+    calon.push(`assets/img/items/${dir}/${b}.png`);
+    if (!b.startsWith("the-")) calon.push(`assets/img/items/${dir}/the-${b}.png`);
+  });
+  return calon;
+}
+
 function consTile(c, opts = {}) {
   const tile = document.createElement("div");
   tile.className = `joker j-${c.kind}` + (opts.onClick ? " clickable" : "");
   tile.innerHTML =
-    `<div class="tile-icon">${iconSVG(c.id)}</div>` +
+    `<div class="tile-icon"></div>` +
     `<div class="tile-name">${c.name}</div>` +
     `<div class="tile-rarity kind-${c.kind}">${c.kind}</div>` +
     (opts.showDesc ? `<span class="jdesc">${consDesc(c)}</span>` : "");
+  tile.querySelector(".tile-icon").appendChild(itemArt(consArt(c), c.name, iconSVG(c.id)));
   if (opts.onClick) tile.onclick = opts.onClick;
   return tile;
 }
@@ -986,7 +1081,7 @@ function closeModal() { $("#modal-card").hidden = true; }
 
 function openJokerModal(j, idx) {
   openModal({
-    icon: iconSVG(j.id),
+    icon: `<img class="c-art modal-art" draggable="false" alt="" src="${artFor(j) || ""}">`,
     name: j.name,
     tags: [j.rarity, j.edition ? EDITIONS[j.edition].name + " edition" : null],
     desc: j.desc + (j.edition ? ` · Edition: ${EDITIONS[j.edition].desc}` : ""),
@@ -1001,7 +1096,7 @@ function openConsModal(idx) {
   const canUse = S.phase === "play" && !S.animating;
   const isTargetingThis = S.targetMode && S.targetMode.cons === c;
   openModal({
-    icon: iconSVG(c.id),
+    icon: `<img class="c-art modal-art" draggable="false" alt="" src="${artFor(c) || ""}">`,
     name: c.name,
     tags: [c.kind],
     desc: consDesc(c),
@@ -1043,7 +1138,12 @@ function renderBossBanner() {
     $("#boss-name").textContent = S.boss.name;
     $("#boss-desc").textContent = S.boss.desc;
     const art = $("#boss-art");
-    if (art) art.innerHTML = iconSVG(S.boss.id);
+    if (art) {
+      art.innerHTML = "";
+      art.appendChild(itemArt([`assets/img/items/boss/${S.boss.id}.png`,
+                               `assets/img/items/boss/the-${S.boss.id}.png`],
+                              S.boss.name, iconSVG(S.boss.id)));
+    }
   } else {
     el.hidden = true;
   }
@@ -1134,10 +1234,11 @@ function renderCollection() {
     const tile = document.createElement("div");
     tile.className = "joker coll-tile " + t.cls(item);
     tile.innerHTML =
-      `<div class="tile-icon">${iconSVG(item.id)}</div>` +
+      `<div class="tile-icon"></div>` +
       `<div class="tile-name">${item.name}</div>` +
       `<span class="jdesc">${t.txt(item)}</span>` +
       `<span class="coll-meta">${t.meta(item)}</span>`;
+    tile.querySelector(".tile-icon").appendChild(itemArt(artForCalon(item), item.name, iconSVG(item.id)));
     grid.appendChild(tile);
   });
   $("#coll-count").textContent = `${t.items.length} cards`;
