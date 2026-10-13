@@ -83,7 +83,9 @@ eq("shop excludes owned", rollShopJokers(2, new Set(JOKERS.map(j => j.id))).leng
 eq("sellValue joker $2 -> $1", sellValue({ cost: 2 }), 1);
 eq("sellValue $5 -> $2", sellValue({ cost: 5 }), 2);
 eq("sellValue poly adds 5", sellValue({ cost: 4, edition: "poly" }), 7);
-eq("editions valid keys", Object.keys(EDITIONS).sort(), ["foil", "holo", "poly"]);
+// Empat edisi sesuai Balatro. "negative" sempat tidak ada di tabel, sehingga
+// merender Joker Negative melempar galat; sekarang didaftarkan.
+eq("editions valid keys", Object.keys(EDITIONS).sort(), ["foil", "holo", "negative", "poly"]);
 { const j = makeJoker(JOKERS.find(x => x.id === "green")); eq("makeJoker init data", j.data.mult, 0); }
 
 // ── consumables ──

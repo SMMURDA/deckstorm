@@ -82,7 +82,10 @@ function handValue(name) {
   };
 }
 // ── debug-overridable limits (see js/debug.js) ──
-const maxJokers = () => dbgVal("jokers", MAX_JOKERS);
+// Setiap Joker ber-edisi Negative menambah satu slot Joker.
+const jumlahNegative = () => (S && S.jokers)
+  ? S.jokers.filter(j => j && j.edition === "negative").length : 0;
+const maxJokers = () => dbgVal("jokers", MAX_JOKERS + jumlahNegative());
 const maxCons   = () => dbgVal("cons", MAX_CONS);
 // boss effects (debuffs + special rules) can be switched off from the debug panel
 const bossActive = () => !!(S && S.boss && !(DEBUG.on && DEBUG.noBossEffect));

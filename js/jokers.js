@@ -190,13 +190,18 @@ const EDITIONS = {
   foil:  { name: "Foil",         desc: "+50 Chips",    priceAdd: 2 },
   holo:  { name: "Holographic",  desc: "+10 Mult",     priceAdd: 3 },
   poly:  { name: "Polychrome",   desc: "×1.5 Mult",    priceAdd: 5 },
+  // Negative tidak mengubah penilaian; ia menambah satu slot Joker.
+  // Entri ini sempat tidak ada, sehingga menggambar Joker ber-edisi Negative
+  // melempar galat saat EDITIONS[j.edition] dibaca.
+  negative: { name: "Negative", desc: "+1 slot Joker", priceAdd: 5 },
 };
 
 // Roll a random edition for a shop joker (Hone voucher doubles odds).
-// Base odds: foil 4% / holo 3% / poly 2%, so 9% overall.
+// Peluang dasar mengikuti Balatro: foil 2%, holo 1,4%, poly 0,3%,
+// negative 0,3% - seluruhnya 4%.
 // Debug mode can force one edition outright, or scale the overall chance while
-// keeping the 4:3:2 ratio between them.
-const EDITION_TOTAL = 0.09;
+// keeping the ratio between them.
+const EDITION_TOTAL = 0.04;
 function rollEdition(hone) {
   const forced = DEBUG.on && DEBUG.editionForce;
   if (forced) return forced;
@@ -204,9 +209,11 @@ function rollEdition(hone) {
   const chance = Math.min(1, EDITION_TOTAL * (hone ? 2 : 1) * boost);
   if (Math.random() >= chance) return null;
   const r = Math.random() * EDITION_TOTAL;
-  if (r < 0.04) return "foil";
-  if (r < 0.07) return "holo";
-  return "poly";
+  // Batas kumulatif mengikuti peluang di atas: 2% / 3,4% / 3,7% / 4%
+  if (r < 0.02) return "foil";
+  if (r < 0.034) return "holo";
+  if (r < 0.037) return "poly";
+  return "negative";
 }
 
 function makeJoker(def, edition) {
