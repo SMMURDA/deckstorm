@@ -221,6 +221,26 @@ function blindName() {
 }
 function blindReward() { return S.blindIndex === 2 ? 5 : S.blindIndex === 1 ? 4 : 3; }
 
+// Menambah kartu baru ke deck. Dipakai Joker pembuat kartu (DNA, Marble Joker).
+// Id diberi awalan "buat-" supaya tidak bertabrakan dengan kartu bawaan deck
+// maupun kartu yang sedang di tangan.
+function tambahKartuKeDeck(rank, suit, enhancement) {
+  if (!S) return null;
+  const kartu = {
+    rank,
+    suit,
+    enhancement: enhancement || null,
+    id: "buat-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7),
+  };
+  S.deck.push(kartu);
+  if (typeof S.deckTotal === "number") S.deckTotal += 1;
+  return kartu;
+}
+
+function punyaJoker(id) {
+  return !!(S && S.jokers && S.jokers.some(j => j.id === id));
+}
+
 function startBlind() {
   S.phase = "play";
   S.animating = false;
@@ -335,6 +355,8 @@ function renderBlindTag() {
 
 function skipBlind() {
   tambahPencatat("throwback", 1);
+  // Marble Joker: menambah satu kartu Stone setiap Blind dimulai
+  if (punyaJoker("marble-joker")) tambahKartuKeDeck(14, "spades", "stone");
   const tag = S.pendingTag || SKIP_TAGS[0];
   const res = tag.apply();
   if (res === null) {
@@ -496,6 +518,15 @@ async function playHand() {
   S.animating = true;
   refreshControls();
   AudioFX.play("play");
+// DNA: bila hanya satu kartu dimainkan, kartu itu disalin ke deck
+if (S.selected.size === 1 && punyaJoker("dna")) {
+  const asal = S.hand.find(c => S.selected.has(c.id));
+  if (asal) {
+    tambahKartuKeDeck(asal.rank, asal.suit, asal.enhancement);
+    showToast("DNA: kartu disalin ke deck");
+  }
+}
+
 
   const result = scorePlayed();
   S.handsLeft--;
