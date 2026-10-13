@@ -265,6 +265,8 @@ function tambahJokerAcak(kelangkaan) {
 // 8 Ball dan Hallucination memakai ini untuk membuat Tarot.
 function tambahKonsumabelAcak(jenis) {
   if (!S || S.consumables.length >= maxCons()) return null;
+  // CATATAN: repo belum punya data kartu Spectral (hanya gambarnya), jadi
+  // jenis "spectral" belum bisa dibuat di sini. Séance menunggu kolam itu.
   const kolam = (jenis === "tarot" ? TAROTS : PLANETS);
   if (!kolam || !kolam.length) return null;
   const pilih = kolam[Math.floor(Math.random() * kolam.length)];
@@ -722,6 +724,7 @@ async function discardHand() {
   }).length;
   tambahPencatat("burnt-joker", 1);
   tambahPencatat("ramen", dibuang);
+  tambahPencatat("yorick", dibuang);
   tambahPencatat("hit-the-road", jackDibuang);
   // Seal Ungu: tiap kartu ber-seal ungu yang dibuang membuat satu Tarot
   const unguDibuang = [...S.selected].filter(id => {

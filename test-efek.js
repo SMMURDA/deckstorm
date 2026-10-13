@@ -221,6 +221,13 @@ uji("Driver's License x3 dengan 30 kartu ber-enhancement",
 uji("Driver's License diam tanpa deck",
   E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "driver-s-license" }] }).skor, 40);
 
+// ── Yorick ──────────────────────────────────────────────────────────────────
+// satu kartu 10: chips 20, mult 2 -> 40. Yorick +1 Mult tiap 23 kartu dibuang.
+uji("Yorick tanpa kartu dibuang", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 0 }] }).skor, 40);
+uji("Yorick 22 kartu dibuang (belum cukup)", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 22 }] }).skor, 40);
+uji("Yorick 23 kartu dibuang (+1 Mult)", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 23 }] }).skor, 60);
+uji("Yorick 46 kartu dibuang (+2 Mult)", E.hitungSkor(SATU10, { dasar: DASAR10, joker: [{ id: "yorick", tumpukan: 46 }] }).skor, 80);
+
 console.log(`  tes mesin penilaian: ${lulus} lulus, ${gagal} gagal`);
 pesan.forEach((p) => console.log(p));
 process.exit(gagal ? 1 : 0);

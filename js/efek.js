@@ -229,6 +229,11 @@
       var n = (ctx.deck || []).filter(function (c) { return c && c.enhancement; }).length;
       return n >= 16 ? { multX: 3 } : {};
     },
+    // Yorick: +1 Mult untuk tiap 23 kartu yang sudah dibuang sepanjang run
+    "yorick": function (ctx) {
+      var n = Math.floor(((ctx.joker && ctx.joker.tumpukan) || 0) / 23);
+      return n ? { mult: n } : {};
+    },
     // Seeing Double: x2 Mult bila tangan memuat sekop/keriting dan suit lain
     "seeing-double": function (ctx) {
       var suit = {};
@@ -489,6 +494,8 @@
       "space-joker", "superposition",
       // mematikan efek Boss Blind
       "chicot",
+      // Joker Legendary berbasis jumlah kartu yang dibuang
+      "yorick",
     ]; },
   };
 
