@@ -270,7 +270,7 @@ const VOUCHERS = [
   { id: "clearance",      name: "Clearance Sale",  desc: "Everything 25% off" },
   { id: "liquidation",    name: "Liquidation",     desc: "Everything 50% off" },
   { id: "hone",           name: "Hone",            desc: "Foil/Holo/Poly appear 2x more often" },
-  { id: "glowup",         name: "Glow Up",         desc: "Foil/Holo/Poly appear more often", belumAktif: true },
+  { id: "glowup",         name: "Glow Up",         desc: "Foil/Holo/Poly appear 4x more often" },
   { id: "rerollsurplus",  name: "Reroll Surplus",  desc: "Reroll costs $2 less" },
   { id: "rerollglut",     name: "Reroll Glut",     desc: "Reroll costs $2 less again" },
   { id: "crystalball",    name: "Crystal Ball",    desc: "+1 consumable slot" },

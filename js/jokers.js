@@ -202,11 +202,14 @@ const EDITIONS = {
 // Debug mode can force one edition outright, or scale the overall chance while
 // keeping the ratio between them.
 const EDITION_TOTAL = 0.04;
-function rollEdition(hone) {
+// kali = pengali peluang edisi. Hone 2x, Glow Up 4x. Dahulu berupa boolean,
+// kini berupa angka supaya bisa bertingkat.
+function rollEdition(kali) {
   const forced = DEBUG.on && DEBUG.editionForce;
   if (forced) return forced;
   const boost = (DEBUG.on && DEBUG.editionBoost > 0) ? DEBUG.editionBoost : 1;
-  const chance = Math.min(1, EDITION_TOTAL * (hone ? 2 : 1) * boost);
+  const faktor = Math.max(1, Number(kali) || 1);
+  const chance = Math.min(1, EDITION_TOTAL * faktor * boost);
   if (Math.random() >= chance) return null;
   const r = Math.random() * EDITION_TOTAL;
   // Batas kumulatif mengikuti peluang di atas: 2% / 3,4% / 3,7% / 4%

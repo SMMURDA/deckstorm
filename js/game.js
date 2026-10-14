@@ -309,6 +309,14 @@ function debuffAktif(kartu) {
   return false;
 }
 
+// Pengali peluang munculnya edisi pada Joker di toko. Hone 2x, Glow Up 4x.
+// Glow Up adalah tingkat di atas Hone, jadi tidak menumpuk.
+function faktorEdisi(St) {
+  if (St.vouchers.has("glowup")) return 4;
+  if (St.vouchers.has("hone")) return 2;
+  return 1;
+}
+
 function blindTarget() {
   const base = dasarTarget(S.ante);
   const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
@@ -1127,7 +1135,7 @@ function endRoundWin() {
   // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
     S.offers = rollShopJokers(shopJokerCount(),
       punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
-      S.vouchers.has("hone"));
+      faktorEdisi(S));
   S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
   // Voucher yang efeknya belum terpasang tidak dijual sama sekali.
   const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id) && !v.belumAktif);
@@ -1921,7 +1929,7 @@ $("#btn-reroll").onclick = () => {
   // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
     S.offers = rollShopJokers(shopJokerCount(),
       punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
-      S.vouchers.has("hone"));
+      faktorEdisi(S));
   AudioFX.play("click");
   renderShop();
   renderHud();
