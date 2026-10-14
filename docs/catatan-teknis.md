@@ -63,3 +63,30 @@ Hasil: **0 langkah tidak sah**, 0 keadaan tidak sah, 0 galat halaman.
 - Tujuh voucher masih belum berfungsi: omenglobe, telescope, observatory,
   magictrick, illusion, directorscut, retcon.
 - Dua Tag belum ada: Standard dan Charismatic.
+
+## Status verifikasi akhir (ronde terakhir)
+
+**Yang SUDAH terbukti:**
+- Kelengkapan data: Joker 150, Voucher 32 (semuanya dapat dibeli), Tag 24,
+  Boss Blind 28, Deck 15, Stake 8, Spectral 18, Seal 4, Edisi 4, Challenge 20.
+- Sapuan 196 kombinasi Deck x Stake x Challenge x Boss: 0 nilai tidak sah.
+- Sapuan penilaian langkah demi langkah pada 4 keadaan rumit: 0 nilai tidak sah.
+- Run 480 hand menembus ante 1 sampai 21 lewat jalur nextBlind() yang sebenarnya,
+  tanpa satu pun berkas gagal dimuat dan tanpa galat konsol.
+- Tombol Endless bekerja: keadaan endless berubah menjadi true sesudah diklik.
+- Seluruh layar (menu, howto, settings, collection, shop, win) terbuka bersih.
+
+**Yang BELUM terbukti - jangan dianggap sudah:**
+- **Uji run saya memanggil endRoundWin() tanpa syarat**, jadi run itu TIDAK
+  membuktikan syarat menang dan kalah. Run tersebut juga TIDAK membuktikan bahwa
+  target benar-benar bisa dicapai dengan cara bermain yang sah.
+- **gameWon tidak pernah menjadi true sampai ante 21.** Syarat menang di ante 9
+  perlu diperiksa ulang: apakah benar dipicu, dan di titik mana. Saya TIDAK
+  menyimpulkan ini bug, dan saya juga TIDAK menyimpulkan ini benar.
+- Skor yang dihasilkan jauh di bawah target (misalnya 263 berbanding 5.153.964),
+  dan kenaikan handLevels di uji saya tampaknya tidak benar-benar diterapkan.
+  Artinya angka-angka pada uji itu tidak menggambarkan permainan yang wajar.
+- Peluang (edisi, Wheel, Recyclomancy) hanya diuji dengan ratusan percobaan.
+- Aturan 20 Challenge dan 2 Tag (Standard, Charismatic) adalah tafsiran
+  Deckstorm; aturan Balatro-nya tidak bisa diverifikasi (situs menolak akses).
+- Repo BELUM dipush. 75 commit masih lokal.
