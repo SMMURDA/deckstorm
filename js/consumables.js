@@ -312,7 +312,7 @@ const VOUCHERS = [
   { id: "grabber",        name: "Grabber",         desc: "+1 Hand every round" },
   { id: "nachotong",      name: "Nacho Tong",      desc: "+1 Discard every round" },
   { id: "wasteful",       name: "Wasteful",        desc: "+1 Discard every round" },
-  { id: "recyclomancy",   name: "Recyclomancy",    desc: "Discards may be destroyed", belumAktif: true },
+  { id: "recyclomancy",   name: "Recyclomancy",    desc: "Discards may be destroyed" },
   { id: "tarotmerchant",  name: "Tarot Merchant",  desc: "Tarot cards appear more often" },
   { id: "tarottycoon",    name: "Tarot Tycoon",    desc: "Tarot cards appear much more often" },
   { id: "planetmerchant", name: "Planet Merchant", desc: "Planet cards appear more often" },

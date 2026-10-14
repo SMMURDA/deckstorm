@@ -449,6 +449,13 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
   S.phase = "play";
   S.animating = false;
   S.deck = shuffle(buildDeck());
+  // Kartu yang sudah dihancurkan tidak ikut dibangun ulang. Sebelum ini,
+  // kartu hancur (Sixth Sense) kembali muncul di babak berikutnya karena
+  // deck disusun ulang dari nol tiap babak.
+  if (S.deckHancur && S.deckHancur.size) {
+    S.deck = S.deck.filter(c => !S.deckHancur.has(c.id));
+    S.deckTotal = Math.max(0, 52 - S.deckHancur.size);
+  }
   // Efek awal Deck dijalankan di sini karena deck baru saja disusun.
   // Penanda mencegahnya berjalan lagi di babak-babak berikutnya.
   if (S.deckBelumDiterapkan) {
@@ -950,6 +957,8 @@ if (punyaJoker("8-ball")) {
     if (dimainkan.length === 1 && dimainkan[0].rank === 6) {
       const buang = dimainkan[0];
       S.deck = S.deck.filter(c => c.id !== buang.id);
+      S.deckHancur = S.deckHancur || new Set();
+      S.deckHancur.add(buang.id);
       if (tambahKonsumabelAcak("spectral")) showToast("Sixth Sense: kartu 6 dihancurkan, satu Spectral dibuat");
     }
   }
@@ -1101,6 +1110,14 @@ async function discardHand() {
   tambahPencatat("ramen", dibuang);
   tambahPencatat("yorick", dibuang);
   tambahPencatat("hit-the-road", jackDibuang);
+  // Recyclomancy: tiap kartu yang dibuang berpeluang 1 banding 4 hancur,
+  // yaitu hilang dari deck untuk seterusnya, bukan sekadar dibuang.
+  if (S.vouchers.has("recyclomancy")) {
+    S.deckHancur = S.deckHancur || new Set();
+    const hancur = [...S.selected].filter(() => Math.random() < 0.25);
+    hancur.forEach(id => S.deckHancur.add(id));
+    if (hancur.length) showToast("Recyclomancy: " + hancur.length + " kartu hancur");
+  }
   // Seal Ungu: tiap kartu ber-seal ungu yang dibuang membuat satu Tarot
   const unguDibuang = [...S.selected].filter(id => {
     const c = S.hand.find(x => x.id === id);
