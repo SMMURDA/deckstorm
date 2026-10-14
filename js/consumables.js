@@ -308,7 +308,7 @@ const VOUCHERS = [
   { id: "crystalball",    name: "Crystal Ball",    desc: "+1 consumable slot" },
   { id: "omenglobe",      name: "Omen Globe",      desc: "Spectral cards may appear in packs" },
   { id: "telescope",      name: "Telescope",       desc: "Celestial packs contain your most played hand" },
-  { id: "observatory",    name: "Observatory",     desc: "Planet cards give x1.5 Mult", belumAktif: true },
+  { id: "observatory",    name: "Observatory",     desc: "Planet cards give x1.5 Mult" },
   { id: "grabber",        name: "Grabber",         desc: "+1 Hand every round" },
   { id: "nachotong",      name: "Nacho Tong",      desc: "+1 Discard every round" },
   { id: "wasteful",       name: "Wasteful",        desc: "+1 Discard every round" },

@@ -844,6 +844,13 @@ function scorePlayed() {
     if (label || j.edition) flashes.push({ idx, label: label || EDITIONS[j.edition].desc });
   });
 
+  // Observatory: setiap kartu Planet di area konsumabel memberi x1,5 Mult.
+  // Diletakkan tepat sebelum Mult dikunci, karena setelah baris return di
+  // bawah ini nilainya sudah menjadi skor dan tidak bisa diubah lagi.
+  if (S.vouchers.has("observatory")) {
+    const nPl = (S.consumables || []).filter(c => c.kind === "planet").length;
+    if (nPl > 0) mult *= Math.pow(1.5, nPl);
+  }
   return { ev, chips, mult, total: Math.max(1, Math.round(chips * mult)), flashes, destroyed, debuffedCount, scoringCards };
 }
 
