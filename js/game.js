@@ -427,6 +427,15 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
   S.boss = null;
   if (S.blindIndex === 2) S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
 
+  // Amber Acorn: Joker dibalik dan diacak. Ini berefek sungguhan karena
+  // urutan Joker kiri ke kanan menentukan urutan aktivasi.
+  if (bossActive() && S.boss && S.boss.id === "amber" && S.jokers.length > 1) {
+    for (let i = S.jokers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [S.jokers[i], S.jokers[j]] = [S.jokers[j], S.jokers[i]];
+    }
+    showToast("Amber Acorn: urutan Joker diacak");
+  }
   S.handsLeft = bossActive() && S.boss.id === "needle" ? 1 : maxHands();
   if (S.bonusHands) { S.handsLeft += S.bonusHands; S.bonusHands = 0; }
   S.discardsLeft = bossActive() && S.boss.id === "water" ? 0 : maxDiscards();
