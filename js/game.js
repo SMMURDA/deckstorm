@@ -311,6 +311,17 @@ function debuffAktif(kartu) {
 
 // Pengali peluang munculnya edisi pada Joker di toko. Hone 2x, Glow Up 4x.
 // Glow Up adalah tingkat di atas Hone, jadi tidak menumpuk.
+// Voucher yang efeknya berlaku SEKETIKA saat dibeli. Voucher lain cukup
+// dibaca dari S.vouchers lewat fungsi yang memakainya.
+function terapkanVoucher(St, v) {
+  if (!v) return;
+  if (v.id === "hieroglyph" || v.id === "petroglyph") {
+    // Turunkan Ante satu tingkat, tidak pernah di bawah 1.
+    St.ante = Math.max(1, St.ante - 1);
+    showToast(v.name + ": Ante turun ke " + St.ante);
+  }
+}
+
 function faktorEdisi(St) {
   if (St.vouchers.has("glowup")) return 4;
   if (St.vouchers.has("hone")) return 2;
@@ -1237,6 +1248,7 @@ function renderShop() {
       if (S.money < priceOf(v)) { AudioFX.play("error"); return; }
       S.money -= priceOf(v);
       S.vouchers.add(v.id);
+      terapkanVoucher(S, v);
       S.voucherOffer = null;
       flyTo(tile, ".sidebar");
       AudioFX.play("win");
