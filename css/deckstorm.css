@@ -1585,3 +1585,60 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .joker-strip #jokers > .joker .tile-name,
   .joker-strip #consumables > .joker .tile-name { font-size: .44rem; line-height: 1.05; }
 }
+
+/* ── Perbaikan kartu contoh di layar Hand Levels ──
+   .mini-card berlatar hampir putih (247,243,255) tetapi teksnya mewarisi warna
+   tinta terang (243,237,251), sehingga "A♠", "K♥", dan seterusnya tidak terlihat
+   sama sekali dan selnya tampak seperti kartu putih kosong. Kartu remi memang
+   bermuka terang, jadi yang dibetulkan warnanya: tinta gelap, dan merah untuk
+   hati serta wajik. */
+.hands-table .mini-card {
+  background: #F7F3FF; color: #1B1526;
+  border: 1px solid #CFC4E4; border-radius: 4px;
+  font-weight: 700; text-shadow: none;
+}
+.hands-table .mini-card.red { color: #C0392B; }
+.hands-table .mini-card.star { box-shadow: 0 0 0 2px var(--emas); }
+
+/* ══ HUD PONSEL: SATU KOLOM, TOMBOL DI BAWAH SKOR ══
+   Susunan lama menaruh tombol di pojok kanan atas dan statistik di bawahnya,
+   dan hasilnya HUD terlihat kosong karena kolom kanan jauh lebih tinggi
+   daripada panel blind. Sekarang semuanya satu kolom selebar layar:
+     baris 1  panel blind: lencana, target, bilah skor, Round score
+     baris 2  Run Info + Options, lebarnya dipaskan dengan panel statistik
+     baris 3  enam kotak statistik dalam satu baris
+   Ditulis paling akhir karena aturan di blok media sebelumnya ditimpa aturan
+   lain yang muncul belakangan dengan spesifisitas sama. */
+@media (max-width: 780px) {
+  .sidebar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    padding: var(--s2);
+    overflow-x: visible;
+  }
+  .sidebar .blind-panel { grid-column: 1 / -1; grid-row: 1; }
+  .sidebar .hud-buttons {
+    grid-column: 1 / -1; grid-row: 2; margin: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+  }
+  .sidebar .hud-buttons .btn {
+    width: 100%; min-height: 40px; padding: .3rem .5rem; font-size: .74rem;
+    justify-content: center; gap: 5px;
+  }
+  .sidebar .stats-panel {
+    grid-column: 1 / -1; grid-row: 3; margin: 0;
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px;
+  }
+  /* Kotak statistik memakai garis warna di tepi ATAS karena kini sebaris, dan
+     tingginya disamakan dengan tombol di atasnya supaya keduanya terbaca
+     sebagai dua baris kotak yang setara. */
+  .sidebar .stat-box {
+    align-items: center; text-align: center; min-height: 40px;
+    padding: 3px 1px; border-left-width: 1px; border-top-width: 3px;
+  }
+  .sidebar .stat-box span { font-size: .44rem; letter-spacing: 0; }
+  .sidebar .stat-box b { font-size: .9rem; }
+  .sidebar .hud-logo, .sidebar #btn-menu-compact { display: none; }
+  .sidebar .boss-banner { grid-column: 1 / -1; grid-row: 4; }
+}
