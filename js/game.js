@@ -1648,6 +1648,10 @@ function cardEl(c) {
   if (isBossDebuffed(c)) el.classList.add("debuffed");
   const badge = ENH_BADGE[c.enhancement];
   const badgeHTML = badge ? `<span class="c-enh-badge" title="${badge[1]}">${badge[0]}</span>` : "";
+  // Segel sebelumnya hanya tersimpan di data dan tidak pernah digambar,
+  // sehingga kartu bersegel tampak sama seperti kartu biasa.
+  const sealHTML = c.seal
+    ? `<span class="c-seal seal-${c.seal}" title="Seal ${c.seal}"></span>` : "";
   // Kartu tertutup (boss House, Wheel, Fish, Mark) digambar sebagai punggung
   // kartu. Kartunya tetap dapat dipilih dan dimainkan, hanya tidak diketahui.
   const tertutup = !!(S.tertutup && S.tertutup.has(c.id));
@@ -1656,13 +1660,13 @@ function cardEl(c) {
       'src="' + jalurPunggung() + '">';
     el.classList.add("c-tertutup");
   } else if (c.enhancement === "stone") {
-    el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML;
+    el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML + sealHTML;
   } else {
     // Kartu memakai PNG hasil generator sendiri (tools/generate-cards.py)
     const berkas = rankLabel(c.rank);
     el.innerHTML =
       `<img class="c-img" draggable="false" alt="${berkas} ${c.suit}" ` +
-      `src="${jalurKartu(c.suit, berkas)}">` + badgeHTML;
+      `src="${jalurKartu(c.suit, berkas)}">` + badgeHTML + sealHTML;
   }
   el.onclick = () => toggleCard(c.id, el);
   return el;
@@ -1946,6 +1950,27 @@ function renderBossBanner() {
   }
 }
 
+// Skor terakhir yang sudah digambar, dipakai untuk tahu berapa yang bertambah.
+let skorTerakhir = null;
+
+// Angka bertambah terbang dari posisi elemen acuan lalu menghilang.
+function terbangkanSkor(jumlah, acuan) {
+  if (!jumlah || jumlah <= 0 || !settings.anim) return;
+  const kotak = acuan && acuan.getBoundingClientRect ? acuan.getBoundingClientRect() : null;
+  const el = document.createElement("div");
+  el.className = "skor-terbang";
+  el.textContent = "+" + jumlah.toLocaleString();
+  if (kotak && kotak.width) {
+    el.style.left = Math.round(kotak.left + kotak.width / 2) + "px";
+    el.style.top = Math.round(kotak.top) + "px";
+    el.style.transform = "translateX(-50%)";
+  } else {
+    el.style.left = "50%"; el.style.top = "30%";
+  }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+
 function renderHud(skipScore) {
   const bn = blindName();
   const blindEl = $("#hud-blind"); if (blindEl) blindEl.textContent = bn;
@@ -1959,6 +1984,20 @@ function renderHud(skipScore) {
   $("#hud-target").textContent = blindTarget().toLocaleString();
   const earnEl = $("#hud-earn"); if (earnEl) earnEl.textContent = "$".repeat(Math.min(4, 1 + S.ante));
   if (!skipScore) $("#hud-score").textContent = S.roundScore.toLocaleString();
+  // Efek skor ala Balatro: angka berdenyut, angkanya terbang, dan bilah skor
+  // menyala begitu target terlewati.
+  const bilahSkor = document.querySelector(".score-bar");
+  if (bilahSkor) bilahSkor.classList.toggle("penuh", S.roundScore >= blindTarget());
+  if (skorTerakhir !== null && S.roundScore > skorTerakhir) {
+    const elSkor = $("#hud-score");
+    if (elSkor) {
+      elSkor.classList.remove("pop");
+      void elSkor.offsetWidth;      // paksa peramban memulai ulang animasinya
+      elSkor.classList.add("pop");
+    }
+    terbangkanSkor(S.roundScore - skorTerakhir, elSkor || bilahSkor);
+  }
+  skorTerakhir = S.roundScore;
   $("#score-bar-fill").style.width = Math.min(100, S.roundScore / blindTarget() * 100) + "%";
   $("#hud-hands").textContent = S.handsLeft;
   $("#hud-discards").textContent = S.discardsLeft;
@@ -2013,37 +2052,53 @@ function rapatkanTangan() {
   const kartu = zona.querySelectorAll(".card");
   const n = kartu.length;
   if (!n) {
-    ["--kartu-w", "--kartu-h", "--tumpuk"].forEach(v => zona.style.removeProperty(v));
+    ["--kartu-w", "--kartu-h", "--tumpuk", "--kartu-gap"].forEach(v => zona.style.removeProperty(v));
     return;
   }
-  // clientWidth TERMASUK padding, sedangkan kartu disusun di dalam area isi.
-  // Memakai clientWidth apa adanya membuat lebar tersedia dilebihkan sebesar
-  // padding sehingga kartu terakhir tetap meluap beberapa piksel.
-  const gayaZona = getComputedStyle(zona);
-  const lebarZona = Math.max(120, zona.clientWidth
-    - parseFloat(gayaZona.paddingLeft || 0) - parseFloat(gayaZona.paddingRight || 0));
+  // clientWidth TERMASUK padding, sedangkan kartu disusun di area isi.
+  const gaya = getComputedStyle(zona);
+  const lebar = Math.max(120, zona.clientWidth
+    - parseFloat(gaya.paddingLeft || 0) - parseFloat(gaya.paddingRight || 0));
   const dasar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--kartu-w")) || 96;
-  // Bagian lebar kartu yang TETAP terlihat; sisanya boleh tertutup kartu
-  // berikutnya. Angka dan lambang ada di sudut kiri atas, jadi 42% sudah cukup
-  // untuk membacanya.
-  const terlihatMin = 0.42;
-  // Kartu hanya dirapatkan SEPERLUNYA. Kalau seluruh kartu muat bersebelahan,
-  // tumpang tindihnya nol - itu yang terjadi di desktop. Tumpang tindih hanya
-  // dipakai kalau ruangnya memang tidak cukup.
-  let w = dasar;
-  const tumpukUntuk = (lebar) => (n > 1 ? (lebar - w) / (n - 1) - w : 0);
-  let tumpuk = Math.min(0, tumpukUntuk(lebarZona));
-  if (tumpuk < -w * (1 - terlihatMin)) {
-    // terlalu rapat -> kecilkan kartunya, lalu hitung ulang
-    w = Math.max(34, Math.floor(lebarZona / (1 + (n - 1) * terlihatMin)));
-    tumpuk = Math.min(0, (n > 1 ? (lebarZona - w) / (n - 1) - w : 0));
-    tumpuk = Math.max(-w * (1 - terlihatMin), tumpuk);
+  const celahAwal = parseFloat(gaya.columnGap || gaya.gap) || 8;
+
+  // Celah mengecil hanya kalau terpaksa, supaya kartu terkecil pun tetap muat
+  // tanpa gulir mendatar. Lebar minimum satu kartu 26px.
+  // Lebar minimum satu kartu. Angka ini yang mencegah gulir mendatar: kalau
+  // kartu dikecilkan tanpa batas, barisnya justru melebar melewati layar.
+  const LEBAR_MIN = 34;
+  let celah = celahAwal;
+  if (n * LEBAR_MIN + (n - 1) * celah > lebar && n > 1) {
+    celah = Math.max(2, (lebar - n * LEBAR_MIN) / (n - 1));
   }
-  const h = Math.round(w * 272 / 192);
-  // Ditulis pada elemen #hand sehingga mengalahkan aturan media query.
-  zona.style.setProperty("--kartu-w", w + "px");
-  zona.style.setProperty("--kartu-h", h + "px");
-  zona.style.setProperty("--tumpuk", Math.round(tumpuk) + "px");
+
+  // Hitung satu kemungkinan susunan: lebar kartu dan tinggi totalnya.
+  const susun = (barisMaks) => {
+    const perBaris = Math.max(1, Math.ceil(n / barisMaks));
+    const w = Math.max(LEBAR_MIN, Math.min(dasar, Math.floor((lebar - (perBaris - 1) * celah) / perBaris)));
+    const h = Math.round(w * 272 / 192);
+    const baris = Math.ceil(n / perBaris);
+    return { w, h, baris, perBaris, tinggi: baris * h + (baris - 1) * celah };
+  };
+
+  const sebaris = susun(1);
+  const duaLapis = susun(2);
+
+  // PATOKANNYA ADALAH UKURAN KARTU, BUKAN "YANG MUAT". Percobaan sebelumnya
+  // memilih susunan yang muat tanpa menggulir, dan hasilnya kartu 26-40px di
+  // ponsel - seluruh meja muat, tetapi angkanya tidak terbaca lagi. Dua baris
+  // selalu memberi kartu yang lebih besar karena batasnya lebar baris, bukan
+  // lebar layar: pada 390px, delapan kartu dalam dua baris menjadi 79px,
+  // sedangkan dalam satu baris hanya 35px. Jadi dua baris dipakai selama
+  // kartunya lebih besar, dan gulir tegak sedikit adalah harga yang wajar -
+  // yang dilarang adalah gulir mendatar dan kartu yang saling menumpuk.
+  const pilih = duaLapis.w >= sebaris.w ? duaLapis : sebaris;
+
+  zona.style.setProperty("--kartu-w", pilih.w + "px");
+  zona.style.setProperty("--kartu-h", pilih.h + "px");
+  zona.style.setProperty("--kartu-gap", celah.toFixed(1) + "px");
+  zona.style.setProperty("--tumpuk", "0px");
+  zona.classList.toggle("dua-baris", pilih.baris > 1);
 }
 
 // Kartu melayang di menu mengikuti tema yang dipilih, bukan berkas tetap.

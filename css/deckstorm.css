@@ -561,20 +561,82 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   display: flex; justify-content: space-between; align-items: baseline;
   font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--redup);
 }
-.round-score-row b { font-family: var(--font-angka); font-size: .95rem; color: var(--tinta); }
+.round-score-row b {
+  font-family: var(--font-angka); font-size: 1.05rem; color: var(--tinta);
+  text-shadow: 0 0 10px rgba(233,161,59,.35);
+}
+/* Skor berdenyut tiap kali bertambah - efek yang sama seperti Balatro, di mana
+   angka skor adalah hal yang paling ditunggu pemain. */
+.round-score-row b.pop { animation: skorPop .42s var(--ease); }
+@keyframes skorPop {
+  0%   { transform: scale(1);    color: var(--tinta); }
+  35%  { transform: scale(1.28); color: var(--emas-2); text-shadow: 0 0 18px rgba(255,196,107,.9); }
+  100% { transform: scale(1);    color: var(--tinta); }
+}
+/* Bilah skor berkilau saat melewati target */
+.score-bar.penuh > div { background: linear-gradient(90deg, var(--emas), var(--emas-2) 50%, var(--emas)); }
+.score-bar.penuh { box-shadow: 0 0 12px rgba(233,161,59,.6); }
+.score-bar > div::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+  transform: translateX(-100%);
+  animation: kilau 2.2s linear infinite;
+}
+.score-bar { position: relative; }
+@keyframes kilau { to { transform: translateX(100%); } }
+
+/* Angka melayang saat skor bertambah */
+.skor-terbang {
+  position: fixed; z-index: 86; pointer-events: none;
+  font-family: var(--font-angka); font-size: .95rem; font-weight: 700;
+  color: var(--emas-2); text-shadow: 0 2px 6px rgba(0,0,0,.7);
+  animation: terbang 1s var(--ease) forwards;
+}
+@keyframes terbang {
+  0%   { opacity: 0; transform: translateY(6px) scale(.9); }
+  25%  { opacity: 1; transform: translateY(-4px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-42px) scale(1); }
+}
 
 .stats-panel {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2);
 }
+/* Kotak statistik: angka besar dan label kecil di atasnya, dengan garis warna
+   di tepi kiri sebagai pembeda peran. Sebelumnya keenam kotak tampak sama
+   sehingga Hands dan Discards - dua angka paling penting saat bermain - tidak
+   menonjol sama sekali. */
 .stat-box {
-  display: flex; flex-direction: column; gap: 1px; align-items: center;
-  padding: var(--s2) var(--s1);
-  background: #140f20; border: 1px solid var(--garis); border-radius: var(--r2);
+  position: relative;
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: var(--s2) var(--s3);
+  background: linear-gradient(180deg, #1b1530, #140f20);
+  border: 1px solid var(--garis); border-left: 3px solid var(--garis-2);
+  border-radius: var(--r2);
+  overflow: hidden;
 }
-.stat-box span { font-size: .52rem; letter-spacing: .06em; text-transform: uppercase; color: var(--redup); }
-.stat-box b { font-family: var(--font-angka); font-size: .86rem; color: var(--tinta); }
-.stat-money b { color: var(--uang); }
-.stat-ante b, .stat-round b { color: var(--biru); }
+.stat-box span {
+  font-size: .54rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--redup); font-weight: 600;
+}
+.stat-box b {
+  font-family: var(--font-angka); font-size: 1.1rem; line-height: 1.1;
+  color: var(--tinta);
+}
+.stat-hands    { border-left-color: var(--biru); }
+.stat-hands b  { color: var(--biru); }
+.stat-discards { border-left-color: var(--pink); }
+.stat-discards b { color: var(--pink); }
+.stat-money    { border-left-color: var(--emas); }
+.stat-money b  { color: var(--uang); }
+.stat-ante     { border-left-color: var(--hijau); }
+.stat-ante b   { color: var(--hijau); }
+.stat-round    { border-left-color: var(--ungu); }
+.stat-round b  { color: var(--ungu); }
+.stat-deck     { border-left-color: var(--redup); }
+.stat-deck b   { color: var(--tinta-2); }
+/* Tangan dan buang adalah yang paling sering dilihat: diberi penanda garis
+   bawah yang menyalA saat nilainya nol. */
+.stat-hands b:empty::after, .stat-discards b:empty::after { content: "0"; }
 
 .hud-logo { display: flex; justify-content: center; opacity: .5; }
 .hud-logo img { max-width: 92px; height: auto; }
@@ -737,11 +799,13 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
 
 .hand-zone { padding: var(--s3) var(--s2) var(--s1); }
 .hand {
-  display: flex; justify-content: center; align-items: flex-end;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+  gap: var(--kartu-gap, var(--s2));
   min-height: calc(var(--kartu-h) + 12px);
   padding: 0 var(--s2);
-  /* Kartu bertumpuk sedikit supaya tangan besar tetap muat tanpa mengecil */
-  --tumpuk: -20px;
+  /* Kartu tidak lagi saling menumpuk. Kalau tidak muat dalam satu baris,
+     tangan membungkus ke baris berikutnya - lihat rapatkanTangan() di JS. */
+  --tumpuk: 0px;
 }
 .hand .card { margin-left: var(--tumpuk); }
 .hand .card:first-child { margin-left: 0; }
@@ -812,6 +876,43 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   25% { transform: translateX(-6px); }
   75% { transform: translateX(6px); }
 }
+
+/* ── Tampilan enhancement pada kartu ──
+   Kartu membawa kelas enh-<jenis> dari JS. Tiap jenis diberi warna dan
+   perlakuan sendiri supaya perubahannya langsung terlihat, bukan hanya lewat
+   badge kecil di sudut. */
+.card.enh-bonus   { background: linear-gradient(180deg, #EAF2FF, #CFE0FF); box-shadow: 0 0 0 2px #3E7BD6, var(--bayang-1); }
+.card.enh-mult    { background: linear-gradient(180deg, #FFEDEA, #FFD3CC); box-shadow: 0 0 0 2px #D9433E, var(--bayang-1); }
+.card.enh-wild    { background: linear-gradient(135deg, #FFE9F3, #E9F5FF 40%, #EFFFE9 70%, #FFF6E0); box-shadow: 0 0 0 2px #B46BE0, var(--bayang-1); }
+.card.enh-glass   { background: linear-gradient(180deg, rgba(226,246,255,.72), rgba(184,224,246,.5)); box-shadow: 0 0 0 2px #7FC8E8, 0 0 14px rgba(160,220,255,.55); backdrop-filter: blur(1px); }
+.card.enh-steel   { background: linear-gradient(180deg, #E8ECF2, #B9C2CF); box-shadow: 0 0 0 2px #7C8798, var(--bayang-1); }
+.card.enh-stone   { background: linear-gradient(180deg, #8C8794, #5E5966); box-shadow: 0 0 0 2px #3A3540, var(--bayang-1); }
+.card.enh-gold    { background: linear-gradient(180deg, #FFF4D6, #F0D48A); box-shadow: 0 0 0 2px #C79A2E, 0 0 12px rgba(233,161,59,.45); }
+.card.enh-lucky   { background: linear-gradient(180deg, #E9FFF1, #C6F2DA); box-shadow: 0 0 0 2px #3FA76B, var(--bayang-1); }
+.card.enh-bonus .c-enh-badge   { background: #3E7BD6; color: #fff; }
+.card.enh-mult .c-enh-badge    { background: #D9433E; color: #fff; }
+.card.enh-wild .c-enh-badge    { background: #B46BE0; color: #fff; }
+.card.enh-glass .c-enh-badge   { background: #2E7FA6; color: #fff; }
+.card.enh-steel .c-enh-badge   { background: #59616E; color: #fff; }
+.card.enh-stone .c-enh-badge   { background: #3A3540; color: #fff; }
+.card.enh-gold .c-enh-badge    { background: #C79A2E; color: #2a1c05; }
+.card.enh-lucky .c-enh-badge   { background: #3FA76B; color: #fff; }
+/* Badge dibuat lebih besar dan berisi agar perubahannya terbaca sekilas */
+.card.enh-bonus .c-enh-badge, .card.enh-mult .c-enh-badge, .card.enh-wild .c-enh-badge,
+.card.enh-glass .c-enh-badge, .card.enh-steel .c-enh-badge, .card.enh-stone .c-enh-badge,
+.card.enh-gold .c-enh-badge, .card.enh-lucky .c-enh-badge {
+  width: 22px; height: 22px; font-size: .52rem; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+/* Segel: penanda bulat kecil di sudut kanan bawah */
+.card .c-seal {
+  position: absolute; right: 3px; bottom: 3px; width: 12px; height: 12px;
+  border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.45);
+}
+.card .c-seal.seal-red { background: #E0455E; }
+.card .c-seal.seal-blue { background: #4A86E8; }
+.card .c-seal.seal-gold { background: #E9A13B; }
+.card .c-seal.seal-purple { background: #A067E8; }
 
 /* ── Panel pratinjau skor ── */
 
@@ -1065,7 +1166,10 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   /* Kartu dikecilkan supaya seluruh tangan muat tanpa gulir mendatar.
      Tumpang tindihnya sendiri dihitung JS (rapatkanTangan) berdasarkan lebar
      wadah dan jumlah kartu, jadi berapa pun jumlah kartunya selalu muat. */
-  :root { --kartu-w: 54px; --kartu-h: 77px; --kartu-w-kecil: 44px; --kartu-h-kecil: 63px; }
+  /* Ukuran kartu TIDAK dibatasi di sini. rapatkanTangan() di JS menghitung
+     lebar yang pas dari lebar wadah dan jumlah kartu, dan sudah menjamin tidak
+     ada gulir mendatar. Batas di CSS dulu membuat tablet 768px hanya memakai
+     kartu 54px padahal muat 96px. */
   .screen { padding: var(--s3); }
   .panel { width: 100%; max-height: none; padding: var(--s4) var(--s3) var(--s3); }
   .panel-wide, .panel-tall { width: 100%; max-height: none; }
@@ -1073,18 +1177,37 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
 
   /* HUD ponsel dibuat satu baris ringkas. Sebelumnya ia 348px tinggi sehingga
      meja hanya kebagian 496px dari layar 844px dan sisanya harus digulir. */
+  /* HUD ponsel disusun sebagai kisi: informasi blind di kiri, TOMBOL RUN INFO
+     DAN OPTIONS DI POJOK KANAN ATAS, dan statistik di baris bawah.
+     Sebelumnya seluruh isi HUD menjadi satu baris yang digulir mendatar,
+     sehingga kedua tombol itu berada di x=769 pada layar selebar 390 - di luar
+     layar dan tidak bisa dijangkau sama sekali. */
   .sidebar {
-    flex-wrap: nowrap; align-items: center; gap: var(--s2);
-    padding: var(--s2); overflow-x: auto;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start; gap: var(--s2);
+    padding: var(--s2); overflow-x: visible;
   }
+  .sidebar .blind-panel { grid-column: 1; grid-row: 1; }
+  .sidebar .hud-buttons { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+  .sidebar .stats-panel { grid-column: 1 / -1; grid-row: 2; }
+  .sidebar .boss-banner { grid-column: 1 / -1; grid-row: 3; }
+  .sidebar .hud-logo { display: none; }
   .blind-panel { flex: 0 0 auto; }
   .blind-title { display: none; }
   .blind-badge { width: 44px; height: 44px; }
   .blind-info b.c-red { font-size: 1rem; }
   .score-at-least, .earn-line { font-size: .52rem; }
-  .score-bar { display: none; }
-  .round-score-row { flex-direction: column; gap: 0; }
-  .stats-panel { flex: 0 0 auto; grid-template-columns: repeat(6, minmax(48px, 1fr)); }
+  /* Bilah skor TIDAK disembunyikan - ini penanda kemajuan yang paling jelas
+     dan justru membuat bilah status terlihat hidup, bukan kosong. */
+  .score-bar { height: 12px; }
+  .round-score-row { flex-direction: row; justify-content: space-between; align-items: baseline; }
+  .round-score-row b { font-size: 1.35rem; }
+  /* Enam kolom satu baris: hemat ~60px tinggi. Label dikecilkan tetapi angkanya
+     tetap besar supaya Hands dan Discards tetap terbaca sekilas. */
+  .stats-panel { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+  .stat-box { padding: 3px var(--s1); border-left-width: 2px; }
+  .stat-box b { font-size: .92rem; }
+  .stat-box span { font-size: .46rem; letter-spacing: 0; }
   .stat-box { padding: 3px 2px; }
   .stat-box span { font-size: .44rem; }
   .stat-box b { font-size: .68rem; }
@@ -1092,11 +1215,17 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .boss-banner-art { display: none; }
   /* Label tombol TIDAK disembunyikan. Menyembunyikannya menyisakan ikon kecil
      tanpa keterangan sehingga tombol Run Info dan Options dianggap tidak ada. */
-  .hud-buttons { flex: 0 0 auto; flex-direction: row; }
-  .hud-buttons .btn { width: auto; }
+  .hud-buttons { flex-direction: row; gap: var(--s1); }
+  .hud-buttons .btn { width: auto; padding: .35rem .5rem; font-size: .72rem; }
 
-  .main-area.felt-table { padding: var(--s3) var(--s2) 84px; gap: var(--s2); }
-  .strips-row { grid-template-columns: minmax(0, 1fr); }
+  .main-area.felt-table { padding: var(--s2) var(--s2) 118px; gap: var(--s1); }
+  /* Joker dan Konsumabel tetap BERDAMPINGAN di ponsel. Menumpuknya menjadi dua
+     baris memakan 204px tinggi - seperempat layar 844px - dan mendorong tombol
+     aksi keluar layar. */
+  .strips-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+  .joker-strip .jokers { gap: var(--s1); }
+  .joker-strip .joker { width: 44px; height: 62px; }
+  .joker-strip .joker .tile-name { font-size: .48rem; }
   .jokers { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--s1); }
   .jokers .joker { flex: 0 0 auto; }
   .strip-label .hint { display: none; }
@@ -1105,19 +1234,25 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .hand .card { transform-origin: bottom center; }
   .hand .card:hover { transform: translateY(-6px); }
   .hand .card.selected { transform: translateY(-10px); }
-  .played-zone { min-height: calc(var(--kartu-h) + 4px); }
+  /* Area permainan yang masih kosong tidak perlu setinggi kartu: itu memakan
+     ~80px. Setelah ada kartu yang dimainkan, tingginya mengikuti isinya. */
+  .played-zone { min-height: 0; padding: var(--s2); }
+  .played-zone:not(:empty) { min-height: calc(var(--kartu-h) + 4px); }
   .main-area.felt-table { gap: var(--s2); }
   .preview-panel { padding: var(--s2) var(--s3); }
 
-  /* Baris aksi TIDAK menempel. Sebelumnya ia sticky dan menutupi kartu di
-     tangan: pada 390x844 dokumen setinggi 1177px sedangkan layar 844px,
-     sehingga baris aksi duduk tepat di atas kartu yang sedang dipakai. */
+  /* Baris aksi menempel di bawah layar, dan felt-table diberi padding bawah
+     sebesar tingginya. Dua hal ini harus selalu berpasangan: percobaan
+     sebelumnya hanya membuatnya menempel tanpa mencadangkan ruang, sehingga
+     barisnya duduk tepat di atas kartu di tangan. */
   .actions {
-    position: static;
+    position: sticky; bottom: 0; z-index: 40;
     margin: var(--s2) calc(-1 * var(--s2)) 0; padding: var(--s2);
+    background: linear-gradient(180deg, rgba(18,13,28,.85), var(--panel));
     border-top: 1px solid var(--garis);
     gap: var(--s2);
   }
+  .main-area.felt-table { padding-bottom: 118px; }
   .actions .btn { flex: 1 1 42%; min-width: 0; }
   .actions .btn-small { flex: 0 1 auto; }
   .deck-pile { display: none; }
@@ -1150,7 +1285,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
    supaya tombol Play Hand tetap terlihat tanpa perlu menggulir. Tinggi layar
    adalah batasan yang paling sering terlewat - dulu hanya lebar yang diatur. */
 @media (max-height: 800px) {
-  :root { --kartu-w: 96px; --kartu-h: 136px; --kartu-w-kecil: 48px; --kartu-h-kecil: 68px; }
+  :root { --kartu-w: 88px; --kartu-h: 125px; --kartu-w-kecil: 48px; --kartu-h-kecil: 68px; }
   .main-area.felt-table { padding-top: var(--s2); padding-bottom: var(--s2); gap: var(--s1); }
   .hand-zone { padding: var(--s2) var(--s2) 0; }
   .hand { min-height: calc(var(--kartu-h) + 6px); }
@@ -1161,11 +1296,66 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .stat-box { padding: 3px 2px; }
 }
 
+/* Layar ponsel yang SANGAT pendek: baris aksi tidak lagi menempel.
+   Saat menempel, ia selalu duduk di dasar layar; pada layar setinggi 568-667px
+   kartu di tangan berada tepat di posisi itu sehingga tertutup. Di layar seperti
+   ini pemain memang perlu menggulir sedikit, dan itu lebih baik daripada kartu
+   yang tidak terlihat sama sekali. Ruang cadangan di bawah felt juga
+   dikembalikan supaya tidak menyisakan celah kosong. */
+@media (max-width: 780px) and (max-height: 700px) {
+  .actions { position: static; background: none; }
+  .main-area.felt-table { padding-bottom: var(--s3); }
+}
+
 /* Tinggi <=700px (ponsel lama dan mode mendatar): dahulukan tombol Play Hand.
    Di sini area permainan yang kosong diringkas sampai nol dan panel pratinjau
    disembunyikan - informasinya tetap muncul di area permainan setelah kartu
    dimainkan, sedangkan tombol yang tidak terlihat sama sekali tidak berguna. */
 @media (max-height: 700px) {
+  :root { --kartu-w: 66px; --kartu-h: 93px; --kartu-w-kecil: 40px; --kartu-h-kecil: 57px; }
+  /* HUD dipadatkan. Pada 360x640 HUD setinggi 224px - angka terbesar yang
+     memakan tinggi layar, padahal isinya hanya status yang bisa dibaca sekilas.
+     Yang dibuang: judul blind, baris "to earn", dan lencana besar. */
+  .blind-title { display: none; }
+  .earn-line { display: none; }
+  .blind-badge { width: 38px; height: 38px; }
+  .blind-info b.c-red { font-size: 1.05rem; }
+  .score-at-least { font-size: .5rem; }
+  .score-bar { height: 8px; }
+  .round-score-row b { font-size: 1rem; }
+  .side-panel { padding: var(--s2); }
+  .stat-box { padding: 2px var(--s1); }
+  .stat-box b { font-size: .84rem; }
+  .stat-box span { font-size: .42rem; }
+  .hud-buttons .btn { min-height: 38px; padding: .3rem .45rem; font-size: .68rem; }
+  /* Sisa ~70px dipangkas dari bagian yang tidak wajib ada supaya keempat tombol
+     aksi ikut terlihat pada 320x568, 740x360, dan 667x375. */
+  .played-info { display: none; }
+  /* Label "Joker"/"Konsumabel" di atas tiap baki tidak wajib ada: isinya sudah
+     jelas dari gambarnya. Menghapusnya memangkas ~22px lagi, dan itulah sisa
+     terakhir yang membuat tombol aksi berada di bawah layar pada 320x568,
+     740x360, dan 667x375. */
+  .tray-label { display: none; }
+  .felt-table { padding-top: var(--s1); }
+  .preview-panel { padding: 2px var(--s2); }
+  .joker-strip { min-height: 0; }
+  .hand-zone { min-height: 0; padding-top: var(--s1); }
+  .felt-table { gap: 0; }
+  .strips-row { gap: var(--s1); }
+  .joker-strip { padding: var(--s1); }
+  .joker-strip .joker { width: 40px; height: 56px; }
+  .preview-panel { padding: var(--s1) var(--s2); }
+  .side-panel { padding: var(--s1) var(--s2); }
+  .blind-head { gap: var(--s1); }
+  .stats-panel { margin-top: 0; }
+  /* Baris aksi menjadi SATU baris. Di layar pendek baris aksi yang membungkus
+     menjadi dua baris setinggi 114px - angka terbesar kedua yang memakan tinggi
+     layar, dan itulah yang mendorong tombol keluar layar pada 320x568. */
+  .actions { flex-wrap: nowrap; gap: var(--s1); }
+  .actions .btn { flex: 1 1 0; min-width: 0; min-height: 42px; font-size: .72rem; padding: .3rem .25rem; }
+  .actions .btn .lbl { font-size: .68rem; }
+  .actions .btn .ico { width: 15px; height: 15px; }
+  .actions .btn-small { flex: 0 0 auto; }
   .played-zone:empty { min-height: 0; padding: 0; border: 0; }
   .played-zone:empty::after { display: none; }
   .jokers { min-height: 0; }
@@ -1187,7 +1377,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
    kolom kiri seperti desktop. Bilah atas memakan tinggi yang tidak dimiliki
    layar 390px, sedangkan kolom kiri hanya memakai lebar yang masih tersisa. */
 @media (orientation: landscape) and (max-height: 560px) {
-  :root { --kartu-w: 96px; --kartu-h: 136px; --kartu-w-kecil: 48px; --kartu-h-kecil: 68px; }
+  :root { --kartu-w: 62px; --kartu-h: 88px; --kartu-w-kecil: 40px; --kartu-h-kecil: 57px; }
   .game-grid { grid-template-columns: 176px minmax(0, 1fr); }
   .sidebar {
     flex-direction: column; flex-wrap: nowrap; overflow-y: auto; overflow-x: hidden;
@@ -1204,8 +1394,9 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .main-area.felt-table { border-left: 1px solid var(--felt-tepi); padding: var(--s2); }
   .strips-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .hand { justify-content: center; overflow-x: visible; }
-  .actions { position: static; margin-top: 0; padding-top: var(--s1); }
-  .actions .btn { min-height: 40px; }
+  .actions { position: static; margin-top: 0; padding-top: var(--s1); flex-wrap: nowrap; gap: var(--s1); }
+  .actions .btn { min-height: 40px; flex: 1 1 0; min-width: 0; font-size: .7rem; padding: .3rem .25rem; }
+  .actions .btn-small { flex: 0 0 auto; }
 }
 
 /* ── Aksesibilitas ── */
