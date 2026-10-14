@@ -1427,7 +1427,16 @@ function endRoundWin() {
   renderJokers();
 }
 
+let shopSudahBerbunyi = false;
+
 function renderShop() {
+  // Suara barang muncul sekali per render toko, sebagai penanda pendengaran
+  // bahwa tokonya sudah terisi. Dipasang di sini, bukan di dalam loop tawaran,
+  // supaya tidak berbunyi berulang untuk setiap barang.
+  if (settings.anim && S.offers && S.offers.length && !shopSudahBerbunyi) {
+    shopSudahBerbunyi = true;
+    AudioFX.play("deal");
+  }
   $("#shop-money").textContent = "$" + S.money;
   const rerollLbl = $("#btn-reroll .lbl");
   if (rerollLbl) rerollLbl.textContent = "Reroll $" + S.rerollCost;
@@ -1454,9 +1463,27 @@ function renderShop() {
     S.offers.forEach(j => {
       // Tawaran bisa berupa Joker atau kartu konsumabel (Tarot/Planet).
       const kartuMain = j.kind === "kartu";
-        const barang = !!j.kind && j.kind !== "joker" && !kartuMain;
-      const tile = kartuMain ? cardEl(j)
-          : barang ? consTile(j, { showDesc: true }) : jokerTile(j, { showDesc: true });
+        const barang = !!j.kind && j.kind !== "joker" && !kartuMain;const tile = kartuMain ? cardEl(j)
+            : barang ? consTile(j, { showDesc: true }) : jokerTile(j, { showDesc: true });
+          // Pemain harus bisa membaca keterangan barang SEBELUM membeli, bukan
+          // menebak dari gambar dan harga saja. Mengetuk ubinnya membuka panel
+          // keterangan yang sama dengan yang dipakai di tangan dan koleksi.
+          tile.classList.add("bisa-diklik");
+          tile.title = "Ketuk untuk keterangan";
+          tile.onclick = (ev) => {
+            if (ev.target.closest("button")) return;   // tombol Buy ditangani sendiri
+            AudioFX.play("select");
+            const harga = kartuMain ? j.cost : priceOf(j);
+            const jenis = kartuMain ? "Playing Card"
+              : barang ? (j.kind === "planet" ? "Planet" : j.kind === "spectral" ? "Spectral" : "Tarot")
+              : (j.rarity || "joker");
+            openModal({
+              icon: j.art || j.icon || (j.suit ? "suit" + j.suit : null),
+              name: j.name || j.nama || "Barang",
+              tags: [String(jenis).toUpperCase(), "Harga $" + harga],
+              desc: j.desc || j.keterangan || "Tidak ada keterangan.",
+            });
+          };
       const btn = document.createElement("button");
       btn.className = "btn";
       btn.textContent = "Buy $" + (kartuMain ? j.cost : priceOf(j));

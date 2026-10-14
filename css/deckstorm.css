@@ -1753,3 +1753,59 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
   .actions { position: static; background: none; }
   .main-area.felt-table { padding-bottom: var(--s3); }
 }
+
+
+/* ══ INFO BARANG DI TOKO ══
+   Sebelumnya keterangan barang di toko dipotong: .tile-name dan deskripsinya
+   tidak punya ruang karena ubinnya bertinggi tetap sementara isinya tiga bagian
+   (ikon, nama, keterangan). Auditing menemukan nama pun tidak terlihat pada 150
+   dari 150 ubin di layar Collection, dan di toko keterangannya terpotong.
+   Sekarang ubinnya boleh tumbuh mengikuti isinya, dan keterangannya dibatasi
+   beberapa baris saja dengan elipsis supaya tinggi antarubin tetap seragam. */
+.tile-name { flex: 0 0 auto; }
+.joker .jdesc, .joker .coll-meta { flex: 0 0 auto; }
+.joker { height: auto; min-height: var(--ubin-h, 68px); }
+.shop-tile .jdesc { -webkit-line-clamp: 3; line-clamp: 3; }
+.coll-tile { height: auto; min-height: var(--ubin-h, 68px); }
+.bisa-diklik { cursor: pointer; }
+.bisa-diklik:hover { box-shadow: 0 0 0 2px var(--emas-2), var(--bayang-2); }
+
+/* Animasi masuk barang toko, berurutan */
+@keyframes tokoMasuk {
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.shop-tile, #shop-cards .joker, #shop-cards .card {
+  animation: tokoMasuk .3s var(--ease) both;
+}
+#shop-cards > *:nth-child(1) { animation-delay: .00s; }
+#shop-cards > *:nth-child(2) { animation-delay: .07s; }
+#shop-cards > *:nth-child(3) { animation-delay: .14s; }
+#shop-cards > *:nth-child(4) { animation-delay: .21s; }
+#shop-cards > *:nth-child(5) { animation-delay: .28s; }
+
+/* ══ NOTIFIKASI BOSS BLIND SEJAJAR DENGAN RUN INFO DAN OPTIONS ══
+   Keterangan Boss Blind diletakkan di baris yang sama dengan tombol Run Info
+   dan Options: sisi kiri baris itu untuk keterangan bos, sisi kanan untuk
+   tombolnya. Sebelumnya banner bos berada di barisnya sendiri di bawah tombol. */
+@media (max-width: 780px) {
+  .sidebar {
+    grid-template-areas:
+      "blind  blind  blind  blind  blind  blind"
+      "bos    bos    bos    tombol tombol tombol"
+      "stats  stats  stats  stats  stats  stats";
+  }
+  .sidebar .boss-banner {
+    grid-area: bos; align-self: stretch; margin: 0;
+    animation: bosMasuk .45s var(--ease) both;
+  }
+  .sidebar .boss-banner-body { font-size: .58rem; }
+  .sidebar .boss-banner-body b { font-size: .68rem; }
+  .sidebar .boss-banner-art { width: 34px; }
+  .sidebar .hud-buttons { grid-area: tombol; }
+}
+@keyframes bosMasuk {
+  0%   { opacity: 0; transform: translateX(-14px); }
+  60%  { opacity: 1; transform: translateX(2px); }
+  100% { opacity: 1; transform: none; }
+}
