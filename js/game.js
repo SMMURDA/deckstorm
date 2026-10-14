@@ -327,6 +327,42 @@ function terapkanVoucher(St, v) {
   }
 }
 
+// Slot kartu di toko menjual CAMPURAN Joker, Tarot, dan Planet.
+// Bobot 5 : 1 : 1 memberi Joker 71,4% dan Tarot serta Planet 14,3%
+// masing-masing - angka Balatro yang sudah diverifikasi.
+function bobotToko() {
+  const b = { joker: 5, tarot: 1, planet: 1 };
+  if (S.vouchers.has("tarottycoon")) b.tarot *= 4;
+  else if (S.vouchers.has("tarotmerchant")) b.tarot *= 2;
+  if (S.vouchers.has("planettycoon")) b.planet *= 4;
+  else if (S.vouchers.has("planetmerchant")) b.planet *= 2;
+  return b;
+}
+function rollShopCards(n) {
+  const b = bobotToko();
+  const total = b.joker + b.tarot + b.planet;
+  const jenis = [];
+  for (let i = 0; i < n; i++) {
+    const r = Math.random() * total;
+    jenis.push(r < b.joker ? "joker" : r < b.joker + b.tarot ? "tarot" : "planet");
+  }
+  const nJoker = jenis.filter(x => x === "joker").length;
+  // Planet TIDAK memakai bidang apply (levelnya diurus jalur pemakaian
+  // tersendiri), jadi penyaringan apply hanya berlaku untuk Tarot. Filter
+  // yang sama untuk Planet membuat kolamnya kosong dan Planet tidak pernah
+  // muncul sama sekali - itu yang terjadi sebelum baris ini diperbaiki.
+  const ambil = (arr, k, perluApply) => arr
+    .filter(x => !perluApply || typeof x.apply === "function")
+    .sort(() => Math.random() - 0.5).slice(0, k).map(x => Object.assign({}, x));
+  const hasil = nJoker
+    ? rollShopJokers(nJoker, punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)), faktorEdisi(S))
+    : [];
+  ambil(TAROTS, jenis.filter(x => x === "tarot").length, true)
+    .concat(ambil(PLANETS, jenis.filter(x => x === "planet").length, false))
+    .forEach(x => hasil.push(x));
+  return hasil;
+}
+
 function faktorEdisi(St) {
   if (St.vouchers.has("glowup")) return 4;
   if (St.vouchers.has("hone")) return 2;
@@ -1245,9 +1281,7 @@ function endRoundWin() {
   S.chaosGratis = punyaJoker("chaos-the-clown");
 
   // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
-    S.offers = rollShopJokers(shopJokerCount(),
-      punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
-      faktorEdisi(S));
+    S.offers = rollShopCards(shopJokerCount());
   S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
   // Voucher yang efeknya belum terpasang tidak dijual sama sekali.
   const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id) && !v.belumAktif);
@@ -1286,13 +1320,15 @@ function renderShop() {
   // joker offers
   const wrap = $("#shop-offers");
   wrap.innerHTML = "";
-  if (S.jokers.length >= maxJokers()) {
+  if (S.jokers.length >= maxJokers() && S.offers.every(o => !o.kind)) {
     wrap.innerHTML = `<p class="shop-empty">Joker slots full (${maxJokers()}/${maxJokers()})</p>`;
   } else if (S.offers.length === 0) {
     wrap.innerHTML = `<p class="shop-empty">Sold out — reroll!</p>`;
   } else {
     S.offers.forEach(j => {
-      const tile = jokerTile(j, { showDesc: true });
+      // Tawaran bisa berupa Joker atau kartu konsumabel (Tarot/Planet).
+      const barang = !!j.kind && j.kind !== "joker";
+      const tile = barang ? consTile(j, { showDesc: true }) : jokerTile(j, { showDesc: true });
       const btn = document.createElement("button");
       btn.className = "btn";
       btn.textContent = "Buy $" + priceOf(j);
@@ -1300,8 +1336,15 @@ function renderShop() {
       btn.onclick = () => {
         if (S.money < priceOf(j)) { AudioFX.play("error"); return; }
         S.money -= priceOf(j);
-        S.jokers.push(j);
-        S.offers = S.offers.filter(o => o !== j);
+        if (barang) {
+          if (S.consumables.length >= maxCons()) { showToast("Slot konsumabel penuh"); return; }
+          S.consumables.push(j);
+        } else if (S.jokers.length >= maxJokers()) {
+          showToast("Slot Joker penuh");
+          return;
+        } else {
+          S.jokers.push(j);
+        }
         tile.classList.add("sold");
         flyTo(tile, "#jokers");
         AudioFX.play("coin");
@@ -2052,9 +2095,7 @@ $("#btn-reroll").onclick = () => {
   if (!S || (!free && S.money < S.rerollCost)) { AudioFX.play("error"); return; }
   if (!free) { S.money -= S.rerollCost; S.rerollCost++; }
   // Showman: bila terpasang, Joker yang sudah dimiliki boleh muncul lagi
-    S.offers = rollShopJokers(shopJokerCount(),
-      punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
-      faktorEdisi(S));
+    S.offers = rollShopCards(shopJokerCount());
   AudioFX.play("click");
   renderShop();
   renderHud();
