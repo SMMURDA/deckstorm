@@ -325,8 +325,8 @@ const VOUCHERS = [
   { id: "illusion",       name: "Illusion",        desc: "Shop playing cards may have enhancements", belumAktif: true },
   { id: "hieroglyph",     name: "Hieroglyph",      desc: "-1 Ante" },
   { id: "petroglyph",     name: "Petroglyph",      desc: "-1 Ante again" },
-  { id: "directorscut",   name: "Director's Cut",  desc: "Reroll the Boss Blind once", belumAktif: true },
-  { id: "retcon",         name: "Retcon",          desc: "Reroll the Boss Blind freely", belumAktif: true },
+  { id: "directorscut",   name: "Director's Cut",  desc: "Reroll the Boss Blind once" },
+  { id: "retcon",         name: "Retcon",          desc: "Reroll the Boss Blind freely" },
   { id: "paintbrush",     name: "Paint Brush",     desc: "+1 hand size" },
   { id: "palette",        name: "Palette",         desc: "+1 hand size again" },
 ].map(v => ({ ...v, kind: "voucher", cost: 10 }));

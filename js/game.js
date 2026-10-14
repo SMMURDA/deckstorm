@@ -523,6 +523,7 @@ function advanceBlindIndex() {
     S.ante++;
     S.blindIndex = 0;
     S.skipsThisAnte = 0; // fresh ante → skips available again
+    S.bossReroll = 0; // Director's Cut tersedia lagi di Ante baru
     S.kartuTerpakaiAnte = []; // The Pillar hanya berlaku dalam satu Ante
     S.boss = null;
     // Ante 8 adalah Showdown terakhir pada run biasa. Bila pemain memilih
@@ -607,6 +608,27 @@ function showBlindSelect() {
   const canSkip = canSkipCurrentBlind();
   const skipBtn = $("#btn-skip-blind");
   skipBtn.hidden = !canSkip;
+  // Director's Cut (sekali per Ante) dan Retcon (bebas) mengganti Boss Blind.
+  const rerollBtn = $("#btn-reroll-boss");
+  if (rerollBtn) {
+    const punyaRetcon = S.vouchers.has("retcon");
+    const punyaCut = S.vouchers.has("directorscut");
+    const sisa = Math.max(0, 1 - (S.bossReroll || 0));
+    const boleh = kind === "boss" && (punyaRetcon || (punyaCut && sisa > 0));
+    rerollBtn.hidden = !boleh;
+    if (boleh) {
+      rerollBtn.textContent = punyaRetcon ? "Ganti Boss (bebas)"
+        : "Ganti Boss (" + sisa + " tersisa)";
+      rerollBtn.onclick = () => {
+        if (kind !== "boss") return;
+        if (!punyaRetcon && (S.bossReroll || 0) >= 1) { AudioFX.play("error"); return; }
+        S.bossReroll = (S.bossReroll || 0) + 1;
+        S.boss = BOSSES[Math.floor(Math.random() * BOSSES.length)];
+        AudioFX.play("click");
+        showBlindSelect();
+      };
+    }
+  }
   const hint = $(".blind-select-hint");
   if (hint) {
     if (S.blindIndex === 2) hint.innerHTML = "<b>Boss Blinds cannot be skipped</b> — defeat it to clear the ante.";
