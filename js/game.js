@@ -622,6 +622,17 @@ function tambahPencatat(id, jumlah) {
 }
 
 function drawUp() {
+  // Cerulean Bell: satu kartu selalu terpilih dan tidak dapat dilepas.
+  // Diletakkan SEBELUM keluar-lebih-awal, karena saat tangan sudah penuh
+  // fungsi ini tetap harus memastikan kartu wajibnya terpilih.
+  if (bossActive() && S.boss && S.boss.id === "cerulean" && S.hand.length) {
+    if (!S.kartuWajib || !S.hand.some(c => c.id === S.kartuWajib)) {
+      S.kartuWajib = S.hand[Math.floor(Math.random() * S.hand.length)].id;
+    }
+    S.selected.add(S.kartuWajib);
+  } else {
+    S.kartuWajib = null;
+  }
   // The Serpent: setelah main atau buang, selalu menarik TEPAT 3 kartu,
   // bukan mengisi tangan sampai penuh. Batas ukuran tangan tetap berlaku.
   const serpent = bossActive() && S.boss && S.boss.id === "serpent";
@@ -1454,6 +1465,11 @@ function cardEl(c) {
 
 function toggleCard(id, el) {
   if (!S || S.animating || S.phase !== "play") return;
+  // Kartu yang dipaksa terpilih oleh Cerulean Bell tidak dapat dilepas.
+  if (S.kartuWajib && id === S.kartuWajib && S.selected.has(id)) {
+    AudioFX.play("error");
+    return;
+  }
   const maxSel = S.targetMode ? S.targetMode.cons.needs : MAX_SELECT;
   if (S.selected.has(id)) {
     S.selected.delete(id);
