@@ -331,20 +331,43 @@ function terapkanVoucher(St, v) {
 // Bobot 5 : 1 : 1 memberi Joker 71,4% dan Tarot serta Planet 14,3%
 // masing-masing - angka Balatro yang sudah diverifikasi.
 function bobotToko() {
-  const b = { joker: 5, tarot: 1, planet: 1 };
+  const b = { joker: 5, tarot: 1, planet: 1, kartu: 0 };
   if (S.vouchers.has("tarottycoon")) b.tarot *= 4;
   else if (S.vouchers.has("tarotmerchant")) b.tarot *= 2;
   if (S.vouchers.has("planettycoon")) b.planet *= 4;
+  // Magic Trick: kartu bermain mulai dijual di toko. Bobot 1 adalah
+  // pilihan Deckstorm (angka Balatro untuk ini tidak bisa saya verifikasi).
+  if (S.vouchers.has("magictrick")) b.kartu = 1;
   else if (S.vouchers.has("planetmerchant")) b.planet *= 2;
   return b;
 }
+// Tawaran berupa satu kartu bermain. Dengan Illusion, kartunya bisa
+// datang sudah ber-enhancement, ber-edisi, dan/atau ber-seal.
+function buatTawaranKartu() {
+  const dasar = buildDeck()[Math.floor(Math.random() * 52)];
+  const k = Object.assign({}, dasar, { kind: "kartu", cost: 2,
+    id: dasar.id + "-beli" + Math.floor(Math.random() * 1e9) });
+  if (S.vouchers.has("illusion")) {
+    const enh = ["bonus", "mult", "wild", "glass", "steel", "stone", "gold", "lucky"];
+    const seal = ["red", "blue", "gold", "purple"];
+    const edisi = ["foil", "holo", "poly", "negative"];
+    const pilih = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    // Tidak semua bagian pasti muncul; kadang hanya salah satu.
+    if (Math.random() < 0.5) k.enhancement = pilih(enh);
+    if (Math.random() < 0.35) k.seal = pilih(seal);
+    if (Math.random() < 0.2) k.edition = pilih(edisi);
+  }
+  return k;
+}
+
 function rollShopCards(n) {
   const b = bobotToko();
-  const total = b.joker + b.tarot + b.planet;
+  const total = b.joker + b.tarot + b.planet + b.kartu;
   const jenis = [];
   for (let i = 0; i < n; i++) {
     const r = Math.random() * total;
-    jenis.push(r < b.joker ? "joker" : r < b.joker + b.tarot ? "tarot" : "planet");
+    jenis.push(r < b.joker ? "joker" : r < b.joker + b.tarot ? "tarot"
+      : r < b.joker + b.tarot + b.planet ? "planet" : "kartu");
   }
   const nJoker = jenis.filter(x => x === "joker").length;
   // Planet TIDAK memakai bidang apply (levelnya diurus jalur pemakaian
@@ -360,6 +383,8 @@ function rollShopCards(n) {
   ambil(TAROTS, jenis.filter(x => x === "tarot").length, true)
     .concat(ambil(PLANETS, jenis.filter(x => x === "planet").length, false))
     .forEach(x => hasil.push(x));
+    const nKartu = jenis.filter(x => x === "kartu").length;
+    for (let i = 0; i < nKartu; i++) hasil.push(buatTawaranKartu());
   return hasil;
 }
 
@@ -456,6 +481,13 @@ if (punyaJoker("the-idol") && S.deck && S.deck.length) {
     S.deck = S.deck.filter(c => !S.deckHancur.has(c.id));
     S.deckTotal = Math.max(0, 52 - S.deckHancur.size);
   }
+
+  // Kartu bermain yang dibeli dari toko (Magic Trick) ikut disusun tiap
+  // babak. Tanpa ini, kartu yang dibeli akan hilang di babak berikutnya.
+  if (S.deckTambahan && S.deckTambahan.length) {
+    S.deck.push(...S.deckTambahan.map(c => ({ ...c })));
+  }
+  S.deckTotal = S.deck.length;
   // Efek awal Deck dijalankan di sini karena deck baru saja disusun.
   // Penanda mencegahnya berjalan lagi di babak-babak berikutnya.
   if (S.deckBelumDiterapkan) {
@@ -1376,16 +1408,22 @@ function renderShop() {
   } else {
     S.offers.forEach(j => {
       // Tawaran bisa berupa Joker atau kartu konsumabel (Tarot/Planet).
-      const barang = !!j.kind && j.kind !== "joker";
-      const tile = barang ? consTile(j, { showDesc: true }) : jokerTile(j, { showDesc: true });
+      const kartuMain = j.kind === "kartu";
+        const barang = !!j.kind && j.kind !== "joker" && !kartuMain;
+      const tile = kartuMain ? cardEl(j)
+          : barang ? consTile(j, { showDesc: true }) : jokerTile(j, { showDesc: true });
       const btn = document.createElement("button");
       btn.className = "btn";
-      btn.textContent = "Buy $" + priceOf(j);
+      btn.textContent = "Buy $" + (kartuMain ? j.cost : priceOf(j));
       btn.disabled = S.money < priceOf(j);
       btn.onclick = () => {
         if (S.money < priceOf(j)) { AudioFX.play("error"); return; }
         S.money -= priceOf(j);
-        if (barang) {
+        if (kartuMain) {
+            S.deckTambahan = S.deckTambahan || [];
+            S.deckTambahan.push(Object.assign({}, j, { kind: undefined }));
+            S.deckTotal = (S.deckTotal || 52) + 1;
+          } else if (barang) {
           if (S.consumables.length >= maxCons()) { showToast("Slot konsumabel penuh"); return; }
           S.consumables.push(j);
         } else if (S.jokers.length >= maxJokers()) {
