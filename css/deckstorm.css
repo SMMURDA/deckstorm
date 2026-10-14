@@ -1497,3 +1497,87 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .sidebar .stats-panel .stat-box b { font-size: .86rem; }
   .sidebar .stats-panel .stat-box span { font-size: .44rem; letter-spacing: 0; }
 }
+
+/* ══ TATA LETAK MOBILE — RANCANGAN UTUH, SENGAJA PALING AKHIR ══
+   Ditulis sebagai satu kesatuan dengan kisi bernama, bukan tambal-sulam, dan
+   diletakkan di akhir berkas karena aturan di blok media yang lebih awal
+   ditimpa oleh aturan lain yang muncul belakangan dengan spesifisitas sama.
+
+   Susunan HUD ponsel:
+     ┌───────────────────────────────┬──────────────┐
+     │ lencana blind + target        │ Run Info     │
+     │                               │ Options      │
+     │ bilah skor                    ├──────────────┤
+     │ Round score                   │ HANDS  DISC  │
+     │                               │ MONEY  ANTE  │
+     │                               │ ROUND  DECK  │
+     └───────────────────────────────┴──────────────┘
+   Panel blind membentang dua baris di kiri; tombol di pojok kanan atas dan
+   statistik tepat di bawahnya, sehingga dasar statistik rata dengan dasar
+   panel blind - yaitu sebaris dengan baris skor. */
+@media (max-width: 780px) {
+  .sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+    grid-template-areas:
+      "blind  tombol"
+      "blind  stats"
+      "bos    bos";
+    align-items: end;
+    gap: var(--s2);
+    padding: var(--s2);
+    overflow-x: visible;
+  }
+  .sidebar .blind-panel { grid-area: blind; align-self: stretch; }
+  .sidebar .hud-buttons {
+    grid-area: tombol; align-self: start; justify-self: end;
+    display: flex; flex-direction: row; gap: var(--s1);
+  }
+  .sidebar .hud-buttons .btn { width: auto; padding: .34rem .5rem; font-size: .7rem; }
+  .sidebar .stats-panel {
+    grid-area: stats; align-self: end; margin: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px;
+  }
+  /* Logo dan tombol menu ringkas tidak diperlukan di ponsel: logonya hanya
+     hiasan, dan sebelum disembunyikan ia menambah satu baris kisi di bawah
+     statistik sehingga dasar statistik tidak lagi rata dengan panel blind. */
+  .sidebar .hud-logo, .sidebar #btn-menu-compact { display: none; }
+  .sidebar .boss-banner { grid-area: bos; }
+
+  .sidebar .stat-box { padding: 4px var(--s2); border-left-width: 2px; }
+  .sidebar .stat-box b { font-size: .92rem; }
+  .sidebar .stat-box span { font-size: .46rem; letter-spacing: 0; }
+
+  /* Kedua baki memakai UKURAN UBIN YANG SAMA, dihitung rapatkanBaki() di JS
+     dari baki yang lebih sempit. Sebelumnya tiap baki menghitung sendiri
+     sehingga ubinnya berbeda tinggi dan lebar. */
+  .strips-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+    gap: var(--s2);
+    align-items: stretch;
+  }
+  .joker-strip {
+    display: flex; flex-direction: column; gap: 3px;
+    padding: var(--s2); border-radius: var(--r2);
+    background: linear-gradient(180deg, #191324, #140f20);
+    border: 1px solid var(--garis);
+  }
+  .joker-strip .strip-label {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .5rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--redup); margin: 0; min-height: 12px;
+  }
+  .strip-right .strip-label { flex-direction: row; }
+  .joker-strip #jokers, .joker-strip #consumables {
+    display: flex; flex-wrap: nowrap; align-items: flex-end;
+    justify-content: flex-start; gap: 4px; min-height: var(--ubin-h, 62px);
+  }
+  /* Ukuran ubin dipaksa sama untuk kedua baki. */
+  .joker-strip #jokers > .joker, .joker-strip #consumables > .joker {
+    flex: 0 0 auto; width: var(--ubin-w, 44px); height: var(--ubin-h, 62px);
+    min-width: 0; max-width: none;
+  }
+  .joker-strip #jokers > .joker .tile-name,
+  .joker-strip #consumables > .joker .tile-name { font-size: .44rem; line-height: 1.05; }
+}

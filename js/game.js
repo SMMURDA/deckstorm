@@ -2046,6 +2046,37 @@ function refreshControls() {
 // lebar wadah tanpa gulir mendatar, berapa pun jumlah kartu dan ukuran layar.
 // Sebelumnya tumpang tindih dipatok tetap (-20px), sehingga di ponsel tangan
 // berisi 8 kartu meluap dan harus digulir.
+// Menyamakan ukuran ubin di kedua baki (Joker dan Konsumabel).
+// Sebelumnya tiap baki menghitung lebarnya sendiri, sehingga pada 390px ubin
+// Joker 39px sedangkan ubin Konsumabel 48px - berbeda tinggi dan lebarnya, dan
+// itulah yang membuat kedua baki terlihat tidak rapih meski tidak bertumpuk.
+// Ukuran dipakai bersama: yang menentukan adalah baki yang lebih sempit.
+function rapatkanBaki() {
+  const baris = document.querySelector(".strips-row");
+  const jok = document.querySelector("#jokers");
+  const kon = document.querySelector("#consumables");
+  if (!baris || !jok || !kon) return;
+  const bersih = (el) => {
+    const g = getComputedStyle(el);
+    return Math.max(40, el.clientWidth - parseFloat(g.paddingLeft || 0) - parseFloat(g.paddingRight || 0));
+  };
+  const celah = 4;
+  const nJ = jok.children.length, nK = kon.children.length;
+  const kandidat = [];
+  if (nJ) kandidat.push((bersih(jok) - (nJ - 1) * celah) / nJ);
+  if (nK) kandidat.push((bersih(kon) - (nK - 1) * celah) / nK);
+  if (!kandidat.length) {
+    baris.style.removeProperty("--ubin-w");
+    baris.style.removeProperty("--ubin-h");
+    return;
+  }
+  // Batas atas 50px supaya baki berisi sedikit ubin tidak membesar berlebihan,
+  // batas bawah 30px supaya gambarnya masih bisa dikenali.
+  const w = Math.max(30, Math.min(50, Math.floor(Math.min.apply(null, kandidat))));
+  baris.style.setProperty("--ubin-w", w + "px");
+  baris.style.setProperty("--ubin-h", Math.round(w * 62 / 46) + "px");
+}
+
 function rapatkanTangan() {
   const zona = document.querySelector("#hand");
   if (!zona) return;
@@ -2117,6 +2148,7 @@ function renderAll() {
   renderHud();
   renderPreview();
   rapatkanTangan();
+  rapatkanBaki();
   refreshControls();
   saveGame();
 }
