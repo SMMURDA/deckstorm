@@ -2105,12 +2105,11 @@ function rapatkanBaki() {
 function satuanBalatro() { return window.innerWidth / 12.6; }
 
 function rapatkanTangan() {
-  // Jangan menghitung ulang saat layar permainan tersembunyi: clientWidth
-  // elemen tersembunyi adalah 0, sehingga lebar kartu dihitung dari lebar 0
-  // dan hasilnya mengecil tiba-tiba saat layar dibuka lagi.
-  if (!document.querySelector("#screen-game.active")) return;
   const zona = document.querySelector("#hand");
   if (!zona) return;
+  // Jangan menghitung saat layar permainan tersembunyi: clientWidth elemen
+  // tersembunyi adalah 0 dan kartu akan dihitung dari lebar nol.
+  if (!document.querySelector("#screen-game.active")) return;
   const kartu = zona.querySelectorAll(".card");
   const n = kartu.length;
   if (!n) {
@@ -2120,39 +2119,43 @@ function rapatkanTangan() {
   const gaya = getComputedStyle(zona);
   const lebar = Math.max(120, zona.clientWidth
     - parseFloat(gaya.paddingLeft || 0) - parseFloat(gaya.paddingRight || 0));
-  // Sistem satuan Balatro hanya berlaku di tata letak portrait. Di desktop
-  // rumusnya menghasilkan kartu 192px karena satu unit menjadi 114px.
-  const potret = window.innerWidth <= 780;
-  const u = satuanBalatro();
-  const dasarAwal = parseFloat(getComputedStyle(document.documentElement)
+  const dasar = parseFloat(getComputedStyle(document.documentElement)
     .getPropertyValue("--kartu-w")) || 96;
+  const celah = 8;
 
-  // Lebar kartu menurut Balatro, tetapi dibatasi lebar wadah. Menurut rumus
-  // cardarea.lua, lebar satu baris tangan adalah usable_w = 0,96 x (6 x card_w)
-  // = 5,76 x card_w, jadi card_w tidak boleh lebih dari lebar / 5,76.
-  const kartuW = potret
-    ? Math.min(Math.round(2.0488 * u), Math.floor(lebar / 5.76))
-    : Math.min(Math.round(dasarAwal), Math.floor(lebar / 8));
-  const kartuH = Math.round(kartuW * 2.7512 / 2.0488);
+  // KARTU TIDAK PERNAH BERTUMPUK.
+  // Versi-versi sebelumnya menumpuk kartu, dan itu memang perilaku Balatro -
+  // tetapi menumpuk berarti kartu yang diketuk menaungi tetangganya, dan itu
+  // yang berulang kali jadi keluhan. Jadi di sini tumpang tindih dihapus sama
+  // sekali: kartu selalu berdiri sendiri-sendiri, dan kalau tidak muat dalam
+  // satu baris, tangan dibungkus ke baris berikutnya.
+  //
+  // Susunan dipilih dengan aturan: pakai baris SESEDIKIT mungkin selama kartunya
+  // masih cukup besar untuk dibaca (NYAMAN). Kalau tidak ada yang mencapai itu,
+  // pakai susunan dengan kartu terbesar.
+  const NYAMAN = lebar >= 640 ? 72 : 56;
+  let terpilih = null;
+  // Maksimum DUA baris. Tiga baris membuat tangan terlalu tinggi sehingga
+  // bagian atasnya bertabrakan dengan elemen di atasnya; dengan dua baris,
+  // sepuluh kartu sekalipun masih muat dan tetap terbaca.
+  for (let baris = 1; baris <= 2; baris++) {
+    const perBaris = Math.ceil(n / baris);
+    if (perBaris < 1) continue;
+    const w = Math.min(dasar, Math.floor((lebar - (perBaris - 1) * celah) / perBaris));
+    if (w < 30) continue;
+    const calon = { w, perBaris, baris: Math.ceil(n / perBaris) };
+    if (!terpilih) terpilih = calon;
+    if (calon.w >= NYAMAN && calon.baris <= terpilih.baris) terpilih = calon;
+    if (terpilih.w < NYAMAN && calon.w > terpilih.w) terpilih = calon;
+  }
+  if (!terpilih) terpilih = { w: 30, perBaris: n, baris: Math.ceil(n / Math.max(1, Math.floor(lebar / 36))) };
 
-  // max_cards = max(jumlah kartu, 8) - inilah sebabnya jarak antar kartu tetap
-  // selama jumlahnya tidak lebih dari 8, dan kartu hanya dirapatkan setelahnya.
-  // Pada 8 kartu di 390px hasilnya jarak 43px dengan tumpang tindih 20px, persis
-  // seperti Balatro. Tumpang tindih 0 baru tercapai pada 5 kartu.
-  // max_cards = jumlah kartu. Tabel pada spesifikasi menunjukkan jarak 75,5px
-  // pada 5 kartu (tumpang tindih 0) dan 43,1px pada 8 kartu (tumpang tindih
-  // 20,3) - jadi kartu disebar selebar area tangan dan hanya dirapatkan kalau
-  // memang tidak muat. Dengan cara ini lima kartu atau kurang tidak bertumpuk
-  // sama sekali, persis seperti Balatro.
-  const maks = n;
-  const usable = 5.76 * kartuW;
-  const jarak = maks > 1 ? (usable - kartuW) / (maks - 1) : 0;
-
-  zona.style.setProperty("--kartu-w", kartuW + "px");
-  zona.style.setProperty("--kartu-h", kartuH + "px");
-  zona.style.setProperty("--kartu-gap", "0px");
-  zona.style.setProperty("--tumpuk", Math.min(0, jarak - kartuW).toFixed(1) + "px");
-  zona.classList.toggle("dua-baris", false);
+  zona.style.setProperty("--kartu-w", terpilih.w + "px");
+  zona.style.setProperty("--kartu-h", Math.round(terpilih.w * 272 / 192) + "px");
+  zona.style.setProperty("--kartu-gap", celah + "px");
+  zona.style.setProperty("--tumpuk", "0px");
+  zona.classList.toggle("dua-baris", terpilih.baris > 1);
+  zona.style.setProperty("--per-baris", terpilih.perBaris);
 }
 
 // Kartu melayang di menu mengikuti tema yang dipilih, bukan berkas tetap.
