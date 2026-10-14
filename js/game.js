@@ -1482,6 +1482,9 @@ function renderShop() {
               name: j.name || j.nama || "Barang",
               tags: [String(jenis).toUpperCase(), "Harga $" + harga],
               desc: j.desc || j.keterangan || "Tidak ada keterangan.",
+              // onSell dan onUse sengaja TIDAK diberikan: barang ini belum
+              // dibeli, jadi menawarkan Jual atau Pakai tidak masuk akal.
+              onSell: null, onUse: null,
             });
           };
       const btn = document.createElement("button");

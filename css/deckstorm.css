@@ -1809,3 +1809,40 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
   60%  { opacity: 1; transform: translateX(2px); }
   100% { opacity: 1; transform: none; }
 }
+
+/* ══ WARNA KELANGKAAN — angka persis dari globals.lua Balatro ══
+   G.C.RARITY: Common #009dff, Uncommon #4BC292, Rare #fe5f55, Legendary #b26cbb.
+   Catatan penting dari riset: warna ini BUKAN warna bingkai kartu. Di Balatro
+   bingkai semua Joker sama (#708b91); warna kelangkaan hanya dipakai pada badge
+   dan partikel saat kartu materialisasi. Jadi di sini warnanya dipakai untuk
+   lencana kelangkaan, bukan untuk membingkai ubin. */
+.j-common    { --warna-kelangkaan: #009dff; }
+.j-uncommon  { --warna-kelangkaan: #4BC292; }
+.j-rare      { --warna-kelangkaan: #fe5f55; }
+.j-legendary { --warna-kelangkaan: #b26cbb; }
+.joker .coll-meta, .joker .tile-rarity { color: var(--warna-kelangkaan, var(--redup)); }
+.joker .tile-name { color: var(--tinta); }
+/* Kotak harga memakai G.C.MONEY #f3b958 */
+.joker .tile-price, .shop-tile .tile-price { color: #f3b958; }
+/* Tombol beli: terjangkau #fda200, tidak terjangkau #666666 (angka dari kode) */
+#shop-offers .btn:not(:disabled) { background: linear-gradient(180deg, #ffb733, #fda200); color: #2a1c05; }
+#shop-offers .btn:disabled { background: #666666; color: #cfcfcf; }
+/* Voucher dan Booster memakai #4BC292 */
+#shop-vouchers .btn:not(:disabled) { background: linear-gradient(180deg, #6fd8b0, #4BC292); color: #06240f; }
+
+/* ══ BANNER ATURAN BOSS — gerak dan warnanya mengikuti kode Balatro ══
+   Latar berubah warna 600ms ke campuran warna bos dengan #374244, ditambah efek
+   putar halus 0.25. Naik dua kali lebih cepat daripada turun. */
+@keyframes bosWarna {
+  from { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+  to   { box-shadow: 0 0 22px 2px var(--warna-bos, #8a59a5); }
+}
+@keyframes bosPutar {
+  from { transform: rotate(-0.25deg) scale(1.01); }
+  to   { transform: none; }
+}
+.boss-banner.tampil {
+  animation: bosMasuk .45s var(--ease) both, bosWarna .6s ease-out both,
+             bosPutar .45s ease-out both;
+  box-shadow: 0 0 22px 2px var(--warna-bos, #8a59a5);
+}
