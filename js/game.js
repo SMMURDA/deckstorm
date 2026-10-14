@@ -29,11 +29,37 @@ function suitSVG(suit) {
 
 // ── settings (persisted; storage-safe) ──
 const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
-const settings = Object.assign({ sound: true, anim: true, debug: false },
+const settings = Object.assign({ sound: true, anim: true, debug: false,
+  temaKartu: "piksel-asli" },
   store ? JSON.parse(store.getItem("deckstorm.settings") || "{}") : {});
+// ── tema kartu ──
+// Empat tema piksel dan empat tema halus. Tema halus digambar pada kanvas 4x
+// lalu diperkecil, jadi tepinya tidak bergerigi. Berkas tiap tema lengkap:
+// 52 kartu + punggung, seluruhnya hasil generator sendiri di tools/.
+const TEMA_KARTU = [
+  { id: "piksel-asli",  nama: "Piksel Klasik", jenis: "piksel" },
+  { id: "piksel-neon",  nama: "Piksel Neon",   jenis: "piksel" },
+  { id: "piksel-retro", nama: "Piksel Retro",  jenis: "piksel" },
+  { id: "piksel-mono",  nama: "Piksel Mono",   jenis: "piksel" },
+  { id: "klasik",       nama: "Klasik",        jenis: "halus" },
+  { id: "royal",        nama: "Royal",         jenis: "halus" },
+  { id: "neon",         nama: "Neon",          jenis: "halus" },
+  { id: "kaca",         nama: "Kaca",          jenis: "halus" },
+];
+function temaKartu() {
+  const t = settings.temaKartu;
+  return TEMA_KARTU.some(x => x.id === t) ? t : "piksel-asli";
+}
+function jalurKartu(suit, berkas) {
+  return `assets/img/cards/${temaKartu()}/${suit}/${berkas}.png`;
+}
+function jalurPunggung() { return `assets/img/cards/${temaKartu()}/back.png`; }
+
 function saveSettings() { if (store) store.setItem("deckstorm.settings", JSON.stringify(settings)); }
 function applySettings() {
   AudioFX.enabled = settings.sound;
+  const selTemaNow = $("#set-tema");
+  if (selTemaNow) selTemaNow.value = temaKartu();
   document.body.classList.toggle("reduced", !settings.anim);
   $("#set-sound").textContent = settings.sound ? "ON" : "OFF";
   $("#set-sound").classList.toggle("off", !settings.sound);
@@ -1627,7 +1653,7 @@ function cardEl(c) {
   const tertutup = !!(S.tertutup && S.tertutup.has(c.id));
   if (tertutup) {
     el.innerHTML = '<img class="c-img" draggable="false" alt="tertutup" ' +
-      'src="assets/img/cards/back.png">';
+      'src="' + jalurPunggung() + '">';
     el.classList.add("c-tertutup");
   } else if (c.enhancement === "stone") {
     el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML;
@@ -1636,7 +1662,7 @@ function cardEl(c) {
     const berkas = rankLabel(c.rank);
     el.innerHTML =
       `<img class="c-img" draggable="false" alt="${berkas} ${c.suit}" ` +
-      `src="assets/img/cards/${c.suit}/${berkas}.png">` + badgeHTML;
+      `src="${jalurKartu(c.suit, berkas)}">` + badgeHTML;
   }
   el.onclick = () => toggleCard(c.id, el);
   return el;
@@ -1977,12 +2003,65 @@ function refreshControls() {
   }
 }
 
+// Menghitung tumpang tindih kartu di tangan supaya SELURUH kartu muat dalam
+// lebar wadah tanpa gulir mendatar, berapa pun jumlah kartu dan ukuran layar.
+// Sebelumnya tumpang tindih dipatok tetap (-20px), sehingga di ponsel tangan
+// berisi 8 kartu meluap dan harus digulir.
+function rapatkanTangan() {
+  const zona = document.querySelector("#hand");
+  if (!zona) return;
+  const kartu = zona.querySelectorAll(".card");
+  const n = kartu.length;
+  if (!n) {
+    ["--kartu-w", "--kartu-h", "--tumpuk"].forEach(v => zona.style.removeProperty(v));
+    return;
+  }
+  // clientWidth TERMASUK padding, sedangkan kartu disusun di dalam area isi.
+  // Memakai clientWidth apa adanya membuat lebar tersedia dilebihkan sebesar
+  // padding sehingga kartu terakhir tetap meluap beberapa piksel.
+  const gayaZona = getComputedStyle(zona);
+  const lebarZona = Math.max(120, zona.clientWidth
+    - parseFloat(gayaZona.paddingLeft || 0) - parseFloat(gayaZona.paddingRight || 0));
+  const dasar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--kartu-w")) || 96;
+  // Bagian lebar kartu yang TETAP terlihat; sisanya boleh tertutup kartu
+  // berikutnya. Angka dan lambang ada di sudut kiri atas, jadi 42% sudah cukup
+  // untuk membacanya.
+  const terlihatMin = 0.42;
+  // Kartu hanya dirapatkan SEPERLUNYA. Kalau seluruh kartu muat bersebelahan,
+  // tumpang tindihnya nol - itu yang terjadi di desktop. Tumpang tindih hanya
+  // dipakai kalau ruangnya memang tidak cukup.
+  let w = dasar;
+  const tumpukUntuk = (lebar) => (n > 1 ? (lebar - w) / (n - 1) - w : 0);
+  let tumpuk = Math.min(0, tumpukUntuk(lebarZona));
+  if (tumpuk < -w * (1 - terlihatMin)) {
+    // terlalu rapat -> kecilkan kartunya, lalu hitung ulang
+    w = Math.max(34, Math.floor(lebarZona / (1 + (n - 1) * terlihatMin)));
+    tumpuk = Math.min(0, (n > 1 ? (lebarZona - w) / (n - 1) - w : 0));
+    tumpuk = Math.max(-w * (1 - terlihatMin), tumpuk);
+  }
+  const h = Math.round(w * 272 / 192);
+  // Ditulis pada elemen #hand sehingga mengalahkan aturan media query.
+  zona.style.setProperty("--kartu-w", w + "px");
+  zona.style.setProperty("--kartu-h", h + "px");
+  zona.style.setProperty("--tumpuk", Math.round(tumpuk) + "px");
+}
+
+// Kartu melayang di menu mengikuti tema yang dipilih, bukan berkas tetap.
+function perbaruiKartuMelayang() {
+  const contoh = [["hearts", "A"], ["spades", "K"], ["diamonds", "Q"], ["clubs", "J"], ["hearts", "10"]];
+  document.querySelectorAll(".float-card").forEach((img, i) => {
+    const [suit, rank] = contoh[i % contoh.length];
+    img.src = jalurKartu(suit, rank);
+  });
+}
+
 function renderAll() {
   renderHand();
   renderJokers();
   renderConsumables();
   renderHud();
   renderPreview();
+  rapatkanTangan();
   refreshControls();
   saveGame();
 }
@@ -2261,6 +2340,27 @@ document.querySelectorAll("[data-menu]").forEach(b =>
   b.onclick = () => { AudioFX.play("click"); showScreen("menu"); });
 $("#set-sound").onclick = () => { settings.sound = !settings.sound; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#set-anim").onclick = () => { settings.anim = !settings.anim; saveSettings(); applySettings(); AudioFX.play("click"); };
+// Pemilih tema kartu. Perubahan langsung digambar ulang supaya pemain bisa
+// menilai tanpa keluar dari layar Pengaturan.
+const selTema = $("#set-tema");
+if (selTema) {
+  selTema.innerHTML = TEMA_KARTU
+    .map(x => `<option value="${x.id}">${x.nama} — ${x.jenis}</option>`).join("");
+  selTema.value = temaKartu();
+  selTema.onchange = () => {
+    settings.temaKartu = selTema.value;
+    saveSettings();
+    renderAll();
+    if (typeof renderShop === "function" && currentScreen === "shop") renderShop();
+    perbaruiKartuMelayang();
+    showToast("Tema kartu: " + (TEMA_KARTU.find(x => x.id === selTema.value) || {}).nama);
+  };
+}
+
+// Ukuran wadah berubah -> tumpang tindih kartu harus dihitung ulang.
+window.addEventListener("resize", () => { if (S) rapatkanTangan(); });
+perbaruiKartuMelayang();
+
 const dbgSettingBtn = $("#set-debug");
 if (dbgSettingBtn) dbgSettingBtn.onclick = () => { settings.debug = !settings.debug; saveSettings(); applySettings(); AudioFX.play("click"); };
 $("#mc-close").onclick = () => { AudioFX.play("deselect"); closeModal(); };

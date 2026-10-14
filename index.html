@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
 <meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261023-16">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261023-21">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/deckstorm.css?v=20261023-16">
+<link rel="stylesheet" href="css/deckstorm.css?v=20261023-21">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -20,11 +20,11 @@
   <!-- ══ MAIN MENU ══ -->
   <section id="screen-menu" class="screen active">
     <div class="float-cards" aria-hidden="true">
-         <img class="float-card" style="--x:6%;  --r:-16deg; --d:0s"   src="assets/img/cards/hearts/A.png" alt="">
-         <img class="float-card" style="--x:22%; --r:11deg;  --d:1.4s" src="assets/img/cards/spades/K.png" alt="">
-         <img class="float-card" style="--x:44%; --r:-7deg;  --d:.7s"  src="assets/img/cards/diamonds/Q.png" alt="">
-         <img class="float-card" style="--x:66%; --r:17deg;  --d:2s"   src="assets/img/cards/clubs/J.png" alt="">
-         <img class="float-card" style="--x:84%; --r:-11deg; --d:.3s"  src="assets/img/cards/hearts/10.png" alt="">
+         <img class="float-card" style="--x:6%;  --r:-16deg; --d:0s"   src="assets/img/cards/piksel-asli/hearts/A.png" alt="">
+         <img class="float-card" style="--x:22%; --r:11deg;  --d:1.4s" src="assets/img/cards/piksel-asli/spades/K.png" alt="">
+         <img class="float-card" style="--x:44%; --r:-7deg;  --d:.7s"  src="assets/img/cards/piksel-asli/diamonds/Q.png" alt="">
+         <img class="float-card" style="--x:66%; --r:17deg;  --d:2s"   src="assets/img/cards/piksel-asli/clubs/J.png" alt="">
+         <img class="float-card" style="--x:84%; --r:-11deg; --d:.3s"  src="assets/img/cards/piksel-asli/hearts/10.png" alt="">
        </div>
     <div class="menu-inner">
       <h1 class="logo">DECK<span>STORM</span></h1>
@@ -84,6 +84,7 @@
       <div class="settings-rows">
         <div class="setting-row"><span>Sound FX</span><button id="set-sound" class="btn btn-toggle">ON</button></div>
         <div class="setting-row"><span>Animations</span><button id="set-anim" class="btn btn-toggle">ON</button></div>
+        <div class="setting-row"><span>Tema Kartu</span><select id="set-tema" class="set-sel"></select></div>
         <div class="setting-row"><span>Debug Mode <small class="dbg-hint">cheats</small></span><button id="set-debug" class="btn btn-toggle">OFF</button></div>
       </div>
 
@@ -331,19 +332,19 @@
   </div>
 </div>
 
-<script src="js/debug.js?v=20261023-16"></script>
-<script src="js/cards.js?v=20261023-16"></script>
-<script src="js/jokers.js?v=20261023-16"></script>
+<script src="js/debug.js?v=20261023-21"></script>
+<script src="js/cards.js?v=20261023-21"></script>
+<script src="js/jokers.js?v=20261023-21"></script>
 <script src="js/data/jokers-pool.js?v=20261014-1"></script>
-<script src="js/consumables.js?v=20261023-16"></script>
-<script src="js/pixelart.js?v=20261023-16"></script>
-<script src="js/audio.js?v=20261023-16"></script>
+<script src="js/consumables.js?v=20261023-21"></script>
+<script src="js/pixelart.js?v=20261023-21"></script>
+<script src="js/audio.js?v=20261023-21"></script>
 <script src="js/data/jokers.js?v=20261014-1"></script>
 <script src="js/data/joker-effects.js?v=20261014-1"></script>
 <script src="js/efek.js?v=20261014-1"></script>
-<script src="js/data/decks.js?v=20261023-16"></script>
-<script src="js/data/challenges.js?v=20261023-16"></script>
-<script src="js/data/stakes.js?v=20261023-16"></script>
-<script src="js/game.js?v=20261023-16"></script>
+<script src="js/data/decks.js?v=20261023-21"></script>
+<script src="js/data/challenges.js?v=20261023-21"></script>
+<script src="js/data/stakes.js?v=20261023-21"></script>
+<script src="js/game.js?v=20261023-21"></script>
 </body>
 </html>

@@ -771,9 +771,14 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
 }
 .card:hover { box-shadow: 0 0 0 2px var(--garis-2), var(--bayang-2); z-index: 3; }
 .card.selected {
-  transform: translateY(-16px);
-  box-shadow: 0 0 0 3px var(--emas), var(--bayang-2);
-  z-index: 4;
+  /* Naik lebih tinggi, sedikit membesar, dan z-index paling atas supaya tidak
+     tertimpah kartu di sebelahnya. Cincinnya memakai outline sehingga tetap
+     terlihat walau kartu lain bertumpuk di atasnya. */
+  transform: translateY(-20px) scale(1.05);
+  z-index: 8;
+  outline: 3px solid var(--emas);
+  outline-offset: 1px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.55);
 }
 .card.debuff { filter: grayscale(.75) brightness(.8); }
 .card.c-tertutup { filter: hue-rotate(258deg) saturate(.85) brightness(.9); }
@@ -1057,8 +1062,10 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
    Baris Joker dan Konsumabel MENGGULIR MENDATAR, bukan melipat ke bawah -
    kalau melipat, kartu di tangan terdorong keluar layar. */
 @media (max-width: 780px) {
-  /* Ponsel tetap memakai pembagi bulat: 96x136 (1/2) dan 48x68 (1/4). */
-  :root { --kartu-w: 96px; --kartu-h: 136px; --kartu-w-kecil: 48px; --kartu-h-kecil: 68px; }
+  /* Kartu dikecilkan supaya seluruh tangan muat tanpa gulir mendatar.
+     Tumpang tindihnya sendiri dihitung JS (rapatkanTangan) berdasarkan lebar
+     wadah dan jumlah kartu, jadi berapa pun jumlah kartunya selalu muat. */
+  :root { --kartu-w: 54px; --kartu-h: 77px; --kartu-w-kecil: 44px; --kartu-h-kecil: 63px; }
   .screen { padding: var(--s3); }
   .panel { width: 100%; max-height: none; padding: var(--s4) var(--s3) var(--s3); }
   .panel-wide, .panel-tall { width: 100%; max-height: none; }
@@ -1083,9 +1090,10 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .stat-box b { font-size: .68rem; }
   .boss-banner { flex: 0 0 auto; max-width: 60vw; }
   .boss-banner-art { display: none; }
+  /* Label tombol TIDAK disembunyikan. Menyembunyikannya menyisakan ikon kecil
+     tanpa keterangan sehingga tombol Run Info dan Options dianggap tidak ada. */
   .hud-buttons { flex: 0 0 auto; flex-direction: row; }
   .hud-buttons .btn { width: auto; }
-  .hud-buttons .lbl { display: none; }
 
   .main-area.felt-table { padding: var(--s3) var(--s2) 84px; gap: var(--s2); }
   .strips-row { grid-template-columns: minmax(0, 1fr); }
@@ -1093,7 +1101,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .jokers .joker { flex: 0 0 auto; }
   .strip-label .hint { display: none; }
 
-  .hand { justify-content: flex-start; overflow-x: auto; padding-bottom: var(--s2); --tumpuk: -14px; }
+  .hand { justify-content: center; overflow-x: visible; padding-bottom: var(--s2); }
   .hand .card { transform-origin: bottom center; }
   .hand .card:hover { transform: translateY(-6px); }
   .hand .card.selected { transform: translateY(-10px); }
@@ -1239,3 +1247,18 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   #debug-panel.collapsed .dbg-body { display: none; }
   #debug-panel.collapsed { max-height: none; }
 }
+
+/* Pemilih tema kartu di layar Pengaturan */
+.set-sel {
+  font-family: var(--font-ui); font-size: .82rem; font-weight: 600;
+  min-height: 44px; padding: .4rem 1.6rem .4rem .6rem;
+  color: var(--tinta); background: var(--panel-2);
+  border: 1px solid var(--garis); border-radius: var(--r2);
+  appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--redup) 50%),
+                    linear-gradient(135deg, var(--redup) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.set-sel:hover { border-color: var(--garis-2); background-color: var(--panel-3); }
