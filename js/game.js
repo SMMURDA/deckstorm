@@ -649,6 +649,13 @@ function liveEval() {
 }
 
 function scorePlayed() {
+  // Crimson Heart: satu Joker acak dimatikan untuk hand ini. Dipilih di sini
+  // supaya berganti tiap hand, bukan sekali per babak.
+  if (bossActive() && S.boss && S.boss.id === "crimson" && S.jokers.length) {
+    S.jokerMati = S.jokers[Math.floor(Math.random() * S.jokers.length)].id;
+  } else {
+    S.jokerMati = null;
+  }
   const played = S.hand.filter(c => S.selected.has(c.id));
   ATURAN_TANGAN = typeof DSEfek !== "undefined" && DSEfek.aturanTangan
     ? DSEfek.aturanTangan(S.jokers) : ATURAN_TANGAN;
@@ -711,6 +718,8 @@ function scorePlayed() {
     firstScoringFace,
   });
   S.jokers.forEach((j, idx) => {
+    // Joker yang dimatikan Crimson Heart tidak ikut dinilai sama sekali.
+    if (S.jokerMati && j.id === S.jokerMati) return;
     let label = null;
     // Jembatan ke mesin efek: penangan khusus (Popcorn, Ramen, Baron, dan
     // sejenisnya) ikut terpakai, bukan hanya efek sederhana dari data.
