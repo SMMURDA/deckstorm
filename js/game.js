@@ -1463,8 +1463,17 @@ function renderShop() {
       btn.disabled = S.money < priceOf(j);
       btn.onclick = () => {
         if (S.money < priceOf(j)) { AudioFX.play("error"); return; }
-        S.money -= priceOf(j);
-        if (kartuMain) {
+          // Slot diperiksa SEBELUM uang dipotong. Sebelumnya uang dipotong dulu
+          // lalu pembelian dibatalkan karena slot penuh, sehingga uang berkurang
+          // tanpa barang: terukur 50 -> 45 dengan Joker tetap 5, dan 50 -> 47.
+          if (!kartuMain && barang && S.consumables.length >= maxCons()) {
+            showToast("Slot konsumabel penuh"); AudioFX.play("error"); return;
+          }
+          if (!kartuMain && !barang && S.jokers.length >= maxJokers()) {
+            showToast("Slot Joker penuh"); AudioFX.play("error"); return;
+          }
+          S.money -= priceOf(j);
+          if (kartuMain) {
             S.deckTambahan = S.deckTambahan || [];
             S.deckTambahan.push(Object.assign({}, j, { kind: undefined }));
             S.deckTotal = (S.deckTotal || 52) + 1;
@@ -1477,8 +1486,15 @@ function renderShop() {
         } else {
           S.jokers.push(j);
         }
-        tile.classList.add("sold");
-        flyTo(tile, "#jokers");
+        // Tawaran dibuang dari daftar toko. Tanpa ini renderShop() membangun ulang
+          // tombol untuk tawaran yang sama, sehingga satu tawaran bisa dibeli
+          // berkali-kali: terukur tawaran $2 menghasilkan tiga Joker (30->24).
+          if (S.offers) {
+            const pos = S.offers.indexOf(j);
+            if (pos >= 0) S.offers.splice(pos, 1);
+          }
+          tile.classList.add("sold");
+          flyTo(tile, "#jokers");
         AudioFX.play("coin");
         renderShop(); renderHud(); renderJokers();
       };
@@ -2352,7 +2368,14 @@ document.addEventListener("fullscreenchange", () => {
   if (!document.fullscreenElement) document.body.classList.remove("fullscreen");
 });
 $("#btn-run-info").onclick = () => { AudioFX.play("click"); renderHandsScreen(); showScreen("hands"); };
-$("#nav-abandon").onclick = () => { $("#modal-nav").hidden = true; AudioFX.play("click"); showScreen("menu"); };
+// Abandon Run harus benar-benar membuang run. Sebelumnya hanya berpindah layar:
+  // simpanan tetap ada, S masih hidup, dan tombol Continue tetap muncul dengan
+  // "Ante 1". gameOver() dan winRun() sudah memanggil clearSave().
+  $("#nav-abandon").onclick = () => {
+    $("#modal-nav").hidden = true; AudioFX.play("click");
+    clearSave();
+    showScreen("menu");
+  };
 $("#btn-hands-back").onclick = () => { AudioFX.play("click"); showScreen("game"); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && S && S.targetMode) cancelTarget(); });
 $("#btn-target-use").onclick = confirmTarget;

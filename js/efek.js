@@ -12,12 +12,19 @@
 (function (root) {
   "use strict";
 
-  var EFEK = null;
-  var JOKER = null;
-  if (typeof require !== "undefined") {
-    EFEK = require("./data/joker-effects.js").JOKER_EFFECTS;
-    JOKER = require("./data/jokers.js").JOKER_DATA;
-  }
+  // PENTING: di peramban tidak ada require, sehingga EFEK tetap null dan SETIAP
+    // Joker mengembalikan nol - 68 dari 150 Joker diam-diam tidak berefek, dan 37
+    // di antaranya jatuh ke cadangan { mult: 4 } sehingga berperilaku sebagai Joker
+    // polos. Berkas js/data/joker-effects.js memang dimuat sebagai <script> di
+    // index.html dan JOKER_EFFECTS sudah ada di window dengan 150 kunci - hanya
+    // saja tidak pernah dibaca. Urutannya sekarang: window dulu, require cadangan.
+    var EFEK = (typeof window !== "undefined" && window.JOKER_EFFECTS) || null;
+    var JOKER = (typeof window !== "undefined"
+      && (window.JOKER_DATA || window.JOKERS)) || null;
+    if ((!EFEK || !JOKER) && typeof require !== "undefined") {
+      EFEK = EFEK || require("./data/joker-effects.js").JOKER_EFFECTS;
+      JOKER = JOKER || require("./data/jokers.js").JOKER_DATA;
+    }
 
   // Nilai chips tiap rank. Repo menyimpan rank sebagai angka (11=J, 12=Q,
   // 13=K, 14=A), sedangkan sebagian kode lain memakai huruf. Keduanya
@@ -136,11 +143,11 @@
     dna: function (ctx) { return { catatan: ["salin kartu — perlu slot kosong"] }; },
     blueprint: function (ctx) { return { salinJoker: ctx.joker && ctx.joker.index !== undefined ? ctx.joker.index + 1 : null }; },
     // keluarga pengganda bentuk tangan: x2 sampai x5
-    "the-duo": function (ctx) { return bentukTangan(ctx.dinilai).adaPair ? { multX: 2 } : {}; },
-    "the-trio": function (ctx) { return bentukTangan(ctx.dinilai).adaThree ? { multX: 3 } : {}; },
-    "the-family": function (ctx) { return bentukTangan(ctx.dinilai).adaFour ? { multX: 4 } : {}; },
-    "the-order": function (ctx) { return bentukTangan(ctx.dinilai).adaFive ? { multX: 5 } : {}; },
-    "the-tribe": function (ctx) { return bentukTangan(ctx.dinilai).adaFive ? { multX: 5 } : {}; },
+    "duo": function (ctx) { return bentukTangan(ctx.dinilai).adaPair ? { multX: 2 } : {}; },
+    "trio": function (ctx) { return bentukTangan(ctx.dinilai).adaThree ? { multX: 3 } : {}; },
+    "family": function (ctx) { return bentukTangan(ctx.dinilai).adaFour ? { multX: 4 } : {}; },
+    "order": function (ctx) { return bentukTangan(ctx.dinilai).adaFive ? { multX: 5 } : {}; },
+    "tribe": function (ctx) { return bentukTangan(ctx.dinilai).adaFive ? { multX: 5 } : {}; },
     // lima Joker "+Mult bila tangan memuat bentuk tertentu"
     "jolly": function (ctx) { return bentukTangan(ctx.dinilai).adaPair ? { mult: 8 } : {}; },
     "zany": function (ctx) { return bentukTangan(ctx.dinilai).adaThree ? { mult: 12 } : {}; },
@@ -163,7 +170,7 @@
     },
     // pengganda datar: Cavendish x3 dan Gros Michel +15 Mult
     "cavendish": function () { return { multX: 3 }; },
-    "gros-michel": function () { return { mult: 15 }; },
+    "gros": function () { return { mult: 15 }; },
     // x1.5 untuk tiap Joker kelangkaan Uncommon lain yang dimiliki
     "baseball-card": function (ctx) {
       var lain = (ctx.semuaJoker || []).filter(function (j) {
@@ -281,12 +288,22 @@
     "acrobat": function (ctx) { return ctx.sisaTangan === 1 ? { multX: 3 } : {}; },
     // Oops! All 6s: menggandakan semua peluang
     "oops-all-6s": function () { return { gandakanPeluang: true }; },
-    "joker-stencil": function (ctx) {
+    "stencil": function (ctx) {
       // x1 Mult untuk tiap slot Joker kosong, dan Stencil sendiri ikut dihitung
       var kosong = Math.max(1, ctx.slotJoker - ctx.jumlahJoker + 1);
       return { multX: kosong };
     },
   };
+  // Alias id lama. Data Joker memakai id tanpa awalan (duo, trio, family, order,
+  // tribe, gros, stencil) sedangkan uji Node memakai the-duo dan seterusnya.
+  // Keduanya didaftarkan supaya tidak ada yang diam-diam tidak berefek.
+  KHUSUS["the-duo"] = KHUSUS["duo"];
+  KHUSUS["the-trio"] = KHUSUS["trio"];
+  KHUSUS["the-family"] = KHUSUS["family"];
+  KHUSUS["the-order"] = KHUSUS["order"];
+  KHUSUS["the-tribe"] = KHUSUS["tribe"];
+  KHUSUS["gros-michel"] = KHUSUS["gros"];
+  KHUSUS["joker-stencil"] = KHUSUS["stencil"];
 
   // Hitung total satu tangan.
   function hitungSkor(pilihan, opsi) {

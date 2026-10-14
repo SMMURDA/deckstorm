@@ -853,7 +853,10 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   outline-offset: 1px;
   box-shadow: 0 10px 26px rgba(0,0,0,.55);
 }
-.card.debuff { filter: grayscale(.75) brightness(.8); }
+/* Kartu yang dilemahkan Boss Blind. JS menambahkan kelas "debuffed"
+   (js/game.js) sedangkan aturannya tertulis ".debuff" tanpa "ed" - selektornya
+   tidak pernah cocok dan kartu yang dilemahkan tampak identik dengan kartu biasa. */
+.card.debuff, .card.debuffed { filter: grayscale(.75) brightness(.8); }
 .card.c-tertutup { filter: hue-rotate(258deg) saturate(.85) brightness(.9); }
 .card.c-stone { display: grid; place-items: center; background: #4a4458; color: var(--tinta); font-family: var(--font-angka); }
 .c-enh-badge {
@@ -1311,7 +1314,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .hand-zone { padding: var(--s2) var(--s2) 0; }
   .hand { min-height: calc(var(--kartu-h) + 6px); }
   .played-zone { min-height: calc(var(--kartu-h) + 2px); padding: var(--s1); }
-  .strip-label { display: none; }
+  .tray-label { display: none; }
   .preview-panel { padding: 2px var(--s3); font-size: .84rem; }
   .sidebar { padding: var(--s2); gap: var(--s2); }
   .stat-box { padding: 3px 2px; }
@@ -1356,7 +1359,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
      jelas dari gambarnya. Menghapusnya memangkas ~22px lagi, dan itulah sisa
      terakhir yang membuat tombol aksi berada di bawah layar pada 320x568,
      740x360, dan 667x375. */
-  .strip-label { display: none; }
+  .tray-label { display: none; }
   .felt-table { padding-top: var(--s1); }
   .preview-panel { padding: 2px var(--s2); }
   .joker-strip { min-height: 0; }
@@ -1710,4 +1713,15 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
   /* Kartu tangan menempel ke dasar, tepat di atas baris tombol, seperti
      hand.y = room_h - hand_h - 3,5 pada kode mod. */
   .hand-zone { margin-top: auto; }
+}
+
+
+/* Panel pratinjau skor (nama tangan, chips x mult) berada di belakang bilah aksi
+   yang menempel pada 390x844: kotaknya y 732-775 sedangkan #actions y 730-844,
+   sehingga isinya tidak terbaca dan mengetuknya malah menekan tombol aksi. */
+@media (max-width: 780px) {
+  .preview-panel { position: sticky; bottom: 104px; z-index: 41; }
+}
+@media (max-width: 780px) and (max-height: 700px) {
+  .preview-panel { position: static; }
 }
