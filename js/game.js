@@ -400,6 +400,9 @@ function punyaJoker(id) {
 function startBlind() {
 // Card Sharp mencatat bentuk tangan yang sudah dimainkan babak ini.
 S.jenisTanganBabak = [];
+// Boss kartu tertutup direset tiap babak.
+S.tertutup = new Set();
+S.drawKe = 0;
 // The Idol: kartu pilihannya berganti tiap babak, diambil dari deck
 if (punyaJoker("the-idol") && S.deck && S.deck.length) {
   const dasar = S.deck[Math.floor(Math.random() * S.deck.length)];
@@ -621,6 +624,23 @@ function tambahPencatat(id, jumlah) {
   S.jokers.forEach(j => { if (j.id === id) j.tumpukan = (j.tumpukan || 0) + jumlah; });
 }
 
+// Menandai kartu yang ditarik sebagai tertutup, sesuai boss yang berlaku.
+// House: hanya hand pertama babak ini. Wheel: 1 dari 7 kartu.
+// Fish: tiap penarikan sesudah hand pertama. Mark: hanya kartu wajah.
+function tandaiTertutup(kartu) {
+  if (!S.tertutup) S.tertutup = new Set();
+  [...S.tertutup].forEach(id => {
+    if (!S.hand.some(c => c.id === id)) S.tertutup.delete(id);
+  });
+  if (!bossActive() || !S.boss || !kartu || !kartu.length) return;
+  const b = S.boss.id;
+  const ke = S.drawKe || 0;
+  if (b === "house" && ke === 0) kartu.forEach(c => S.tertutup.add(c.id));
+  else if (b === "wheel") kartu.forEach(c => { if (Math.random() < 1 / 7) S.tertutup.add(c.id); });
+  else if (b === "fish" && ke > 0) kartu.forEach(c => S.tertutup.add(c.id));
+  else if (b === "mark") kartu.forEach(c => { if (c.rank >= 11) S.tertutup.add(c.id); });
+}
+
 function drawUp() {
   // Cerulean Bell: satu kartu selalu terpilih dan tidak dapat dilepas.
   // Diletakkan SEBELUM keluar-lebih-awal, karena saat tangan sudah penuh
@@ -642,6 +662,9 @@ function drawUp() {
   const drawn = S.deck.splice(0, need);
   drawn.forEach(c => S.freshIds.add(c.id));
   S.hand.push(...drawn);
+  // Boss kartu tertutup menandai kartu yang baru ditarik.
+  tandaiTertutup(drawn);
+  S.drawKe = (S.drawKe || 0) + 1;
   sortHand();
 }
 function sortHand() {
@@ -1450,7 +1473,14 @@ function cardEl(c) {
   if (isBossDebuffed(c)) el.classList.add("debuffed");
   const badge = ENH_BADGE[c.enhancement];
   const badgeHTML = badge ? `<span class="c-enh-badge" title="${badge[1]}">${badge[0]}</span>` : "";
-  if (c.enhancement === "stone") {
+  // Kartu tertutup (boss House, Wheel, Fish, Mark) digambar sebagai punggung
+  // kartu. Kartunya tetap dapat dipilih dan dimainkan, hanya tidak diketahui.
+  const tertutup = !!(S.tertutup && S.tertutup.has(c.id));
+  if (tertutup) {
+    el.innerHTML = '<img class="c-img" draggable="false" alt="tertutup" ' +
+      'src="assets/img/cards/back.png">';
+    el.classList.add("c-tertutup");
+  } else if (c.enhancement === "stone") {
     el.innerHTML = `<span class="c-stone">+50</span>` + badgeHTML;
   } else {
     // Kartu memakai PNG hasil generator sendiri (tools/generate-cards.py)
