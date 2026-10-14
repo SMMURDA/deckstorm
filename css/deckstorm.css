@@ -1528,7 +1528,11 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
     padding: var(--s2);
     overflow-x: visible;
   }
-  .sidebar .blind-panel { grid-area: blind; align-self: stretch; }
+  /* align-self: start, BUKAN stretch. Saat diregangkan, panel blind mengisi
+     kedua baris kisi dan menyisakan 83px ruang kosong di bawah baris skor -
+     itulah yang membuat HUD terlihat tidak rapih dan memakan tinggi layar.
+     Dengan start, tingginya mengikuti isinya saja. */
+  .sidebar .blind-panel { grid-area: blind; align-self: start; }
   .sidebar .hud-buttons {
     grid-area: tombol; align-self: start; justify-self: end;
     display: flex; flex-direction: row; gap: var(--s1);
