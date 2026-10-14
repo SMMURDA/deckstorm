@@ -801,6 +801,38 @@ if (punyaJoker("8-ball")) {
   // Catat bentuk tangan babak ini untuk Card Sharp, SESUDAH penilaian
   // supaya hand pertama belum ikut terhitung.
   if (S.jenisTanganBabak) S.jenisTanganBabak.push(result.ev.name);
+  
+  // Bentuk tangan yang dimainkan dicatat sepanjang run. Sebelumnya larik ini
+  // dibuat tetapi TIDAK PERNAH ditambah, sehingga The Ox tidak punya data
+  // untuk dipakai. Dicatat SESUDAH penilaian, sama seperti jenisTanganBabak.
+  S.stats.handsPlayed = S.stats.handsPlayed || {};
+  const tersering = (() => {
+    let nama = null, n = 0;
+    Object.keys(S.stats.handsPlayed).forEach(k => {
+      if (S.stats.handsPlayed[k] > n) { n = S.stats.handsPlayed[k]; nama = k; }
+    });
+    return nama;
+  })();
+  S.stats.handsPlayed[result.ev.name] = (S.stats.handsPlayed[result.ev.name] || 0) + 1;
+  
+  // The Ox: memainkan bentuk tangan tersering membuat uang menjadi $0.
+  // Dibandingkan dengan catatan SEBELUM hand ini, karena sesudahnya hand ini
+  // sudah ikut terhitung dan hampir selalu menjadi tersering.
+  if (bossActive() && S.boss && S.boss.id === "ox" && tersering === result.ev.name && S.money > 0) {
+    const hilang = S.money;
+    S.money = 0;
+    showToast("The Ox: bentuk tersering dimainkan, -$" + hilang);
+  }
+  
+  // The Arm: menurunkan level bentuk tangan yang dimainkan, tidak di bawah 1.
+  if (bossActive() && S.boss && S.boss.id === "arm") {
+    const kunci = result.ev.name === "Royal Flush" ? "Straight Flush" : result.ev.name;
+    const lv = S.handLevels[kunci] || 1;
+    if (lv > 1) {
+      S.handLevels[kunci] = lv - 1;
+      showToast("The Arm: " + kunci + " turun ke Lv." + S.handLevels[kunci]);
+    }
+  }
 
   if (punyaJoker("s-ance") && /Straight Flush|Royal Flush/.test(result.ev.name)) {
     if (tambahKonsumabelAcak("spectral")) showToast("Séance: satu kartu Spectral dibuat");
