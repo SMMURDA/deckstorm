@@ -1931,6 +1931,28 @@ $("#btn-again").onclick = () => { AudioFX.play("click"); newRun(); };
 // ── Pemilih Deck, Stake, dan Challenge di menu ──
 // Sebelumnya ketiganya hanya bisa diubah lewat API. Pemain sekarang memilihnya
 // langsung, dan pilihannya dipakai saat Start Run.
+// Menampilkan isi permainan di layar pengaturan. Angka dibaca dari data yang
+// benar-benar dimuat, bukan ditulis tangan, supaya tidak bisa basi.
+function isiInfoPengaturan() {
+  const el = $("#set-info");
+  if (!el) return;
+  const jml = (x) => (typeof x !== "undefined" && x.length) ? x.length : null;
+  const baris = [
+    ["Joker", jml(typeof JOKER_POOL !== "undefined" ? JOKER_POOL : (typeof JOKERS !== "undefined" ? JOKERS : undefined))],
+    ["Voucher", jml(typeof VOUCHERS !== "undefined" ? VOUCHERS : undefined)],
+    ["Tag", jml(typeof SKIP_TAGS !== "undefined" ? SKIP_TAGS : undefined)],
+    ["Boss Blind", jml(typeof BOSSES !== "undefined" ? BOSSES : undefined)],
+    ["Deck", jml(typeof DECKS !== "undefined" ? DECKS : undefined)],
+    ["Stake", jml(typeof STAKES !== "undefined" ? STAKES : undefined)],
+    ["Challenge", jml(typeof CHALLENGES !== "undefined" ? CHALLENGES : undefined)],
+    ["Tarot", jml(typeof TAROTS !== "undefined" ? TAROTS : undefined)],
+    ["Planet", jml(typeof PLANETS !== "undefined" ? PLANETS : undefined)],
+    ["Spectral", jml(typeof SPECTRALS !== "undefined" ? SPECTRALS : undefined)],
+  ].filter(x => x[1] !== null);
+  el.innerHTML = baris.map(([nama, n]) =>
+    `<div><b>${n}</b><span>${nama}</span></div>`).join("");
+}
+
 function isiPemilih() {
   const isi = (sel, daftar, terpilih, fn) => {
     const el = $(sel);
@@ -1943,10 +1965,11 @@ function isiPemilih() {
   if (typeof STAKES !== "undefined") isi("#pilih-stake", STAKES, stakeTerpilih, setStake);
   if (typeof CHALLENGES !== "undefined") isi("#pilih-challenge", CHALLENGES, challengeTerpilih, setChallenge);
 }
+function siapkanMenu() { isiPemilih(); isiInfoPengaturan(); }
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", isiPemilih);
+  document.addEventListener("DOMContentLoaded", siapkanMenu);
 } else {
-  isiPemilih();
+  siapkanMenu();
 }
 if ($("#btn-endless")) $("#btn-endless").onclick = () => { AudioFX.play("click"); lanjutEndless(); };
 document.querySelectorAll("[data-back]").forEach(b =>

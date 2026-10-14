@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
 <meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261021-8">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261021-9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261021-8">
+<link rel="stylesheet" href="css/style.css?v=20261021-9">
 <style>
   /* Pemilih Deck/Stake/Challenge di menu. Memakai palet gelap yang sudah
      dipakai layar lain supaya menyatu, bukan menempel di luar tema. */
@@ -65,6 +65,34 @@
   #screen-shop .shop-reward { color: #7CE6B2; font-size: .85rem; margin: .2rem 0 .1rem; }
   #screen-shop .actions { margin-top: .2rem; justify-content: center; }
   @media (max-width: 900px) { #screen-shop .shop-bays { grid-template-columns: 1fr; } }
+</style>
+<style>
+  /* ── Rombak layar pengaturan ──
+     Sebelumnya hanya kotak kecil berisi tiga baris tanpa pengelompokan.
+     Sekarang ada judul bagian, dan sebuah blok yang menampilkan isi permainan
+     yang dibaca langsung dari data saat dijalankan - jadi angkanya tidak
+     pernah bisa basi bila data berubah. */
+  #screen-settings .panel { max-width: 620px; width: min(94vw, 620px); }
+  #screen-settings .set-head {
+    margin: 1rem 0 .5rem; font-size: .7rem; letter-spacing: .12em;
+    text-transform: uppercase; color: #9C93B8;
+    padding-bottom: .35rem; border-bottom: 1px solid #0D0A15;
+  }
+  #screen-settings .set-info {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: .45rem;
+  }
+  #screen-settings .set-info div {
+    background: #1A1626; border: 1px solid #0D0A15; border-left: 3px solid #E9A13B;
+    border-radius: .5rem; padding: .5rem .6rem;
+    display: flex; flex-direction: column; gap: .1rem;
+  }
+  #screen-settings .set-info b { color: #EFE9F7; font-size: 1.1rem; }
+  #screen-settings .set-info span {
+    font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: #9C93B8;
+  }
+  #screen-settings .setting-row { padding: .5rem 0; border-bottom: 1px solid #171223; }
+  #screen-settings .settings-rows { margin-top: .2rem; }
 </style>
 </head>
 <body>
@@ -137,11 +165,15 @@
   <section id="screen-settings" class="screen">
     <div class="panel">
       <h2 class="panel-title">Settings</h2>
+      <p class="set-head">Audio &amp; Tampilan</p>
       <div class="settings-rows">
         <div class="setting-row"><span>Sound FX</span><button id="set-sound" class="btn btn-toggle">ON</button></div>
         <div class="setting-row"><span>Animations</span><button id="set-anim" class="btn btn-toggle">ON</button></div>
         <div class="setting-row"><span>Debug Mode <small class="dbg-hint">cheats</small></span><button id="set-debug" class="btn btn-toggle">OFF</button></div>
       </div>
+
+      <p class="set-head">Isi Permainan</p>
+      <div id="set-info" class="set-info"></div>
       <button class="btn btn-big btn-back" data-back>← Back</button>
     </div>
   </section>
@@ -383,19 +415,19 @@
   </div>
 </div>
 
-<script src="js/debug.js?v=20261021-8"></script>
-<script src="js/cards.js?v=20261021-8"></script>
-<script src="js/jokers.js?v=20261021-8"></script>
+<script src="js/debug.js?v=20261021-9"></script>
+<script src="js/cards.js?v=20261021-9"></script>
+<script src="js/jokers.js?v=20261021-9"></script>
 <script src="js/data/jokers-pool.js?v=20261014-1"></script>
-<script src="js/consumables.js?v=20261021-8"></script>
-<script src="js/pixelart.js?v=20261021-8"></script>
-<script src="js/audio.js?v=20261021-8"></script>
+<script src="js/consumables.js?v=20261021-9"></script>
+<script src="js/pixelart.js?v=20261021-9"></script>
+<script src="js/audio.js?v=20261021-9"></script>
 <script src="js/data/jokers.js?v=20261014-1"></script>
 <script src="js/data/joker-effects.js?v=20261014-1"></script>
 <script src="js/efek.js?v=20261014-1"></script>
-<script src="js/data/decks.js?v=20261021-8"></script>
-<script src="js/data/challenges.js?v=20261021-8"></script>
-<script src="js/data/stakes.js?v=20261021-8"></script>
-<script src="js/game.js?v=20261021-8"></script>
+<script src="js/data/decks.js?v=20261021-9"></script>
+<script src="js/data/challenges.js?v=20261021-9"></script>
+<script src="js/data/stakes.js?v=20261021-9"></script>
+<script src="js/game.js?v=20261021-9"></script>
 </body>
 </html>
