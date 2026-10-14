@@ -847,8 +847,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   /* Naik lebih tinggi, sedikit membesar, dan z-index paling atas supaya tidak
      tertimpah kartu di sebelahnya. Cincinnya memakai outline sehingga tetap
      terlihat walau kartu lain bertumpuk di atasnya. */
-  transform: translateY(-20px) scale(1.05);
-  z-index: 8;
+  transform: translateY(-20px);
   outline: 3px solid var(--emas);
   outline-offset: 1px;
   box-shadow: 0 10px 26px rgba(0,0,0,.55);
@@ -1724,4 +1723,24 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
 }
 @media (max-width: 780px) and (max-height: 700px) {
   .preview-panel { position: static; }
+}
+
+
+/* ── Kartu terpilih tidak boleh menaungi peringkat kartu lain ──
+   Sebelumnya .card.selected memakai z-index: 8 dan scale(1.05). Karena urutan
+   gambar kartu di tangan mengikuti urutan DOM (kartu kanan di atas kartu kiri),
+   menaikkan satu kartu ke atas membuatnya menaungi tetangganya. Terukur:
+   mengetuk kartu paling kiri membuat peringkat kartu kedua tertutup
+   (elementFromPoint di sudut kiri atas kartu #1 menunjuk kartu #0), dan
+   sebaliknya saat mengetuk dari kanan.
+   Dengan mengembalikan urutan gambar ke urutan DOM, tumpang tindih tetap ada
+   (memang begitu perilaku Balatro) tetapi yang tertutup selalu sisi KANAN kartu,
+   sedangkan peringkat dan lambang setiap kartu ada di sudut KIRI ATAS - jadi
+   tidak ada peringkat kartu yang pernah tertutup, dari sisi mana pun diketuk.
+   Kenaikan 20px pada kartu terpilih tetap dipertahankan. */
+.card.selected {
+  transform: translateY(-20px);
+  outline: 3px solid var(--emas);
+  outline-offset: 1px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .55);
 }

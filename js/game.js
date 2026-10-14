@@ -2068,6 +2068,10 @@ function refreshControls() {
 // itulah yang membuat kedua baki terlihat tidak rapih meski tidak bertumpuk.
 // Ukuran dipakai bersama: yang menentukan adalah baki yang lebih sempit.
 function rapatkanBaki() {
+  // Jangan menghitung ulang saat layar permainan tersembunyi: clientWidth
+  // elemen tersembunyi adalah 0, sehingga lebar kartu dihitung dari lebar 0
+  // dan hasilnya mengecil tiba-tiba saat layar dibuka lagi.
+  if (!document.querySelector("#screen-game.active")) return;
   const baris = document.querySelector(".strips-row");
   const jok = document.querySelector("#jokers");
   const kon = document.querySelector("#consumables");
@@ -2101,6 +2105,10 @@ function rapatkanBaki() {
 function satuanBalatro() { return window.innerWidth / 12.6; }
 
 function rapatkanTangan() {
+  // Jangan menghitung ulang saat layar permainan tersembunyi: clientWidth
+  // elemen tersembunyi adalah 0, sehingga lebar kartu dihitung dari lebar 0
+  // dan hasilnya mengecil tiba-tiba saat layar dibuka lagi.
+  if (!document.querySelector("#screen-game.active")) return;
   const zona = document.querySelector("#hand");
   if (!zona) return;
   const kartu = zona.querySelectorAll(".card");
