@@ -1179,10 +1179,13 @@ function useConsumable(cons, sel) {
     return true;
   }
   // tarot
+  // Tarot dan Spectral sama-sama memakai apply; yang berbeda hanya
+  // pencatatannya, karena sebelumnya Spectral terhitung sebagai Tarot.
   const r = cons.apply(S, sel || []);
   if (!r.ok) { showToast(r.msg); AudioFX.play("error"); return false; }
   showToast(r.msg);
-  S.stats.tarotsUsed++;
+  if (cons.kind === "spectral") S.stats.spectralsUsed = (S.stats.spectralsUsed || 0) + 1;
+  else S.stats.tarotsUsed++;
   if (cons.id !== "fool") S.lastConsumable = cons;
   AudioFX.play("tarot");
   return true;

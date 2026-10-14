@@ -291,7 +291,7 @@ const SPECTRALS = [
       }
       return { ok: true, msg: "Cryptid: 2 salinan " + asal.rank + " dibuat" };
     } },
-];
+].map(x => ({ ...x, kind: "spectral" }));
 
 // 32 Voucher. Yang efeknya sudah tersambung ke mesin permainan tidak diberi
 // penanda. Yang belum diberi "belumAktif: true" supaya TIDAK dijual di toko -
@@ -306,8 +306,8 @@ const VOUCHERS = [
   { id: "rerollsurplus",  name: "Reroll Surplus",  desc: "Reroll costs $2 less" },
   { id: "rerollglut",     name: "Reroll Glut",     desc: "Reroll costs $2 less again" },
   { id: "crystalball",    name: "Crystal Ball",    desc: "+1 consumable slot" },
-  { id: "omenglobe",      name: "Omen Globe",      desc: "Spectral cards may appear in packs", belumAktif: true },
-  { id: "telescope",      name: "Telescope",       desc: "Celestial packs contain your most played hand", belumAktif: true },
+  { id: "omenglobe",      name: "Omen Globe",      desc: "Spectral cards may appear in packs" },
+  { id: "telescope",      name: "Telescope",       desc: "Celestial packs contain your most played hand" },
   { id: "observatory",    name: "Observatory",     desc: "Planet cards give x1.5 Mult", belumAktif: true },
   { id: "grabber",        name: "Grabber",         desc: "+1 Hand every round" },
   { id: "nachotong",      name: "Nacho Tong",      desc: "+1 Discard every round" },
@@ -334,11 +334,33 @@ const VOUCHERS = [
 // ── BOOSTER PACKS ──
 const PACKS = [
   { id: "buffoon",   name: "Buffoon Pack",   kind: "pack", cost: 4, desc: "Choose 1 of 2 Jokers",
-    open: (S) => rollShopJokers(2, new Set(S.jokers.map(j => j.id)), S.vouchers.has("hone")) },
+    open: (S) => rollShopJokers(2, new Set(S.jokers.map(j => j.id)),
+            typeof faktorEdisi === "function" ? faktorEdisi(S) : 1) },
   { id: "arcana",    name: "Arcana Pack",    kind: "pack", cost: 4, desc: "Choose 1 of 3 Tarots",
-    open: () => shuffle([...TAROTS]).slice(0, 3).map(t => ({ ...t })) },
+    open: (S) => {
+        const isi = shuffle([...TAROTS]).slice(0, 3).map(t => ({ ...t }));
+        // Omen Globe: satu kartu di paket ini boleh berupa Spectral.
+        if (S && S.vouchers.has("omenglobe")) {
+          const kolam = SPECTRALS.filter(x => typeof x.apply === "function");
+          if (kolam.length) isi[0] = Object.assign({}, kolam[Math.floor(Math.random() * kolam.length)]);
+        }
+        return isi;
+      } },
   { id: "celestial", name: "Celestial Pack", kind: "pack", cost: 4, desc: "Choose 1 of 3 Planets",
-    open: () => shuffle([...PLANETS]).slice(0, 3).map(p => ({ ...p })) },
+    open: (S) => {
+        const isi = shuffle([...PLANETS]).slice(0, 3).map(p => ({ ...p }));
+        // Telescope: paket ini memuat Planet untuk bentuk tangan tersering.
+        // Dihitung dari catatan S.stats.handsPlayed, bukan dari tebakan.
+        if (S && S.vouchers.has("telescope") && S.stats && S.stats.handsPlayed) {
+          let nama = null, n = 0;
+          Object.keys(S.stats.handsPlayed).forEach(k => {
+            if (S.stats.handsPlayed[k] > n) { n = S.stats.handsPlayed[k]; nama = k; }
+          });
+          const pl = nama && PLANETS.find(x => x.hand === nama);
+          if (pl) isi[0] = Object.assign({}, pl);
+        }
+        return isi;
+      } },
 ];
 
 // ── BOSS BLINDS (Balatro-faithful subset) ──
