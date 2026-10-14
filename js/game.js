@@ -1072,13 +1072,13 @@ if (punyaJoker("8-ball")) {
   els.forEach(el => { el.classList.remove("selected"); el.disabled = true; flipMove(el, zone); });
 
   const t = settings.anim;
-  await wait(t ? 400 : 30);
+  await wait(t ? 200 : 20);
 
   // breakdown
   setPlayedInfo(`<span class="pi-name">${result.ev.name} · Lv.${handLevel(result.ev.name)}</span><span class="pi-chips">${result.chips}</span> × <span class="pi-mult">${fmtMult(result.mult)}</span>`);
   AudioFX.play("score");
   if (result.debuffedCount) showToast(`${result.debuffedCount} card(s) debuffed by ${S.boss.name}`);
-  await wait(t ? 350 : 30);
+  await wait(t ? 170 : 20);
 
   // joker flashes — one joker at a time, slowly, so it's obvious which one fired
   const jwrap = $("#jokers");
@@ -1097,7 +1097,7 @@ if (punyaJoker("8-ball")) {
       setTimeout(() => pop.remove(), 1000);
       AudioFX.play("joker");
     }
-    await wait(t ? 400 : 0);
+    await wait(t ? 190 : 0);
   }
   if (jwrap) jwrap.classList.remove("flashing");
 
@@ -1116,11 +1116,11 @@ if (punyaJoker("8-ball")) {
   spawnScorePop(`+${result.total.toLocaleString()}`);
   renderHud(true);
   countUp($("#hud-score"), prevScore, S.roundScore, t ? 550 : 30);
-  await wait(t ? 600 : 30);
+  await wait(t ? 280 : 20);
 
   // cleanup
   els.forEach(el => el.classList.add("played-out"));
-  await wait(t ? 260 : 30);
+  await wait(t ? 130 : 20);
   zone.innerHTML = "";
   setPlayedInfo("");
 
