@@ -588,6 +588,25 @@ const SKIP_TAGS = [
     apply: () => { const k = tambahKonsumabelAcak("spectral"); return k ? "Kartu " + k.name + " didapat" : "Slot konsumabel penuh"; } },
   { id: "garbage",  name: "Garbage Tag",  desc: "+$1 tiap buang yang tidak terpakai",
     apply: () => { const u = S.discardsLeft; S.money += u; return "$" + u + " didapat"; } },
+  // Dua Tag ini TAFSIRAN DECKSTORM, bukan salinan aturan Balatro: aturan
+  // Tag Balatro tidak bisa saya verifikasi (situsnya menolak akses). Di
+  // Balatro, Standard Tag membuka Standard Pack, sedangkan Deckstorm tidak
+  // punya paket itu - jadi di sini isinya langsung berupa kartu bermain.
+  { id: "standard", name: "Standard Tag", desc: "Kartu bermain acak masuk deck",
+    apply: () => {
+      const k = buatTawaranKartu();
+      S.deckTambahan = S.deckTambahan || [];
+      S.deckTambahan.push(Object.assign({}, k, { kind: undefined }));
+      S.deckTotal = (S.deckTotal || 52) + 1;
+      return "Kartu " + (k.name || (k.rank + " " + k.suit)) + " masuk deck"; } },
+  { id: "charismatic", name: "Charismatic Tag", desc: "Kartu bermain ber-seal masuk deck",
+    apply: () => {
+      const k = buatTawaranKartu();
+      k.seal = ["red", "blue", "gold", "purple"][Math.floor(Math.random() * 4)];
+      S.deckTambahan = S.deckTambahan || [];
+      S.deckTambahan.push(Object.assign({}, k, { kind: undefined }));
+      S.deckTotal = (S.deckTotal || 52) + 1;
+      return "Kartu bersegel " + k.seal + " masuk deck"; } },
   { id: "economy",  name: "Economy Tag",  desc: "Uang menjadi dua kali, maksimal $40",
     apply: () => { const d = Math.min(S.money, 40); S.money += d; return "$" + d + " didapat"; } },
   { id: "topup",    name: "Top-up Tag",   desc: "Dua Joker Common gratis",
