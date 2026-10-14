@@ -170,9 +170,18 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   animation: masuk .26s var(--ease) both;
 }
 
+/* Animasi masuk TIDAK BOLEH memakai transform.
+   Sebelumnya keyframe ini memakai translateY dan scale, dan dengan
+   animation-fill-mode: both nilai akhirnya tetap tertinggal sebagai
+   matrix(1,0,0,1,0,0) - matriks identitas, tetapi BUKAN "none". Leluhur yang
+   punya transform membuat position: fixed tidak lagi mengacu ke layar,
+   melainkan ke section itu. Akibatnya setiap elemen fixed di dalam layar
+   permainan salah tempat: tombol Use pada mode sasaran Tarot duduk 20px di
+   bawah tepi layar (bawah 864 pada layar 844), dan panel debug serta modal
+   ikut terpengaruh. Sekarang animasinya hanya memudarkan opacity. */
 @keyframes masuk {
-  from { opacity: 0; transform: translateY(8px) scale(.995); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Layar meja tidak boleh di tengah — ia memenuhi seluruh tinggi */
@@ -1641,4 +1650,29 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .sidebar .stat-box b { font-size: .9rem; }
   .sidebar .hud-logo, .sidebar #btn-menu-compact { display: none; }
   .sidebar .boss-banner { grid-column: 1 / -1; grid-row: 4; }
+}
+
+/* ── Mode sasaran Tarot tidak boleh menutupi kartu di tangan ──
+   #target-fab memakai position: fixed dan pada 320x568 tingginya 81px, sehingga
+   kotaknya (y 467-548) menimpa 4 dari 8 kartu di tangan (kartu berakhir di 512).
+   Dua perbaikan: di layar pendek FAB dipadatkan menjadi satu baris, dan ruang di
+   dasar felt dicadangkan selama FAB tampil supaya kartu tidak pernah berada di
+   bawahnya. Selektor :has dipakai karena keadaan "FAB tampil" hanya diketahui
+   dari atribut hidden-nya. */
+@media (max-height: 760px) {
+  .target-fab {
+    flex-wrap: nowrap; gap: 4px; padding: 4px var(--s2);
+    max-width: calc(100vw - 16px);
+    /* Ditempelkan ke dasar layar. Setelah transform layar diperbaiki, FAB duduk
+       tepat di atas tepi bawah; pada 320x568 sisa 8px masih menimpa baris
+       terakhir kartu di tangan, dan jarak ini yang menghilangkannya. */
+    bottom: 6px;
+  }
+  .target-fab .btn { min-height: 30px; padding: .2rem .5rem; font-size: .68rem; }
+  #target-fab-msg { font-size: .68rem; white-space: nowrap; overflow: hidden;
+                    text-overflow: ellipsis; }
+}
+body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px; }
+@media (max-height: 700px) {
+  body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 60px; }
 }
