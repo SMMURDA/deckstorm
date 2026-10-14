@@ -622,7 +622,11 @@ function tambahPencatat(id, jumlah) {
 }
 
 function drawUp() {
-  const need = handSize() - S.hand.length;
+  // The Serpent: setelah main atau buang, selalu menarik TEPAT 3 kartu,
+  // bukan mengisi tangan sampai penuh. Batas ukuran tangan tetap berlaku.
+  const serpent = bossActive() && S.boss && S.boss.id === "serpent";
+  const kurang = handSize() - S.hand.length;
+  const need = serpent ? Math.min(3, kurang) : kurang;
   if (need <= 0) return;
   const drawn = S.deck.splice(0, need);
   drawn.forEach(c => S.freshIds.add(c.id));
