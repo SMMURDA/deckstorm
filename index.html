@@ -5,95 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deckstorm — Poker Roguelike</title>
 <meta name="description" content="Deckstorm: a poker roguelike deckbuilder. Beat the blinds, build your jokers, survive 8 antes.">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261023-14">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261023-15">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261023-14">
-<style>
-  /* Pemilih Deck/Stake/Challenge di menu. Memakai palet gelap yang sudah
-     dipakai layar lain supaya menyatu, bukan menempel di luar tema. */
-  .menu-pilih {
-    display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
-    margin: 1rem auto .2rem; max-width: 620px;
-  }
-  .menu-pilih label {
-    display: flex; flex-direction: column; gap: .25rem;
-    font-size: .68rem; letter-spacing: .09em; text-transform: uppercase;
-    color: #9C93B8; flex: 1 1 180px;
-  }
-  .menu-pilih select {
-    font: inherit; font-size: .82rem; padding: .42rem .5rem;
-    color: #EFE9F7; background: #221C2E;
-    border: 1px solid #0D0A15; border-radius: .45rem;
-    appearance: none; text-align: center; cursor: pointer;
-  }
-  .menu-pilih select:focus-visible { outline: 2px solid #E9A13B; outline-offset: 2px; }
-</style>
-<style>
-  /* ── Rombak layar toko ──
-     Sebelumnya keempat bagian bertumpuk ke bawah sebagai satu kotak gelap
-     rata, sehingga Joker yang dijual dan Joker milik pemain sulit dibedakan
-     sekilas. Sekarang: susunan dua kolom pada layar lebar, tiap bagian
-     menjadi kartu dengan garis warna di tepi kirinya, dan bagian yang dijual
-     diberi warna aksen supaya langsung terbaca sebagai "yang bisa dibeli". */
-  #screen-shop .shop-panel { max-width: 1080px; width: min(96vw, 1080px); }
-  #screen-shop .shop-bays {
-    display: grid; gap: .9rem; margin: .4rem 0 1rem;
-    grid-template-columns: 1.35fr 1fr; align-items: start;
-  }
-  #screen-shop .shop-bay {
-    background: #1A1626; border: 1px solid #0D0A15; border-radius: .7rem;
-    padding: .7rem .8rem .85rem; border-left: 3px solid #4A415F;
-  }
-  #screen-shop .bay-owned  { border-left-color: #7CE6B2; }
-  #screen-shop .bay-offers { border-left-color: #E9A13B; }
-  #screen-shop .bay-packs  { border-left-color: #5EC8F8; }
-  #screen-shop .bay-voucher{ border-left-color: #FC84FC; }
-  #screen-shop .shop-bay-head {
-    display: flex; justify-content: space-between; align-items: baseline;
-    gap: .5rem; margin-bottom: .55rem; padding-bottom: .4rem;
-    border-bottom: 1px solid #0D0A15;
-    font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
-    color: #9C93B8;
-  }
-  #screen-shop .shop-bay-head b, #screen-shop .shop-bay-head span:last-child {
-    color: #EFE9F7; letter-spacing: .04em;
-  }
-  #screen-shop .shop-money { font-size: 1.05rem; margin: .1rem 0 .7rem; color: #9C93B8; }
-  #screen-shop .shop-money b { font-size: 1.35rem; }
-  #screen-shop .shop-reward { color: #7CE6B2; font-size: .85rem; margin: .2rem 0 .1rem; }
-  #screen-shop .actions { margin-top: .2rem; justify-content: center; }
-  @media (max-width: 900px) { #screen-shop .shop-bays { grid-template-columns: 1fr; } }
-</style>
-<style>
-  /* ── Rombak layar pengaturan ──
-     Sebelumnya hanya kotak kecil berisi tiga baris tanpa pengelompokan.
-     Sekarang ada judul bagian, dan sebuah blok yang menampilkan isi permainan
-     yang dibaca langsung dari data saat dijalankan - jadi angkanya tidak
-     pernah bisa basi bila data berubah. */
-  #screen-settings .panel { max-width: 620px; width: min(94vw, 620px); }
-  #screen-settings .set-head {
-    margin: 1rem 0 .5rem; font-size: .7rem; letter-spacing: .12em;
-    text-transform: uppercase; color: #9C93B8;
-    padding-bottom: .35rem; border-bottom: 1px solid #0D0A15;
-  }
-  #screen-settings .set-info {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
-    gap: .45rem;
-  }
-  #screen-settings .set-info div {
-    background: #1A1626; border: 1px solid #0D0A15; border-left: 3px solid #E9A13B;
-    border-radius: .5rem; padding: .5rem .6rem;
-    display: flex; flex-direction: column; gap: .1rem;
-  }
-  #screen-settings .set-info b { color: #EFE9F7; font-size: 1.1rem; }
-  #screen-settings .set-info span {
-    font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: #9C93B8;
-  }
-  #screen-settings .setting-row { padding: .5rem 0; border-bottom: 1px solid #171223; }
-  #screen-settings .settings-rows { margin-top: .2rem; }
-</style>
+<link rel="stylesheet" href="css/deckstorm.css?v=20261023-15">
 </head>
 <body>
 <div id="fx-layer" aria-hidden="true"></div>
@@ -110,7 +26,6 @@
          <img class="float-card" style="--x:66%; --r:17deg;  --d:2s"   src="assets/img/cards/clubs/J.png" alt="">
          <img class="float-card" style="--x:84%; --r:-11deg; --d:.3s"  src="assets/img/cards/hearts/10.png" alt="">
        </div>
-    </div>
     <div class="menu-inner">
       <h1 class="logo">DECK<span>STORM</span></h1>
       <p class="tagline">poker roguelike · 150 Joker · 12 Planet · 22 Tarot</p>
@@ -331,7 +246,7 @@
       <div class="blind-select-actions">
         <button id="btn-play-blind" class="btn btn-primary btn-big"><span class="ico" data-icon="play"></span><span class="lbl">Play Blind</span></button>
         <button id="btn-reroll-boss" class="btn btn-big" hidden>Ganti Boss</button>
-          <button id="btn-skip-blind" class="btn btn-big btn-skip"><span class="ico" data-icon="skip"></span><span class="lbl">Skip for Tag</span></button>
+        <button id="btn-skip-blind" class="btn btn-big btn-skip"><span class="ico" data-icon="skip"></span><span class="lbl">Skip for Tag</span></button>
       </div>
       <p class="blind-select-hint">Skipping forfeits this blind's reward but grants a <b>Tag</b> bonus.</p>
     </div>
@@ -416,19 +331,19 @@
   </div>
 </div>
 
-<script src="js/debug.js?v=20261023-14"></script>
-<script src="js/cards.js?v=20261023-14"></script>
-<script src="js/jokers.js?v=20261023-14"></script>
+<script src="js/debug.js?v=20261023-15"></script>
+<script src="js/cards.js?v=20261023-15"></script>
+<script src="js/jokers.js?v=20261023-15"></script>
 <script src="js/data/jokers-pool.js?v=20261014-1"></script>
-<script src="js/consumables.js?v=20261023-14"></script>
-<script src="js/pixelart.js?v=20261023-14"></script>
-<script src="js/audio.js?v=20261023-14"></script>
+<script src="js/consumables.js?v=20261023-15"></script>
+<script src="js/pixelart.js?v=20261023-15"></script>
+<script src="js/audio.js?v=20261023-15"></script>
 <script src="js/data/jokers.js?v=20261014-1"></script>
 <script src="js/data/joker-effects.js?v=20261014-1"></script>
 <script src="js/efek.js?v=20261014-1"></script>
-<script src="js/data/decks.js?v=20261023-14"></script>
-<script src="js/data/challenges.js?v=20261023-14"></script>
-<script src="js/data/stakes.js?v=20261023-14"></script>
-<script src="js/game.js?v=20261023-14"></script>
+<script src="js/data/decks.js?v=20261023-15"></script>
+<script src="js/data/challenges.js?v=20261023-15"></script>
+<script src="js/data/stakes.js?v=20261023-15"></script>
+<script src="js/game.js?v=20261023-15"></script>
 </body>
 </html>
