@@ -255,10 +255,42 @@ const SPECTRALS = [
     } },
   // Belum dibuat: efeknya butuh kemampuan yang belum ada di repo, jadi kartu
   // ini sengaja tidak punya apply dan tidak akan muncul di permainan.
-  { id: "seance", name: "Séance", needs: 1, desc: "Ubah 1 kartu terpilih menjadi kartu Spectral", apply: null },
-  { id: "hex", name: "Hex", needs: 0, desc: "Beri Polychrome pada 1 Joker acak, hancurkan Joker lain", apply: null },
-  { id: "ankh", name: "Ankh", needs: 0, desc: "Salin 1 Joker acak, hancurkan Joker lain", apply: null },
-  { id: "cryptid", name: "Cryptid", needs: 1, desc: "Buat 2 salinan kartu terpilih", apply: null },
+  { id: "seance", name: "Séance", needs: 0, desc: "Kartu Spectral acak (bukan Séance)",
+    apply: (S) => {
+      // Séance tidak boleh memberi Séance lagi, jadi ia dikeluarkan dari kolam.
+      const kolam = SPECTRALS.filter(x => typeof x.apply === "function" && x.id !== "seance");
+      if (!kolam.length) return { ok: false, msg: "Tidak ada kartu Spectral lain" };
+      const k = kolam[Math.floor(Math.random() * kolam.length)];
+      S.consumables.push(Object.assign({}, k));
+      return { ok: true, msg: "Séance: " + k.name + " didapat" };
+    } },
+  { id: "hex", name: "Hex", needs: 0, desc: "Beri Polychrome pada 1 Joker acak, hancurkan Joker lain",
+    apply: (S) => {
+      if (!S.jokers.length) return { ok: false, msg: "Belum ada Joker" };
+      const j = S.jokers[Math.floor(Math.random() * S.jokers.length)];
+      j.edition = "poly";
+      S.jokers = [j];
+      return { ok: true, msg: "Hex: " + j.name + " menjadi Polychrome, Joker lain hancur" };
+    } },
+  { id: "ankh", name: "Ankh", needs: 0, desc: "Salin 1 Joker acak, hancurkan Joker lain",
+    apply: (S) => {
+      if (!S.jokers.length) return { ok: false, msg: "Belum ada Joker" };
+      const j = S.jokers[Math.floor(Math.random() * S.jokers.length)];
+      const salinan = Object.assign({}, j);
+      salinan.salinan = true;
+      S.jokers = [j, salinan];
+      return { ok: true, msg: "Ankh: " + j.name + " disalin, Joker lain hancur" };
+    } },
+  { id: "cryptid", name: "Cryptid", needs: 0, desc: "Buat 2 salinan kartu acak dari deck",
+    apply: (S) => {
+      if (!S.deck.length) return { ok: false, msg: "Deck kosong" };
+      const asal = S.deck[Math.floor(Math.random() * S.deck.length)];
+      for (let i = 0; i < 2; i++) {
+        S.deck.push(Object.assign({}, asal, {
+          id: asal.id + "-salin" + i + "-" + Math.floor(Math.random() * 1e6) }));
+      }
+      return { ok: true, msg: "Cryptid: 2 salinan " + asal.rank + " dibuat" };
+    } },
 ];
 
 // 32 Voucher. Yang efeknya sudah tersambung ke mesin permainan tidak diberi
