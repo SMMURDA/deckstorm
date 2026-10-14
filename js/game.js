@@ -302,7 +302,12 @@ S.challengeId = challengeTerpilih;
 // Kartu yang dilemahkan Boss Blind. Boss dengan debuff.suit melemahkan
 // seluruh kartu bergambar suit itu, debuff.face melemahkan kartu wajah.
 function debuffAktif(kartu) {
-  if (!kartu || !bossActive() || !S.boss || !S.boss.debuff) return false;
+  if (!kartu || !bossActive()) return false;
+  if (bossActive() && S.boss && S.boss.id === "verdant" && !S.verdantLunas) return true;
+  // The Pillar melemahkan kartu yang sudah dimainkan di Ante ini.
+  if (bossActive() && S.boss && S.boss.id === "pillar"
+      && (S.kartuTerpakaiAnte || []).indexOf(kartu.id) >= 0) return true;
+  if (!S.boss || !S.boss.debuff) return false;
   const d = S.boss.debuff;
   if (d.suit && kartu.suit === d.suit) return true;
   if (d.face && kartu.rank >= 11) return true;
@@ -463,6 +468,7 @@ function advanceBlindIndex() {
     S.ante++;
     S.blindIndex = 0;
     S.skipsThisAnte = 0; // fresh ante → skips available again
+    S.kartuTerpakaiAnte = []; // The Pillar hanya berlaku dalam satu Ante
     S.boss = null;
     // Ante 8 adalah Showdown terakhir pada run biasa. Bila pemain memilih
     // Endless, run berlanjut sampai batas praktis Ante 39.
@@ -814,6 +820,11 @@ if (punyaJoker("8-ball")) {
     return nama;
   })();
   S.stats.handsPlayed[result.ev.name] = (S.stats.handsPlayed[result.ev.name] || 0) + 1;
+  // The Pillar: kartu yang sudah dimainkan di Ante ini dicatat untuk dilemahkan.
+  S.kartuTerpakaiAnte = S.kartuTerpakaiAnte || [];
+  [...S.selected].forEach(id => {
+    if (S.kartuTerpakaiAnte.indexOf(id) < 0) S.kartuTerpakaiAnte.push(id);
+  });
   
   // The Ox: memainkan bentuk tangan tersering membuat uang menjadi $0.
   // Dibandingkan dengan catatan SEBELUM hand ini, karena sesudahnya hand ini
@@ -1131,6 +1142,8 @@ function sellJoker(idx) {
   // Efek saat dijual. Dijalankan SEBELUM Joker dibuang dari daftar,
   // karena sebagian efeknya membaca Joker yang dijual itu sendiri.
   jualEfek(j);
+  // Verdant Leaf: menjual satu Joker melepaskan pelemahan seluruh kartu.
+  if (bossActive() && S.boss && S.boss.id === "verdant") S.verdantLunas = true;
   const v = sellValue(j);
   S.money += v;
   S.jokers.splice(idx, 1);
