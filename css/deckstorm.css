@@ -1676,3 +1676,38 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
 @media (max-height: 700px) {
   body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 60px; }
 }
+
+/* ══ TATA LETAK PORTRAIT MENGIKUTI BALATRO (mod portrait komunitas) ══
+   Sumber angkanya dari kode Lua Balatro yang sudah dipatch (main.lua
+   TILESCALE, globals.lua CARD_W/CARD_H, cardarea.lua rumus x(k),
+   create_UIBox_HUD_vertical). Catatan penting: Balatro RESMI tidak punya mode
+   portrait - versi Android/iOS dikunci landscape - jadi yang ditiru di sini
+   adalah tata letak mod portrait komunitas, bukan tata letak resmi.
+
+   Urutan pita dari atas ke bawah menurut kode mod:
+     1 HUD: blind di kiri, Round/Score + Chip x Mult di kanan
+     2 baris statistik: Hands Discards Money Ante Round
+     3 konsumabel (2 slot)
+     4 deck pile
+     5 JOKER 5 slot - di BAWAH, bukan di atas
+     6 area play
+     7 kartu tangan (paling bawah)
+     8 baris tombol: Discard - Sort - Play
+   Perubahan terbesar dibanding tata letak mendatar: Joker pindah ke bawah. */
+:root { --unit: calc(100vw / 12.6); }
+
+@media (max-width: 780px) {
+  /* Baki disusun satu kolom dengan KONSUMABEL DI ATAS dan JOKER DI BAWAH,
+     mengikuti urutan pita Balatro. Di kode mod, jokers.y = 11 sedangkan
+     konsumabel ada di y = 7,79 - jadi Joker memang lebih dekat ke area play. */
+  .strips-row {
+    display: flex; flex-direction: column; gap: var(--s2);
+    align-items: stretch;
+  }
+  .joker-strip { order: 2; }
+  .joker-strip.strip-right { order: 1; }
+
+  /* Kartu tangan menempel ke dasar, tepat di atas baris tombol, seperti
+     hand.y = room_h - hand_h - 3,5 pada kode mod. */
+  .hand-zone { margin-top: auto; }
+}

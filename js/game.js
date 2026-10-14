@@ -2077,6 +2077,13 @@ function rapatkanBaki() {
   baris.style.setProperty("--ubin-h", Math.round(w * 62 / 46) + "px");
 }
 
+// ── Sistem satuan Balatro ──
+// Dari main.lua: TILESCALE = w / (TILE_W * 0.63 * TILESIZE) dengan TILE_W = 20 dan
+// TILESIZE = 20, jadi 1 unit = lebar layar / 12,6. Lebar ruang selalu 12,6 unit di
+// layar mana pun, sehingga satu tata letak berbasis unit berlaku untuk semua ukuran.
+// Kartu: CARD_W = 2,0488 unit, CARD_H = 2,7512 unit.
+function satuanBalatro() { return window.innerWidth / 12.6; }
+
 function rapatkanTangan() {
   const zona = document.querySelector("#hand");
   if (!zona) return;
@@ -2086,50 +2093,42 @@ function rapatkanTangan() {
     ["--kartu-w", "--kartu-h", "--tumpuk", "--kartu-gap"].forEach(v => zona.style.removeProperty(v));
     return;
   }
-  // clientWidth TERMASUK padding, sedangkan kartu disusun di area isi.
   const gaya = getComputedStyle(zona);
   const lebar = Math.max(120, zona.clientWidth
     - parseFloat(gaya.paddingLeft || 0) - parseFloat(gaya.paddingRight || 0));
-  const dasar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--kartu-w")) || 96;
-  const celahAwal = parseFloat(gaya.columnGap || gaya.gap) || 8;
+  // Sistem satuan Balatro hanya berlaku di tata letak portrait. Di desktop
+  // rumusnya menghasilkan kartu 192px karena satu unit menjadi 114px.
+  const potret = window.innerWidth <= 780;
+  const u = satuanBalatro();
+  const dasarAwal = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue("--kartu-w")) || 96;
 
-  // Celah mengecil hanya kalau terpaksa, supaya kartu terkecil pun tetap muat
-  // tanpa gulir mendatar. Lebar minimum satu kartu 26px.
-  // Lebar minimum satu kartu. Angka ini yang mencegah gulir mendatar: kalau
-  // kartu dikecilkan tanpa batas, barisnya justru melebar melewati layar.
-  const LEBAR_MIN = 34;
-  let celah = celahAwal;
-  if (n * LEBAR_MIN + (n - 1) * celah > lebar && n > 1) {
-    celah = Math.max(2, (lebar - n * LEBAR_MIN) / (n - 1));
-  }
+  // Lebar kartu menurut Balatro, tetapi dibatasi lebar wadah. Menurut rumus
+  // cardarea.lua, lebar satu baris tangan adalah usable_w = 0,96 x (6 x card_w)
+  // = 5,76 x card_w, jadi card_w tidak boleh lebih dari lebar / 5,76.
+  const kartuW = potret
+    ? Math.min(Math.round(2.0488 * u), Math.floor(lebar / 5.76))
+    : Math.min(Math.round(dasarAwal), Math.floor(lebar / 8));
+  const kartuH = Math.round(kartuW * 2.7512 / 2.0488);
 
-  // Hitung satu kemungkinan susunan: lebar kartu dan tinggi totalnya.
-  const susun = (barisMaks) => {
-    const perBaris = Math.max(1, Math.ceil(n / barisMaks));
-    const w = Math.max(LEBAR_MIN, Math.min(dasar, Math.floor((lebar - (perBaris - 1) * celah) / perBaris)));
-    const h = Math.round(w * 272 / 192);
-    const baris = Math.ceil(n / perBaris);
-    return { w, h, baris, perBaris, tinggi: baris * h + (baris - 1) * celah };
-  };
+  // max_cards = max(jumlah kartu, 8) - inilah sebabnya jarak antar kartu tetap
+  // selama jumlahnya tidak lebih dari 8, dan kartu hanya dirapatkan setelahnya.
+  // Pada 8 kartu di 390px hasilnya jarak 43px dengan tumpang tindih 20px, persis
+  // seperti Balatro. Tumpang tindih 0 baru tercapai pada 5 kartu.
+  // max_cards = jumlah kartu. Tabel pada spesifikasi menunjukkan jarak 75,5px
+  // pada 5 kartu (tumpang tindih 0) dan 43,1px pada 8 kartu (tumpang tindih
+  // 20,3) - jadi kartu disebar selebar area tangan dan hanya dirapatkan kalau
+  // memang tidak muat. Dengan cara ini lima kartu atau kurang tidak bertumpuk
+  // sama sekali, persis seperti Balatro.
+  const maks = n;
+  const usable = 5.76 * kartuW;
+  const jarak = maks > 1 ? (usable - kartuW) / (maks - 1) : 0;
 
-  const sebaris = susun(1);
-  const duaLapis = susun(2);
-
-  // PATOKANNYA ADALAH UKURAN KARTU, BUKAN "YANG MUAT". Percobaan sebelumnya
-  // memilih susunan yang muat tanpa menggulir, dan hasilnya kartu 26-40px di
-  // ponsel - seluruh meja muat, tetapi angkanya tidak terbaca lagi. Dua baris
-  // selalu memberi kartu yang lebih besar karena batasnya lebar baris, bukan
-  // lebar layar: pada 390px, delapan kartu dalam dua baris menjadi 79px,
-  // sedangkan dalam satu baris hanya 35px. Jadi dua baris dipakai selama
-  // kartunya lebih besar, dan gulir tegak sedikit adalah harga yang wajar -
-  // yang dilarang adalah gulir mendatar dan kartu yang saling menumpuk.
-  const pilih = duaLapis.w >= sebaris.w ? duaLapis : sebaris;
-
-  zona.style.setProperty("--kartu-w", pilih.w + "px");
-  zona.style.setProperty("--kartu-h", pilih.h + "px");
-  zona.style.setProperty("--kartu-gap", celah.toFixed(1) + "px");
-  zona.style.setProperty("--tumpuk", "0px");
-  zona.classList.toggle("dua-baris", pilih.baris > 1);
+  zona.style.setProperty("--kartu-w", kartuW + "px");
+  zona.style.setProperty("--kartu-h", kartuH + "px");
+  zona.style.setProperty("--kartu-gap", "0px");
+  zona.style.setProperty("--tumpuk", Math.min(0, jarak - kartuW).toFixed(1) + "px");
+  zona.classList.toggle("dua-baris", false);
 }
 
 // Kartu melayang di menu mengikuti tema yang dipilih, bukan berkas tetap.
