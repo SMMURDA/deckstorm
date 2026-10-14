@@ -255,7 +255,9 @@ const SPECTRALS = [
     } },
   // Belum dibuat: efeknya butuh kemampuan yang belum ada di repo, jadi kartu
   // ini sengaja tidak punya apply dan tidak akan muncul di permainan.
-  { id: "seance", name: "Séance", needs: 0, desc: "Kartu Spectral acak (bukan Séance)",
+  // gambar: jalur langsung supaya tidak dicocokkan lewat nama. Tanpa ini,
+  // "Séance" cocok dengan JOKER Séance dan Spectral ini memakai gambar Joker.
+  { id: "seance", name: "Séance", gambar: "assets/img/items/spectral/seance.png", needs: 0, desc: "Kartu Spectral acak (bukan Séance)",
     apply: (S) => {
       // Séance tidak boleh memberi Séance lagi, jadi ia dikeluarkan dari kolam.
       const kolam = SPECTRALS.filter(x => typeof x.apply === "function" && x.id !== "seance");
