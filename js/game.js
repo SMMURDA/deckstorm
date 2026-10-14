@@ -335,7 +335,7 @@ function faktorEdisi(St) {
 
 function blindTarget() {
   const base = dasarTarget(S.ante);
-  const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? S.boss.targetMult : 2);
+  const mult = S.blindIndex === 0 ? 1 : S.blindIndex === 1 ? 1.5 : (S.boss ? (S.boss.targetMult || 2) : 2);
   // Green dan Purple Stake menaikkan laju kenaikan target antar Ante.
   // Angka 8% per Ante per tingkat adalah pendekatan Deckstorm, bukan
   // angka Balatro yang sudah diverifikasi - dicatat supaya jujur.
