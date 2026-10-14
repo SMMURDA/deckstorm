@@ -1187,9 +1187,15 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
     align-items: start; gap: var(--s2);
     padding: var(--s2); overflow-x: visible;
   }
-  .sidebar .blind-panel { grid-column: 1; grid-row: 1; }
+  .sidebar .blind-panel { grid-column: 1; grid-row: 1 / span 2; }
   .sidebar .hud-buttons { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
-  .sidebar .stats-panel { grid-column: 1 / -1; grid-row: 2; }
+  /* Statistik diletakkan SEJAJAR dengan baris skor di panel blind, bukan
+     sebagai baris tersendiri selebar layar. */
+  .sidebar .stats-panel {
+    grid-column: 2; grid-row: 2; align-self: end;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px;
+  }
+  .sidebar .stats-panel .stat-box { padding: 3px var(--s1); }
   .sidebar .boss-banner { grid-column: 1 / -1; grid-row: 3; }
   .sidebar .hud-logo { display: none; }
   .blind-panel { flex: 0 0 auto; }
@@ -1202,9 +1208,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .score-bar { height: 12px; }
   .round-score-row { flex-direction: row; justify-content: space-between; align-items: baseline; }
   .round-score-row b { font-size: 1.35rem; }
-  /* Enam kolom satu baris: hemat ~60px tinggi. Label dikecilkan tetapi angkanya
-     tetap besar supaya Hands dan Discards tetap terbaca sekilas. */
-  .stats-panel { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+  .stats-panel { gap: 3px; }
   .stat-box { padding: 3px var(--s1); border-left-width: 2px; }
   .stat-box b { font-size: .92rem; }
   .stat-box span { font-size: .46rem; letter-spacing: 0; }
@@ -1223,9 +1227,17 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
      baris memakan 204px tinggi - seperempat layar 844px - dan mendorong tombol
      aksi keluar layar. */
   .strips-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
-  .joker-strip .jokers { gap: var(--s1); }
-  .joker-strip .joker { width: 44px; height: 62px; }
-  .joker-strip .joker .tile-name { font-size: .48rem; }
+  /* Joker dan Konsumabel BERDAMPINGAN, dan ubinnya membagi lebar bakinya.
+     Sebelumnya ubin berlebar tetap 44px, sehingga lima Joker memerlukan 236px
+     di dalam baki selebar 183px: bakinya meluap 53px ke kanan dan menabrak
+     kolom Konsumabel - itulah yang terlihat saling menutupi. Kolom Joker
+     diberi porsi lebih lebar karena isinya sampai lima, Konsumabel hanya dua. */
+  .strips-row { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .joker-strip #jokers, .joker-strip #consumables {
+    display: flex; flex-wrap: nowrap; gap: 4px; justify-content: flex-start;
+  }
+  .joker-strip .joker { flex: 1 1 0; min-width: 0; max-width: 46px; height: 62px; }
+  .joker-strip .joker .tile-name { font-size: .46rem; }
   .jokers { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--s1); }
   .jokers .joker { flex: 0 0 auto; }
   .strip-label .hint { display: none; }
@@ -1290,7 +1302,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   .hand-zone { padding: var(--s2) var(--s2) 0; }
   .hand { min-height: calc(var(--kartu-h) + 6px); }
   .played-zone { min-height: calc(var(--kartu-h) + 2px); padding: var(--s1); }
-  .tray-label { display: none; }
+  .strip-label { display: none; }
   .preview-panel { padding: 2px var(--s3); font-size: .84rem; }
   .sidebar { padding: var(--s2); gap: var(--s2); }
   .stat-box { padding: 3px 2px; }
@@ -1335,7 +1347,7 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
      jelas dari gambarnya. Menghapusnya memangkas ~22px lagi, dan itulah sisa
      terakhir yang membuat tombol aksi berada di bawah layar pada 320x568,
      740x360, dan 667x375. */
-  .tray-label { display: none; }
+  .strip-label { display: none; }
   .felt-table { padding-top: var(--s1); }
   .preview-panel { padding: 2px var(--s2); }
   .joker-strip { min-height: 0; }
@@ -1453,3 +1465,35 @@ a:hover { color: var(--emas); border-bottom-color: var(--emas); }
   background-repeat: no-repeat;
 }
 .set-sel:hover { border-color: var(--garis-2); background-color: var(--panel-3); }
+
+/* ── Perbaikan tata letak ponsel, sengaja diletakkan PALING AKHIR ──
+   Aturan di blok media sebelumnya ditimpa oleh aturan lain yang muncul
+   belakangan di berkas ini (spesifisitasnya sama, jadi yang belakangan menang).
+   Dua hal ini karena itu ditulis di sini supaya pasti berlaku:
+   1. Ubin Joker dan Konsumabel membagi lebar bakinya. Dengan lebar tetap,
+      lima Joker memerlukan 236px di dalam baki 183px sehingga bakinya meluap
+      dan menabrak kolom sebelahnya - itu yang terlihat saling menutupi.
+   2. Panel statistik disejajarkan dengan baris skor, bukan sebagai baris
+      tersendiri selebar layar. */
+@media (max-width: 780px) {
+  .strips-row { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .joker-strip #jokers, .joker-strip #consumables {
+    display: flex; flex-wrap: nowrap; gap: 4px;
+    justify-content: flex-start; align-items: flex-end;
+  }
+  .joker-strip #jokers > .joker, .joker-strip #consumables > .joker {
+    flex: 1 1 0; width: auto; min-width: 0; max-width: 48px; height: 62px;
+  }
+  .joker-strip #jokers > .joker .tile-name,
+  .joker-strip #consumables > .joker .tile-name { font-size: .46rem; }
+
+  .sidebar .blind-panel { grid-column: 1; grid-row: 1 / span 2; }
+  .sidebar .hud-buttons { grid-column: 2; grid-row: 1; }
+  .sidebar .stats-panel {
+    grid-column: 2; grid-row: 2; align-self: end; margin-top: 0;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px;
+  }
+  .sidebar .stats-panel .stat-box { padding: 3px var(--s1); border-left-width: 2px; }
+  .sidebar .stats-panel .stat-box b { font-size: .86rem; }
+  .sidebar .stats-panel .stat-box span { font-size: .44rem; letter-spacing: 0; }
+}
