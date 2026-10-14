@@ -261,14 +261,42 @@ const SPECTRALS = [
   { id: "cryptid", name: "Cryptid", needs: 1, desc: "Buat 2 salinan kartu terpilih", apply: null },
 ];
 
+// 32 Voucher. Yang efeknya sudah tersambung ke mesin permainan tidak diberi
+// penanda. Yang belum diberi "belumAktif: true" supaya TIDAK dijual di toko -
+// lebih baik tidak dijual daripada dijual tetapi tidak bekerja.
 const VOUCHERS = [
-  { id: "overstock",  name: "Overstock",      desc: "+1 Joker slot in shop" },
-  { id: "clearance",  name: "Clearance Sale", desc: "Everything 25% off" },
-  { id: "grabber",    name: "Grabber",        desc: "+1 Hand every round" },
-  { id: "wasteful",   name: "Wasteful",       desc: "+1 Discard every round" },
-  { id: "seedmoney",  name: "Seed Money",     desc: "Interest cap raised to $10" },
-  { id: "paintbrush", name: "Paint Brush",    desc: "+1 hand size" },
-  { id: "hone",       name: "Hone",           desc: "Foil/Holo/Polychrome appear 2× more often" },
+  { id: "overstock",      name: "Overstock",       desc: "+1 Joker in shop" },
+  { id: "overstockplus",  name: "Overstock Plus",  desc: "+1 more Joker in shop" },
+  { id: "clearance",      name: "Clearance Sale",  desc: "Everything 25% off" },
+  { id: "liquidation",    name: "Liquidation",     desc: "Everything 50% off" },
+  { id: "hone",           name: "Hone",            desc: "Foil/Holo/Poly appear 2x more often" },
+  { id: "glowup",         name: "Glow Up",         desc: "Foil/Holo/Poly appear more often", belumAktif: true },
+  { id: "rerollsurplus",  name: "Reroll Surplus",  desc: "Reroll costs $2 less" },
+  { id: "rerollglut",     name: "Reroll Glut",     desc: "Reroll costs $2 less again" },
+  { id: "crystalball",    name: "Crystal Ball",    desc: "+1 consumable slot" },
+  { id: "omenglobe",      name: "Omen Globe",      desc: "Spectral cards may appear in packs", belumAktif: true },
+  { id: "telescope",      name: "Telescope",       desc: "Celestial packs contain your most played hand", belumAktif: true },
+  { id: "observatory",    name: "Observatory",     desc: "Planet cards give x1.5 Mult", belumAktif: true },
+  { id: "grabber",        name: "Grabber",         desc: "+1 Hand every round" },
+  { id: "nachotong",      name: "Nacho Tong",      desc: "+1 Discard every round" },
+  { id: "wasteful",       name: "Wasteful",        desc: "+1 Discard every round" },
+  { id: "recyclomancy",   name: "Recyclomancy",    desc: "Discards may be destroyed", belumAktif: true },
+  { id: "tarotmerchant",  name: "Tarot Merchant",  desc: "Tarot cards appear more often", belumAktif: true },
+  { id: "tarottycoon",    name: "Tarot Tycoon",    desc: "Tarot cards appear much more often", belumAktif: true },
+  { id: "planetmerchant", name: "Planet Merchant", desc: "Planet cards appear more often", belumAktif: true },
+  { id: "planettycoon",   name: "Planet Tycoon",   desc: "Planet cards appear much more often", belumAktif: true },
+  { id: "seedmoney",      name: "Seed Money",      desc: "Interest cap raised to $10" },
+  { id: "moneytree",      name: "Money Tree",      desc: "Interest cap raised to $20" },
+  { id: "blank",          name: "Blank",           desc: "Does nothing at all" },
+  { id: "antimatter",     name: "Antimatter",      desc: "+1 Joker slot" },
+  { id: "magictrick",     name: "Magic Trick",     desc: "Playing cards for sale in the shop", belumAktif: true },
+  { id: "illusion",       name: "Illusion",        desc: "Shop playing cards may have enhancements", belumAktif: true },
+  { id: "hieroglyph",     name: "Hieroglyph",      desc: "-1 Ante", belumAktif: true },
+  { id: "petroglyph",     name: "Petroglyph",      desc: "-1 Ante again", belumAktif: true },
+  { id: "directorscut",   name: "Director's Cut",  desc: "Reroll the Boss Blind once", belumAktif: true },
+  { id: "retcon",         name: "Retcon",          desc: "Reroll the Boss Blind freely", belumAktif: true },
+  { id: "paintbrush",     name: "Paint Brush",     desc: "+1 hand size" },
+  { id: "palette",        name: "Palette",         desc: "+1 hand size again" },
 ].map(v => ({ ...v, kind: "voucher", cost: 10 }));
 
 // ── BOOSTER PACKS ──

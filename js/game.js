@@ -1129,7 +1129,8 @@ function endRoundWin() {
       punyaJoker("showman") ? new Set() : new Set(S.jokers.map(j => j.id)),
       S.vouchers.has("hone"));
   S.packs = shuffle([...PACKS]).slice(0, Math.max(0, Math.min(PACKS.length, shopPackCount()))).map(p => ({ ...p }));
-  const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id));
+  // Voucher yang efeknya belum terpasang tidak dijual sama sekali.
+  const availVouchers = VOUCHERS.filter(v => !S.vouchers.has(v.id) && !v.belumAktif);
   S.voucherOffer = availVouchers.length ? availVouchers[Math.floor(Math.random() * availVouchers.length)] : null;
 
   const parts = [`$${blindReward()} blind`];

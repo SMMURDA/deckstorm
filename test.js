@@ -91,12 +91,12 @@ eq("editions valid keys", Object.keys(EDITIONS).sort(), ["foil", "holo", "negati
 // ── consumables ──
 eq("12 planets", PLANETS.length, 12);
 eq("22 tarots", TAROTS.length, 22);
-eq("7 vouchers", VOUCHERS.length, 7);
+eq("32 vouchers", VOUCHERS.length, 32);
 eq("3 packs", PACKS.length, 3);
 eq("28 bosses", BOSSES.length, 28);
 eq("planet ids unique", new Set(PLANETS.map(p => p.id)).size, 12);
 eq("tarot ids unique", new Set(TAROTS.map(t => t.id)).size, 22);
-eq("voucher ids unique", new Set(VOUCHERS.map(v => v.id)).size, 7);
+eq("voucher ids unique", new Set(VOUCHERS.map(v => v.id)).size, 32);
 
 // planet covers every levelable hand
 ["High Card","Pair","Two Pair","Three of a Kind","Straight","Flush","Full House","Four of a Kind","Straight Flush","Five of a Kind","Flush House","Flush Five"].forEach(h => {

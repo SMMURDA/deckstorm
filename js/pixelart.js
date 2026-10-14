@@ -879,6 +879,36 @@ Object.assign(ICONS, {
   violet:   ["..VV...VV..", "..VV...VV..", "..VVVVVVV..", "...VVVVV...", "...VVVVV...", "..VVVVVVV..", ".VVVVVVVVV."],
 });
 
+// ─── Ikon Voucher tambahan ───
+// Digambar tangan seperti ikon lain, 11x7.
+Object.assign(ICONS, {
+  overstockplus: ["..DDDDDD...", "..D....D...", "..D....D...", "..DDDDDD...", "....G......", "..GGGGG....", "....G......"],
+  liquidation: [".......VV..", "......VV...", ".....VV....", "..VVVVVVV..", "..VVVVVVV..", ".....VV....", "....VV....."],
+  glowup: ["....G......", "..G.G.G....", ".G..G..G...", "..G.G.G....", "GGGGGGGGG..", "..G.G.G....", ".G..G..G..."],
+  rerollsurplus: ["..BBBBB....", ".BB...BB...", "BB.....BB..", "...........", "...B.......", "...BB......", "...B......."],
+  rerollglut: ["..CCCCC....", ".CC...CC...", "CC.....CC..", "...........", "...C.......", "...CC......", "...C......."],
+  crystalball: ["..WWWWW....", ".WWWWWWW...", "WW.BBB.WW..", "WW.BBB.WW..", ".WWWWWWW...", "..WWWWW....", "...SSS....."],
+  omenglobe: ["..PPPP.....", ".PPPPPP....", "PPP..PPP...", "PP....PP...", "PPP..PPP...", ".PPPPPP....", "..PPPP....."],
+  telescope: ["........SS.", ".....SSSS..", "...SSSS....", ".SSSS......", "SSS........", "SS.........", "..........."],
+  observatory: ["...WWWWW...", "..WWWWWWW..", ".WWWWWWWWW.", "WWWWWWWWWWW", "WW..WWW..WW", "WWWWWWWWWWW", "..........."],
+  nachotong: ["...GGG.....", "..GGGGG....", ".GGGGGGG...", "GGG.G.GGG..", ".GGGGGGG...", "..GGGGG....", "...GGG....."],
+  recyclomancy: ["....N......", "...NNN.....", "..N...N....", ".N.....N...", "NNN...NNN..", "...........", "..........."],
+  tarotmerchant: ["..WWWWW....", "..W...W....", "..W.V.W....", "..W...W....", "..W.V.W....", "..W...W....", "..WWWWW...."],
+  tarottycoon: ["WWWWW..WWWW", "W...W..W..W", "W.V.W..W.VW", "W...W..W..W", "W.V.W..W..W", "W...W..W..W", "WWWWW..WWWW"],
+  planetmerchant: ["..BBBBB....", ".BBBBBBB...", "BB.OOO.BB..", "BB.OOO.BB..", ".BBBBBBB...", "..BBBBB....", "..........."],
+  planettycoon: ["..OOOOO....", ".OOOOOOO...", "OO.VVV.OO..", "OO.VVV.OO..", ".OOOOOOO...", "..OOOOO....", "..........."],
+  moneytree: ["....NN.....", "..NNNNN....", ".NNNNNNN...", ".b.NNN.b...", ".b.NNN.b...", "...bbb.....", "...bbb....."],
+  blank: ["...........", "..WWWWWWW..", "..W.....W..", "..W.....W..", "..W.....W..", "..WWWWWWW..", "..........."],
+  antimatter: ["....VVV....", "...........", "VVV.....VVV", "...........", "....VVV....", "...........", "..........."],
+  magictrick: [".......G...", "......G....", ".....G.....", "....G......", "...G.......", "..G........", "..W........"],
+  illusion: ["...........", "..PPPPPPP..", "..P.....P..", "..P.PPP.P..", "..P.....P..", "..PPPPPPP..", "..........."],
+  hieroglyph: ["....O......", "...OOO.....", "..OOOOO....", ".OOOOOOO...", "OOOOOOOOO..", "OOOOOOOOO..", "..........."],
+  petroglyph: ["..SSSSSSS..", "..S.S.S.S..", "..SSSSSSS..", "..S.S.S.S..", "..SSSSSSS..", "..S.S.S.S..", "..SSSSSSS.."],
+  directorscut: ["..S.....S..", "..SS...SS..", "...SS.SS...", "....SSS....", "...SS.SS...", "..SS...SS..", "..S.....S.."],
+  retcon: ["..CCCCC....", ".CC...CC...", "CC.....CC..", "CC.....CC..", ".CC...CC...", "..CCCCC....", "....C......"],
+  palette: ["..WWWWW....", ".WWGGRWW...", "WWGGRRWWW..", "WW.RRR.WW..", ".WW...WW...", "..WWWWW....", "..........."],
+});
+
 function iconSVG(id) {
   const grid = ICONS[id];
   if (!grid) return "";
