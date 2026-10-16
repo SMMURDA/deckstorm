@@ -1920,3 +1920,6 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
    "x1 Mult" untuk Joker yang sebenarnya tidak mengali apa pun hanya menambah
    kebisingan di daftar langkah. Aturannya di JS, ini hanya penanda gaya. */
 .calc-baris .cb-nilai:empty { display: none; }
+
+/* Pemberitahuan bos memudar 330ms sebelum disembunyikan (angka dari kode Balatro). */
+.boss-banner.pudar { opacity: 0; transition: opacity .33s ease; }

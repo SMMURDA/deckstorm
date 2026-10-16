@@ -2076,6 +2076,20 @@ function renderBossBanner() {
       AudioFX.play("pack");
       [0, 100, 200, 300].forEach(t => setTimeout(() => AudioFX.play("click"), t));
     }
+    // Lama pemberitahuan mengikuti aturan Balatro: jumlah karakter x 0,035 + 1,3
+    // detik, jadi 45 karakter bertahan 2,88 detik, lalu memudar 330ms sebelum
+    // disembunyikan supaya tidak menumpuk di layar.
+    const teksBos = ((($("#boss-name") || {}).textContent || "") + (($("#boss-desc") || {}).textContent || "")).trim();
+    const lamaTampil = teksBos.length * 0.035 + 1.3;
+    clearTimeout(el._timerBos);
+    clearTimeout(el._timerPudar);
+    el._timerBos = setTimeout(() => {
+      if (settings.anim) el.classList.add("pudar");
+      el._timerPudar = setTimeout(() => {
+        el.hidden = true;
+        el.classList.remove("tampil", "pudar");
+      }, settings.anim ? 330 : 0);
+    }, lamaTampil * 1000);
     $("#boss-name").textContent = S.boss.name;
     $("#boss-desc").textContent = S.boss.desc;
     const art = $("#boss-art");
@@ -2292,6 +2306,11 @@ function perbaruiKartuMelayang() {
 }
 
 function renderAll() {
+  // Pemberitahuan bos disegarkan di sini. Terukur dengan uji peramban:
+  // renderAll() TIDAK memanggil renderBossBanner(), sehingga bannernya hanya
+  // muncul kalau ada yang memanggilnya langsung - keterangan bos bisa hilang
+  // begitu layar digambar ulang.
+  renderBossBanner();
   renderHand();
   renderJokers();
   renderConsumables();
