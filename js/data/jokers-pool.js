@@ -26,7 +26,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+3 Mult for / each Joker car" };
     }
-  },,
+  },
   { id: "acrobat", name: "Acrobat", cost: 6, rarity: "uncommon",
     desc: "3 Mult on final / hand of round / (Currently ${jokerValue ? `active` : `inactive`})",
     gambar: "assets/img/items/joker/acrobat.png",
@@ -43,7 +43,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Each played card with / ${[h" };
     }
-  },,
+  },
   { id: "arrowhead", name: "Arrowhead", cost: 7, rarity: "uncommon",
     desc: "Played cards with / suit give / +50 Chips when scored",
     gambar: "assets/img/items/joker/arrowhead.png",
@@ -55,7 +55,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Played cards with / suit giv" };
     }
-  },,
+  },
   { id: "astronomer", name: "Astronomer", cost: 8, rarity: "uncommon",
     desc: "All cards and / in / the shop are free",
     gambar: "assets/img/items/joker/astronomer.png",
@@ -72,7 +72,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Each King / held in hand / g" };
     }
-  },,
+  },
   { id: "baseball-card", name: "Baseball Card", cost: 8, rarity: "rare",
     desc: "Uncommon Jokers / each give 1.5 Mult",
     gambar: "assets/img/items/joker/baseball-card.png",
@@ -84,7 +84,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Uncommon Jokers / each give " };
     }
-  },,
+  },
   { id: "blackboard", name: "Blackboard", cost: 6, rarity: "uncommon",
     desc: "3 Mult if all / cards held in hand / are or",
     gambar: "assets/img/items/joker/blackboard.png",
@@ -101,7 +101,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "${!playfieldJokers?1:Object." };
     }
-  },,
+  },
   { id: "blueprint", name: "Blueprint", cost: 10, rarity: "rare",
     desc: "Copies ability of / Joker to the right",
     gambar: "assets/img/items/joker/blueprint.png",
@@ -118,7 +118,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+2 Mult for every / $5 you h" };
     }
-  },,
+  },
   { id: "brainstorm", name: "Brainstorm", cost: 10, rarity: "rare",
     desc: "Copies the ability / of the leftmost Joker",
     gambar: "assets/img/items/joker/brainstorm.png",
@@ -135,7 +135,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+2 Chips for each / dollar y" };
     }
-  },,
+  },
   { id: "burnt-joker", name: "Burnt Joker", cost: 6, rarity: "rare",
     desc: "Upgrade the level of / the first discarded / poker hand each round",
     gambar: "assets/img/items/joker/burnt-joker.png",
@@ -152,7 +152,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.25 Mult /" };
     }
-  },,
+  },
   { id: "canio", name: "Canio", cost: 20, rarity: "legendary",
     desc: "This Joker gains 1 Mult / when a face card / is destroyed / (Currently ${1 + jokerValue} Mult)",
     gambar: "assets/img/items/joker/canio.png",
@@ -164,7 +164,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 1 Mult / wh" };
     }
-  },,
+  },
   { id: "card-sharp", name: "Card Sharp", cost: 6, rarity: "uncommon",
     desc: "3 Mult if played / poker hand has already / been played this round",
     gambar: "assets/img/items/joker/card-sharp.png",
@@ -181,7 +181,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains +3 Chips / " };
     }
-  },,
+  },
   { id: "cavendish", name: "Cavendish", cost: 4, rarity: "common",
     desc: "3 Mult / 1 in 1000 chance this / card is destroy / at end of round",
     gambar: "assets/img/items/joker/cavendish.png",
@@ -218,7 +218,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $1 for each / 9 in your" };
     }
-  },,
+  },
   { id: "credit-card", name: "Credit Card", cost: 1, rarity: "common",
     desc: "Go up to / -$20 in debt",
     gambar: "assets/img/items/joker/credit-card.png",
@@ -230,7 +230,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Go up to / -$20 in debt" };
     }
-  },,
+  },
   { id: "delayed-gratification", name: "Delayed Gratification", cost: 4, rarity: "common",
     desc: "Earn $2 per discard if / no discards are used / by end of the round",
     gambar: "assets/img/items/joker/delayed-gratification.png",
@@ -242,7 +242,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $2 per discard if / no " };
     }
-  },,
+  },
   { id: "diet-cola", name: "Diet Cola", cost: 6, rarity: "uncommon",
     desc: "Sell this card to / create a free / Double Tag",
     gambar: "assets/img/items/joker/diet-cola.png",
@@ -279,7 +279,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+4 Mult for each / card belo" };
     }
-  },,
+  },
   { id: "faceless-joker", name: "Faceless Joker", cost: 4, rarity: "common",
     desc: "Earn $5 if 3 or / more face cards / are discarded / at the same time",
     gambar: "assets/img/items/joker/faceless-joker.png",
@@ -291,7 +291,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $5 if 3 or / more face " };
     }
-  },,
+  },
   { id: "flash-card", name: "Flash Card", cost: 5, rarity: "uncommon",
     desc: "This Joker gains +2 Mult / per reroll in the shop / (Currently +${jokerValue * 2} Mult)",
     gambar: "assets/img/items/joker/flash-card.png",
@@ -303,7 +303,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains +2 Mult / p" };
     }
-  },,
+  },
   { id: "four-fingers", name: "Four Fingers", cost: 7, rarity: "uncommon",
     desc: "All Flushes and / Straights can be / made with 4 cards",
     gambar: "assets/img/items/joker/four-fingers.png",
@@ -320,7 +320,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Add $1 of sell value / to ev" };
     }
-  },,
+  },
   { id: "glass-joker", name: "Glass Joker", cost: 6, rarity: "uncommon",
     desc: "This Joker gains 0.75 Mult / for every Glass Card / that is destroyed / (Currently ${1 + jokerValue * 0.75} Mult)",
     gambar: "assets/img/items/joker/glass-joker.png",
@@ -332,7 +332,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.75 Mult /" };
     }
-  },,
+  },
   { id: "golden-joker", name: "Golden Joker", cost: 6, rarity: "common",
     desc: "Earn $4 at / end of round",
     gambar: "assets/img/items/joker/golden-joker.png",
@@ -344,7 +344,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $4 at / end of round" };
     }
-  },,
+  },
   { id: "golden-ticket", name: "Golden Ticket", cost: 5, rarity: "common",
     desc: "Played Gold cards / earn $4 when scored",
     gambar: "assets/img/items/joker/golden-ticket.png",
@@ -356,7 +356,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Played Gold cards / earn $4 " };
     }
-  },,
+  },
   { id: "hack", name: "Hack", cost: 6, rarity: "uncommon",
     desc: "Retrigger / each played / 2, 3, 4, or 5",
     gambar: "assets/img/items/joker/hack.png",
@@ -383,7 +383,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Every played card / permanen" };
     }
-  },,
+  },
   { id: "hit-the-road", name: "Hit the Road", cost: 8, rarity: "rare",
     desc: "This Joker gains 0.5 Mult / for every Jack / discarded this round / (Currently ${1 + jokerValue * 0.5})",
     gambar: "assets/img/items/joker/hit-the-road.png",
@@ -395,7 +395,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.5 Mult / " };
     }
-  },,
+  },
   { id: "hologram", name: "Hologram", cost: 7, rarity: "uncommon",
     desc: "This Joker gains 0.25 Mult / every time a playing card / is added to your deck / (Currently ${1 + jokerValue * 0.25} Mult)",
     gambar: "assets/img/items/joker/hologram.png",
@@ -407,7 +407,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.25 Mult /" };
     }
-  },,
+  },
   { id: "invisible-joker", name: "Invisible Joker", cost: 8, rarity: "rare",
     desc: "After 2 rounds, / sell this card to / duplicate a random Joker / (Currently ${jokerValue}/2)",
     gambar: "assets/img/items/joker/invisible-joker.png",
@@ -439,7 +439,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.25 Mult e" };
     }
-  },,
+  },
   { id: "madness", name: "Madness", cost: 7, rarity: "uncommon",
     desc: "When Small Blind or Big Blind / is selected, gain 0.5 Mult / and destroy a random Joker / (Currently ${1 + jokerValue * 0.5})",
     gambar: "assets/img/items/joker/madness.png",
@@ -451,7 +451,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "When Small Blind or Big Blin" };
     }
-  },,
+  },
   { id: "mail-in-rebate", name: "Mail-In Rebate", cost: 4, rarity: "common",
     desc: "Earn $5 for each / discarded ${rankNames[Math.abs(jokerValue % 13)]}, rank / changes every round",
     gambar: "assets/img/items/joker/mail-in-rebate.png",
@@ -463,7 +463,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $5 for each / discarded" };
     }
-  },,
+  },
   { id: "marble-joker", name: "Marble Joker", cost: 6, rarity: "uncommon",
     desc: "Adds one Stone card / to deck when / Blind is selected",
     gambar: "assets/img/items/joker/marble-joker.png",
@@ -480,7 +480,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $8 if played / hand tri" };
     }
-  },,
+  },
   { id: "merry-andy", name: "Merry Andy", cost: 7, rarity: "uncommon",
     desc: "+3 discards, / -1 hand size",
     gambar: "assets/img/items/joker/merry-andy.png",
@@ -512,7 +512,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+15 Mult when / 0 discards /" };
     }
-  },,
+  },
   { id: "obelisk", name: "Obelisk", cost: 8, rarity: "rare",
     desc: "This Joker gains 0.2 Mult / per consecutive hand played / without playing your / most played poker hand / (Currently ${(10 + jokerValue * 2) / 10} Mult)",
     gambar: "assets/img/items/joker/obelisk.png",
@@ -524,7 +524,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.2 Mult / " };
     }
-  },,
+  },
   { id: "onyx-agate", name: "Onyx Agate", cost: 7, rarity: "uncommon",
     desc: "Played cards with / suit give / +7 Mult when scored",
     gambar: "assets/img/items/joker/onyx-agate.png",
@@ -536,7 +536,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Played cards with / suit giv" };
     }
-  },,
+  },
   { id: "oops-all-6s", name: "Oops! All 6s", cost: 4, rarity: "uncommon",
     desc: "Double all listed / probabilities / (ex: 1 in 3 -> 2 in 3)",
     gambar: "assets/img/items/joker/oops-all-6s.png",
@@ -578,7 +578,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains / +3 Mult w" };
     }
-  },,
+  },
   { id: "reserved-parking", name: "Reserved Parking", cost: 6, rarity: "common",
     desc: "Each face card / held in hand has / a 1 in 2 chance / to give $1",
     gambar: "assets/img/items/joker/reserved-parking.png",
@@ -590,7 +590,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Each face card / held in han" };
     }
-  },,
+  },
   { id: "riff-raff", name: "Riff-raff", cost: 6, rarity: "common",
     desc: "When Blind is selected, / create 2 Jokers",
     gambar: "assets/img/items/joker/riff-raff.png",
@@ -607,7 +607,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $${1 + jokerValue * 2} " };
     }
-  },,
+  },
   { id: "rough-gem", name: "Rough Gem", cost: 7, rarity: "uncommon",
     desc: "Played cards with / suit earn / $1 when scored",
     gambar: "assets/img/items/joker/rough-gem.png",
@@ -619,7 +619,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Played cards with / suit ear" };
     }
-  },,
+  },
   { id: "runner", name: "Runner", cost: 5, rarity: "common",
     desc: "Gains +15 Chips / if played hand / contains a Straight / (Currently +${jokerValue * 15} Chips)",
     gambar: "assets/img/items/joker/runner.png",
@@ -631,7 +631,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Gains +15 Chips / if played " };
     }
-  },,
+  },
   { id: "s-ance", name: "S\\u00e9ance", cost: 6, rarity: "uncommon",
     desc: "If poker hand is a / Straight Flush, craeate a / random card",
     gambar: "assets/img/items/joker/s-ance.png",
@@ -648,7 +648,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Played face cards / give +30" };
     }
-  },,
+  },
   { id: "seeing-double", name: "Seeing Double", cost: 6, rarity: "uncommon",
     desc: "2 Mult if played / hand has a scoring / Club card and a scoring / card of any other suit",
     gambar: "assets/img/items/joker/seeing-double.png",
@@ -670,7 +670,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+13 Mult for / each Queen / " };
     }
-  },,
+  },
   { id: "shortcut", name: "Shortcut", cost: 7, rarity: "uncommon",
     desc: "Allows Straights to be / made with gaps of 1 rank / (ex: 10 8 6 5 3)",
     gambar: "assets/img/items/joker/shortcut.png",
@@ -712,7 +712,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains +2 Mult / i" };
     }
-  },,
+  },
   { id: "splash", name: "Splash", cost: 3, rarity: "common",
     desc: "Every played card / counts in scoring",
     gambar: "assets/img/items/joker/splash.png",
@@ -729,7 +729,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains +4 Chips / " };
     }
-  },,
+  },
   { id: "steel-joker", name: "Steel Joker", cost: 7, rarity: "uncommon",
     desc: "This Joker gains 0.2 Mult / for each Steel Card / in your full deck / (Currently ${Math.round((1 + jokerValue * 0.2) * 10) / 10} Mult)",
     gambar: "assets/img/items/joker/steel-joker.png",
@@ -741,7 +741,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.2 Mult / " };
     }
-  },,
+  },
   { id: "stone-joker", name: "Stone Joker", cost: 6, rarity: "uncommon",
     desc: "This Joker gains +25 Chips / for each Stone Card in your full deck / (Currently +${25*jokerValue} Chips)",
     gambar: "assets/img/items/joker/stone-joker.png",
@@ -753,7 +753,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains +25 Chips /" };
     }
-  },,
+  },
   { id: "stuntman", name: "Stuntman", cost: 7, rarity: "rare",
     desc: "+250 Chips, / -2 hand size",
     gambar: "assets/img/items/joker/stuntman.png",
@@ -765,7 +765,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "+250 Chips, / -2 hand size" };
     }
-  },,
+  },
   { id: "supernova", name: "Supernova", cost: 5, rarity: "common",
     desc: "Adds the number of / times poker hand has / been played to Mult",
     gambar: "assets/img/items/joker/supernova.png",
@@ -802,7 +802,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn $4 if poker hand / is a" };
     }
-  },,
+  },
   { id: "to-the-moon", name: "To the Moon", cost: 5, rarity: "uncommon",
     desc: "Earn an extra $1 of / interest for every $5 you / have at end of round",
     gambar: "assets/img/items/joker/to-the-moon.png",
@@ -814,7 +814,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Earn an extra $1 of / intere" };
     }
-  },,
+  },
   { id: "trading-card", name: "Trading Card", cost: 6, rarity: "uncommon",
     desc: "If first discard of round / has only 1 card, destroy / it and earn $3",
     gambar: "assets/img/items/joker/trading-card.png",
@@ -826,7 +826,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "If first discard of round / " };
     }
-  },,
+  },
   { id: "triboulet", name: "Triboulet", cost: 20, rarity: "legendary",
     desc: "Played Kings and / Queens each give / 2 Mult when scored",
     gambar: "assets/img/items/joker/triboulet.png",
@@ -853,7 +853,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Create a card / if hand is p" };
     }
-  },,
+  },
   { id: "vampire", name: "Vampire", cost: 7, rarity: "uncommon",
     desc: "This Joker gains 0.1 Mult / per scoring Enhanced card played, / removes card Enhancement / (Currently ${(10 + jokerValue) / 10} Mult)",
     gambar: "assets/img/items/joker/vampire.png",
@@ -865,7 +865,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains 0.1 Mult / " };
     }
-  },,
+  },
   { id: "walkie-talkie", name: "Walkie Talkie", cost: 4, rarity: "common",
     desc: "Each played 10 or 4 / gives +10 Chips and / +4 Mult when scored",
     gambar: "assets/img/items/joker/walkie-talkie.png",
@@ -877,7 +877,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "Each played 10 or 4 / gives " };
     }
-  },,
+  },
   { id: "wee-joker", name: "Wee Joker", cost: 8, rarity: "rare",
     desc: "This Joker gains / +8 Chips when each / played 2 is scored / (Currently +${jokerValue * 8} Chips)",
     gambar: "assets/img/items/joker/wee-joker.png",
@@ -889,7 +889,7 @@ const JOKER_TAMBAHAN = [
       if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;
       return { chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "This Joker gains / +8 Chips " };
     }
-  },,
+  },
   { id: "yorick", name: "Yorick", cost: 20, rarity: "legendary",
     desc: "This Joker gains / 1 Mult every 23 [23] / cards discarded / (Currently ${jokerValue} Mult)",
     gambar: "assets/img/items/joker/yorick.png",

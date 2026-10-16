@@ -853,11 +853,16 @@ function scorePlayed() {
   //   Emas   - memberi $3 tiap kali kartu dinilai
   // Seal Biru (Planet tiap akhir babak) dan Ungu (Tarot saat dibuang)
   // ditangani di kejadian masing-masing.
+  // Sumbangan tiap kartu dicatat supaya bisa dianimasikan satu per satu di
+  // playHand: Balatro menilai kartu lebih dulu, baru Joker.
+  const kartuSkor = [];
   scoringCards.forEach(c => {
     const sealKali = c.seal === "red" ? 2 : 1;
     if (c.seal === "gold") S.money += 3;
     if (isBossDebuffed(c)) { debuffedCount++; return; } // debuffed: no chips, no effects
-    chips += cardChips(c) * sealKali;
+    const chipsKartu = cardChips(c) * sealKali;
+    chips += chipsKartu;
+    kartuSkor.push({ id: c.id, chips: chipsKartu });
     if (isFace(c)) { if (!sawFace) firstScoringFace = true; sawFace = true; }
     switch (c.enhancement) {
       case "bonus": chips += 30 * sealKali; break;
@@ -964,10 +969,48 @@ function scorePlayed() {
     const nPl = (S.consumables || []).filter(c => c.kind === "planet").length;
     if (nPl > 0) mult *= Math.pow(1.5, nPl);
   }
-  return { ev, chips, mult, total: Math.max(1, Math.round(chips * mult)), flashes, destroyed, debuffedCount, scoringCards };
+  return { ev, chips, mult, total: Math.max(1, Math.round(chips * mult)), flashes, destroyed,
+    debuffedCount, scoringCards, kartu: kartuSkor };
 }
 
 // ── animation helpers ──
+// Kartu yang dikenai Tarot menyala berurutan, jadi pemain tahu kartu mana yang
+// baru saja berubah dan tidak perlu menebak dari kotak pesan.
+function kilatKartu(kartu) {
+  if (!settings.anim) return;
+  (kartu || []).forEach((c, i) => {
+    setTimeout(() => {
+      const el = document.querySelector('.card[data-id="' + c.id + '"]');
+      if (!el) return;
+      el.classList.remove("kena-efek");
+      void el.offsetWidth;
+      el.classList.add("kena-efek");
+      AudioFX.play("tarot");
+      setTimeout(() => el.classList.remove("kena-efek"), 900);
+    }, i * 90);
+  });
+}
+
+// Label di tengah area permainan yang menjelaskan efek konsumabel yang baru
+// dipakai: naiknya tingkat bentuk tangan untuk Planet, perubahan kartu untuk
+// Tarot. Tampil santai lalu memudar sendiri.
+function tampilkanEfekKonsumabel(judul, isi) {
+  const lamaEl = document.getElementById("efek-konsumabel");
+  if (lamaEl) lamaEl.remove();
+  const el = document.createElement("div");
+  el.id = "efek-konsumabel";
+  el.className = "efek-konsumabel";
+  const b1 = document.createElement("b");
+  b1.textContent = judul || "";
+  const s1 = document.createElement("span");
+  s1.textContent = isi || "";
+  el.appendChild(b1);
+  el.appendChild(s1);
+  (document.querySelector(".felt-table") || document.body).appendChild(el);
+  setTimeout(() => el.classList.add("pudar"), 1500);
+  setTimeout(() => el.remove(), 2100);
+}
+
 function flipMove(el, parent) {
   if (!settings.anim) { parent.appendChild(el); return; }
   const first = el.getBoundingClientRect();
@@ -1141,6 +1184,30 @@ if (punyaJoker("8-ball")) {
   AudioFX.play("score");
   if (result.debuffedCount) showToast(`${result.debuffedCount} card(s) debuffed by ${S.boss.name}`);
   await wait(t ? 170 : 20);
+
+  // PENILAIAN PER KARTU, SATU PER SATU
+  // Urutannya mengikuti Balatro: kartu dinilai lebih dulu, baru Joker. Tiap kartu
+  // yang ikut dinilai menyala satu per satu dan besar chips-nya ditulis melayang,
+  // supaya pemain tahu kartu mana yang menyumbang dan berapa besar.
+  if (t && (result.kartu || []).length) {
+    for (const k of result.kartu) {
+      const el = document.querySelector('.card[data-id="' + k.id + '"]');
+      if (el) {
+        el.classList.remove("kena-nilai");
+        void el.offsetWidth;
+        el.classList.add("kena-nilai");
+        const pop = document.createElement("span");
+        pop.className = "jpop kartu-pop";
+        pop.textContent = "+" + k.chips;
+        el.appendChild(pop);
+        setTimeout(() => pop.classList.add("pudar"), 420);
+        setTimeout(() => { pop.remove(); el.classList.remove("kena-nilai"); }, 800);
+      }
+      AudioFX.play("select");
+      await wait(230);
+    }
+    await wait(150);
+  }
 
   // ── PERHITUNGAN SKOR DITAMPILKAN LANGKAH DEMI LANGKAH ──
   // Sebelumnya seluruh Joker berkedip bersama dengan jeda hanya 190ms, sehingga
@@ -1343,6 +1410,10 @@ function useConsumable(cons, sel) {
     S.stats.planetCounts[cons.hand] = (S.stats.planetCounts[cons.hand] || 0) + 1;
     showToast(`${cons.hand} → Lv.${S.handLevels[key]} (+${cons.chips} chips, +${cons.mult} mult)`);
     AudioFX.play("levelup");
+    // Planet tidak menyentuh kartu, jadi yang dianimasikan adalah naiknya
+    // tingkat bentuk tangan itu sendiri.
+    tampilkanEfekKonsumabel(cons.hand + " ke Lv." + S.handLevels[key],
+      "+" + cons.chips + " chips, +" + cons.mult + " mult");
     S.lastConsumable = cons;
     return true;
   }
@@ -1356,6 +1427,9 @@ function useConsumable(cons, sel) {
   else S.stats.tarotsUsed++;
   if (cons.id !== "fool") S.lastConsumable = cons;
   AudioFX.play("tarot");
+  // Kartu yang dikenai Tarot menyala berurutan, ditambah label efeknya.
+  kilatKartu(sel || []);
+  tampilkanEfekKonsumabel(cons.name, r.msg);
   return true;
 }
 

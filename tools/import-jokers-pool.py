@@ -118,7 +118,7 @@ def main():
                 f'      const e = w.DSEfek.efekJoker({{ id: "{k}" }}, {{ diTangan: t }});\n'
                 "      if (!e || (!e.chips && !e.mult && e.multX === 1 && !e.uang)) return null;\n"
                 f'      return {{ chips: e.chips, mult: e.mult, xmult: e.multX, money: e.uang, label: "{ket[:28]}" }};\n'
-                "    }\n  },")
+                "    }\n  }")
         else:
             badan = "    effect: null,   // jenis khusus: belum berefek\n  }"
         baris.append(

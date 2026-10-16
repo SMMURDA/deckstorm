@@ -1953,3 +1953,53 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
 @media (prefers-reduced-motion: reduce) {
   #shop-offers .tile-harga, #shop-offers .bisa-diklik > .btn { animation: none; }
 }
+
+/* ══ ANIMASI PENILAIAN PER KARTU ══
+   Balatro menilai kartu lebih dulu, baru Joker. Tiap kartu yang ikut dinilai
+   menyala satu per satu dengan besar chips-nya melayang di atasnya. */
+.card.kena-nilai {
+  z-index: 4;
+  box-shadow: 0 0 0 3px var(--emas-2), 0 0 24px 5px rgba(255, 196, 107, .6);
+  transform: translateY(-10px) scale(1.05);
+  transition: transform .2s cubic-bezier(.2, .9, .3, 1.3), box-shadow .2s ease;
+}
+/* Kartu yang baru diubah Tarot menyala hijau kebiruan, dibedakan dari penilaian */
+.card.kena-efek {
+  z-index: 4;
+  box-shadow: 0 0 0 3px #4BC292, 0 0 24px 5px rgba(75, 194, 146, .55);
+  transform: translateY(-8px) scale(1.04);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.jpop.kartu-pop {
+  top: -14px;
+  font-size: .66rem;
+  padding: 2px 8px;
+}
+
+/* ══ LABEL EFEK KONSUMABEL ══
+   Ditampilkan di tengah area permainan saat Planet atau Tarot dipakai, supaya
+   pemain tahu apa yang baru saja berubah tanpa harus membaca kotak pesan. */
+.efek-konsumabel {
+  position: absolute; left: 50%; top: 38%;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: var(--s2) var(--s3); border-radius: var(--r2);
+  background: rgba(34, 26, 51, .94);
+  border: 2px solid var(--emas);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .6);
+  text-align: center; pointer-events: none; z-index: 40;
+  animation: efekMasuk .34s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.efek-konsumabel b {
+  font-family: var(--font-judul); font-size: .92rem; color: var(--emas-2);
+  letter-spacing: .02em;
+}
+.efek-konsumabel span { font-size: .68rem; color: var(--tinta-2); }
+.efek-konsumabel.pudar { opacity: 0; transition: opacity .5s ease; transform: translate(-50%, -60%); }
+@keyframes efekMasuk {
+  from { opacity: 0; transform: translate(-50%, -40%) scale(.9); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .efek-konsumabel, .efek-konsumabel.pudar { animation: none; transition: none; }
+}
