@@ -2003,3 +2003,20 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
 @media (prefers-reduced-motion: reduce) {
   .efek-konsumabel, .efek-konsumabel.pudar { animation: none; transition: none; }
 }
+
+/* ══ KETERANGAN DI LAYAR KOLEKSI TIDAK LAGI DIPOTONG ══
+   Terukur sebelum perbaikan ini: 37 dari 150 keterangan terpotong pada 1440x900,
+   34 pada 390x844, dan 72 pada 320x568. Pemain tidak bisa membaca efek Joker
+   yang sedang dilihatnya di koleksi. Karena layar koleksi memang untuk membaca,
+   batas barisnya dilepas dan ubinnya boleh tumbuh; yang tetap dibatasi hanya
+   ubin di baki permainan dan di toko. */
+.coll-tile .jdesc,
+.coll-tile .coll-meta,
+#collection-grid .jdesc {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  display: block;
+  overflow: visible;
+  max-height: none;
+}
+.coll-tile { height: auto; }

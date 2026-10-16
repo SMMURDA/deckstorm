@@ -152,8 +152,21 @@
     "jolly": function (ctx) { return bentukTangan(ctx.dinilai).adaPair ? { mult: 8 } : {}; },
     "zany": function (ctx) { return bentukTangan(ctx.dinilai).adaThree ? { mult: 12 } : {}; },
     "mad": function (ctx) { return bentukTangan(ctx.dinilai).adaTwoPair ? { mult: 10 } : {}; },
-    "crazy": function (ctx) { return bentukTangan(ctx.dinilai).adaFour ? { mult: 12 } : {}; },
-    "droll": function (ctx) { return bentukTangan(ctx.dinilai).adaFive ? { mult: 10 } : {}; },
+    // Crazy Joker: +12 Mult bila tangan yang dimainkan berisi Straight.
+    // Droll Joker: +10 Mult bila berisi Flush.
+    // Sebelumnya keduanya memakai bentukTangan(...).adaFour dan adaFive, jadi
+    // Crazy menyala pada Four of a Kind (bukan Straight) dan Droll pada Five of
+    // a Kind (bukan Flush) - syaratnya salah, bukan sekadar kurang tepat.
+    // Straight Flush ikut dihitung sebagai Straight, dan seluruh keluarga Flush
+    // (Flush House, Flush Five) ikut dihitung sebagai Flush, sama seperti Balatro.
+    "crazy": function (ctx) {
+      var n = String(ctx.handName || "");
+      return (n === "Straight" || n === "Straight Flush") ? { mult: 12 } : {};
+    },
+    "droll": function (ctx) {
+      var n = String(ctx.handName || "");
+      return n.indexOf("Flush") >= 0 ? { mult: 10 } : {};
+    },
     // +Mult untuk tiap Joker yang dimiliki
     "abstract-joker": function (ctx) { return { mult: 3 * (ctx.jumlahJoker || 0) }; },
     // x3 bila seluruh kartu di tangan berwarna sekop atau hati
