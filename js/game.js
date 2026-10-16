@@ -903,11 +903,29 @@ function scorePlayed() {
       jokerSelf: j, jokerCount: S.jokers.length, allJokers: S.jokers,
       ante: S.ante, blindIndex: S.blindIndex,
     });
-    const r = j.effect
+    // Dua bug nyata di sini, keduanya terbukti dengan menyadap DSEfek.efekLengkap
+    // pada jalur permainan sebenarnya:
+    //
+    // 1. Mesin efek mengembalikan NOL untuk Joker yang justru punya efek tertulis.
+    //    Terukur: "Joker" (yang efeknya +4 Mult) -> { mult: 0 }, sehingga Joker
+    //    polos itu tidak menambah apa pun. Karena itu, kalau mesin tidak
+    //    menghasilkan apa-apa sementara j.effect ada, efek tertulisnya yang
+    //    dipakai.
+    // 2. Cadangan { mult: 4 } untuk Joker tanpa properti effect membuat Joker
+    //    yang sebenarnya tidak menambah Mult ikut menambah +4 Mult. Terukur:
+    //    "Juggler" (yang efeknya menambah satu slot kartu, bukan Mult) muncul di
+    //    daftar perhitungan sebagai "+4 Mult". Cadangan itu dibuang.
+    let r = j.effect
       ? (typeof DSEfek !== "undefined" && DSEfek.efekLengkap
           ? DSEfek.efekLengkap(j, konteks)
           : j.effect(konteks))
-      : { mult: 4 };
+      : null;
+    const tanpaEfek = (x) => !x || (!x.chips && !x.mult && (!x.xmult || x.xmult === 1) && !x.money);
+    if (tanpaEfek(r) && typeof j.effect === "function") {
+      let r2 = null;
+      try { r2 = j.effect(konteks); } catch (e) { r2 = null; }
+      if (!tanpaEfek(r2)) r = r2;
+    }
     if (r) {
       if (r.chips) chips += r.chips;
       if (r.mult) mult += r.mult;
@@ -926,9 +944,12 @@ function scorePlayed() {
     // "joker mana yang terpakai tidak kelihatan".
     if (!label) {
       const bagian = [];
+      // Nilai netral (mult 0, xmult 1) tidak ditampilkan: mesin efek selalu
+      // mengembalikan seluruh kunci, dan "x1 Mult" pada Joker yang tidak mengali
+      // apa pun hanya menambah kebisingan.
       if (r && r.chips) bagian.push("+" + r.chips + " Chips");
       if (r && r.mult) bagian.push("+" + r.mult + " Mult");
-      if (r && r.xmult) bagian.push("x" + r.xmult + " Mult");
+      if (r && r.xmult && r.xmult !== 1) bagian.push("x" + r.xmult + " Mult");
       if (r && r.money) bagian.push("+$" + r.money);
       if (j.edition) bagian.push(EDITIONS[j.edition].desc);
       label = bagian.length ? bagian.join(" · ") : null;
