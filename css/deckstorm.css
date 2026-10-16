@@ -2020,3 +2020,15 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
   max-height: none;
 }
 .coll-tile { height: auto; }
+
+/* ══ BAKI JOKER SAAT PERHITUNGAN BERLANGSUNG ══
+   Kelas ini dipasang playHand() selama perhitungan, dan audit silang menemukan
+   kelasnya belum punya aturan CSS sama sekali - jadi tidak ada efek yang terlihat.
+   Sekarang baki diredupkan sedikit supaya Joker yang sedang menyala lebih
+   menonjol, dan dikembalikan setelah perhitungan selesai. */
+#jokers.sedang-menghitung { filter: brightness(.9) saturate(.92); }
+#jokers.sedang-menghitung .joker.sedang { filter: none; }
+/* .flashing adalah sisa mekanisme lama (semua Joker berkedip bersama). Sudah tidak
+   dipakai JS mana pun sejak perhitungan diubah menjadi berurutan. Sengaja
+   dibiarkan agar tidak ada aturan yang tercabut dari berkas besar ini; ini catatan
+   bahwa selektornya mati. */
