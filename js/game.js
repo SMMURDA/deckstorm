@@ -918,7 +918,22 @@ function scorePlayed() {
     if (j.edition === "foil") chips += 50;
     if (j.edition === "holo") mult += 10;
     if (j.edition === "poly") mult *= 1.5;
-    if (label || j.edition) flashes.push({ idx, label: label || EDITIONS[j.edition].desc });
+
+    // Label disusun dari NILAI YANG BENAR-BENAR DIBERIKAN, bukan hanya dari
+    // r.label. Mesin efek sering mengembalikan { mult: 4 } tanpa field label,
+    // sehingga hampir semua Joker tidak pernah masuk daftar kilat dan pemain
+    // melihat seolah tidak ada Joker yang bekerja - itu penyebab keluhan
+    // "joker mana yang terpakai tidak kelihatan".
+    if (!label) {
+      const bagian = [];
+      if (r && r.chips) bagian.push("+" + r.chips + " Chips");
+      if (r && r.mult) bagian.push("+" + r.mult + " Mult");
+      if (r && r.xmult) bagian.push("x" + r.xmult + " Mult");
+      if (r && r.money) bagian.push("+$" + r.money);
+      if (j.edition) bagian.push(EDITIONS[j.edition].desc);
+      label = bagian.length ? bagian.join(" · ") : null;
+    }
+    if (label) flashes.push({ idx, nama: j.name || j.nama || "Joker", label });
   });
 
   // Observatory: setiap kartu Planet di area konsumabel memberi x1,5 Mult.
@@ -1106,26 +1121,74 @@ if (punyaJoker("8-ball")) {
   if (result.debuffedCount) showToast(`${result.debuffedCount} card(s) debuffed by ${S.boss.name}`);
   await wait(t ? 170 : 20);
 
-  // joker flashes — one joker at a time, slowly, so it's obvious which one fired
+  // ── PERHITUNGAN SKOR DITAMPILKAN LANGKAH DEMI LANGKAH ──
+  // Sebelumnya seluruh Joker berkedip bersama dengan jeda hanya 190ms, sehingga
+  // pemain tidak bisa tahu Joker mana yang bekerja, berapa sumbangannya, dan
+  // mana yang tidak terpakai sama sekali. Sekarang tiap Joker menyala SATU PER
+  // SATU mengikuti urutan aktivasi, sumbangannya ditulis di daftar langkah, dan
+  // Joker yang tidak ikut dihitung diredupkan supaya jelas bedanya.
   const jwrap = $("#jokers");
-  if (jwrap) jwrap.classList.add("flashing");
-  for (const f of result.flashes) {
-    const tile = document.querySelectorAll("#jokers .joker")[f.idx];
+  const tiles = Array.prototype.slice.call(document.querySelectorAll("#jokers .joker"));
+  const terpakai = new Set((result.flashes || []).map(f => f.idx));
+
+  // Jeda santai supaya sempat dibaca. Tanpa animasi, jedanya nol.
+  const JEDA_JOKER = t ? 520 : 0;
+  const JEDA_AWAL = t ? 340 : 0;
+
+  if (jwrap && t) {
+    jwrap.classList.add("sedang-menghitung");
+    tiles.forEach((el, i) => el.classList.toggle("redup", !terpakai.has(i)));
+  }
+
+  // Daftar langkah perhitungan, diisi satu baris setiap satu Joker selesai.
+  const lama = $("#calc-log");
+  if (lama) lama.remove();
+  const log = document.createElement("div");
+  log.className = "calc-log";
+  log.id = "calc-log";
+  const infoEl = $("#played-info");
+  if (infoEl && infoEl.parentElement) infoEl.parentElement.insertBefore(log, infoEl.nextSibling);
+  else document.querySelector(".felt-table").appendChild(log);
+
+  const tulisLangkah = (nama, nilai, jenis) => {
+    const baris = document.createElement("div");
+    baris.className = "calc-baris " + (jenis || "");
+    baris.innerHTML = '<span class="cb-nama">' + nama + '</span><span class="cb-nilai">' + nilai + "</span>";
+    log.appendChild(baris);
+    // Baris baru selalu ikut terlihat walau daftarnya sudah panjang
+    if (log.scrollHeight > log.clientHeight) log.scrollTop = log.scrollHeight;
+  };
+
+  await wait(JEDA_AWAL);
+  if ((result.flashes || []).length === 0) {
+    tulisLangkah("Tidak ada Joker yang bekerja di tangan ini", "—", "kosong");
+  }
+
+  for (const f of result.flashes || []) {
+    const tile = tiles[f.idx];
+    // Sorot Joker ini dan biarkan menyala sampai langkah berikutnya, supaya
+    // mata pemain sempat berpindah mengikuti urutan perhitungan.
+    tiles.forEach(el => el.classList.remove("sedang"));
     if (tile) {
       tile.classList.remove("flash");
       void tile.offsetWidth;
-      tile.classList.add("flash");
-      setTimeout(() => tile.classList.remove("flash"), 700);
+      tile.classList.add("flash", "sedang");
       const pop = document.createElement("span");
       pop.className = "jpop";
       pop.textContent = f.label;
       tile.appendChild(pop);
-      setTimeout(() => pop.remove(), 1000);
-      AudioFX.play("joker");
+      setTimeout(() => { pop.classList.add("pudar"); }, JEDA_JOKER - 180);
+      setTimeout(() => pop.remove(), JEDA_JOKER + 200);
     }
-    await wait(t ? 190 : 0);
+    if (typeof tulisLangkah === "function") tulisLangkah(f.nama || (tile ? (tile.getAttribute("title") || "Joker") : "Joker"), f.label, "joker");
+    AudioFX.play("joker");
+    await wait(JEDA_JOKER);
   }
-  if (jwrap) jwrap.classList.remove("flashing");
+
+  tiles.forEach(el => el.classList.remove("sedang"));
+  if (jwrap) jwrap.classList.remove("sedang-menghitung");
+  tiles.forEach(el => el.classList.remove("redup"));
+  await wait(t ? 200 : 0);
 
   // score
   const prevScore = S.roundScore;
@@ -1981,7 +2044,17 @@ function activateConsumable(idx) {
 function renderBossBanner() {
   const el = $("#boss-banner");
   if (S.boss) {
+    // Hanya Boss Blind yang memunculkan pemberitahuan ini. Small Blind dan Big
+    // Blind tidak punya aturan khusus, jadi keduanya tidak memicunya.
+    // Kelas "tampil" diperlukan supaya animasi warna dan putar pada CSS berlaku,
+    // dan suaranya mengikuti pola Balatro: satu whoosh lalu beberapa ketukan.
+    const pertamaKali = el.hidden;
     el.hidden = false;
+    el.classList.add("tampil");
+    if (pertamaKali && settings.anim) {
+      AudioFX.play("pack");
+      [0, 100, 200, 300].forEach(t => setTimeout(() => AudioFX.play("click"), t));
+    }
     $("#boss-name").textContent = S.boss.name;
     $("#boss-desc").textContent = S.boss.desc;
     const art = $("#boss-art");

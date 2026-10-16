@@ -1846,3 +1846,77 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
              bosPutar .45s ease-out both;
   box-shadow: 0 0 22px 2px var(--warna-bos, #8a59a5);
 }
+
+/* ══ PERHITUNGAN SKOR LANGKAH DEMI LANGKAH ══
+   Saat Play Hand, tiap Joker menyala satu per satu mengikuti urutan aktivasi,
+   sumbangannya ditulis di daftar langkah, dan Joker yang tidak ikut dihitung
+   diredupkan. Sebelumnya semuanya berkedip bersama sehingga tidak terbaca. */
+.joker.redup {
+  filter: grayscale(.7) brightness(.62);
+  opacity: .72;
+  transition: filter .3s ease, opacity .3s ease;
+}
+.joker.sedang {
+  z-index: 5;
+  box-shadow: 0 0 0 3px var(--emas-2), 0 0 22px 4px rgba(255, 196, 107, .55);
+  transform: translateY(-6px) scale(1.06);
+  transition: transform .22s cubic-bezier(.2, .9, .3, 1.3), box-shadow .22s ease;
+}
+.joker.flash { animation: jokerNyala .55s ease-out both; }
+@keyframes jokerNyala {
+  0%   { filter: brightness(1); }
+  35%  { filter: brightness(1.9) saturate(1.3); }
+  100% { filter: brightness(1); }
+}
+/* Label pengaruh Joker, melayang naik lalu memudar */
+.jpop {
+  position: absolute; left: 50%; top: -6px; transform: translate(-50%, 0);
+  padding: 2px 7px; border-radius: 99px; white-space: nowrap;
+  font-family: var(--font-angka); font-size: .6rem; font-weight: 700;
+  color: #2a1c05; background: linear-gradient(180deg, var(--emas-2), var(--emas));
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .5);
+  animation: jpopNaik .6s cubic-bezier(.2, .9, .3, 1.2) both;
+  pointer-events: none; z-index: 6;
+}
+.jpop.pudar { animation: jpopPudar .5s ease-in both; }
+@keyframes jpopNaik {
+  from { opacity: 0; transform: translate(-50%, 10px) scale(.8); }
+  to   { opacity: 1; transform: translate(-50%, -12px) scale(1); }
+}
+@keyframes jpopPudar {
+  from { opacity: 1; transform: translate(-50%, -12px) scale(1); }
+  to   { opacity: 0; transform: translate(-50%, -26px) scale(.94); }
+}
+
+/* Daftar langkah perhitungan */
+.calc-log {
+  display: flex; flex-direction: column; gap: 2px;
+  width: min(94%, 420px); margin: 4px auto 0;
+  max-height: 108px; overflow-y: auto;
+}
+.calc-baris {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2);
+  padding: 2px var(--s2); border-radius: var(--r1);
+  background: rgba(34, 26, 51, .82); border-left: 3px solid var(--emas);
+  font-size: .66rem; color: var(--tinta-2);
+  animation: langkahMasuk .26s ease-out both;
+}
+.calc-baris .cb-nama { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calc-baris .cb-nilai {
+  flex: 0 0 auto; font-family: var(--font-angka); font-weight: 700; color: var(--emas-2);
+}
+.calc-baris.kosong { border-left-color: var(--redup); font-style: italic; }
+@keyframes langkahMasuk {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (max-height: 700px) {
+  .calc-log { max-height: 66px; }
+  .calc-baris { font-size: .6rem; padding: 1px var(--s1); }
+}
+
+/* Saringan label: nilai netral tidak ditampilkan. Mesin efek mengembalikan
+   seluruh kunci untuk setiap Joker (chips 0, mult 0, xmult 1), dan menampilkan
+   "x1 Mult" untuk Joker yang sebenarnya tidak mengali apa pun hanya menambah
+   kebisingan di daftar langkah. Aturannya di JS, ini hanya penanda gaya. */
+.calc-baris .cb-nilai:empty { display: none; }
