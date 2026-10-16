@@ -1923,3 +1923,33 @@ body:has(#target-fab:not([hidden])) .main-area.felt-table { padding-bottom: 96px
 
 /* Pemberitahuan bos memudar 330ms sebelum disembunyikan (angka dari kode Balatro). */
 .boss-banner.pudar { opacity: 0; transition: opacity .33s ease; }
+
+/* ══ ATURAN TOKO DARI KODE BALATRO ══
+   Kotak harga di ATAS kartu (offset.y +0.38), warna G.C.MONEY #f3b958, ukuran
+   lebih kecil dari nama. Tombol beli di BAWAH kartu (#fda200 terjangkau,
+   #666666 tidak). Harga dan tombol baru muncul setelah 430ms, mengikuti jeda
+   yang sama di kode Balatro. */
+#shop-offers .tile-harga {
+  order: -2;
+  font-family: var(--font-angka); font-weight: 700; font-size: .72rem;
+  color: #f3b958; text-shadow: 0 1px 2px rgba(0, 0, 0, .7);
+  align-self: center;
+  animation: hargaMuncul .28s ease both; animation-delay: .43s;
+}
+#shop-offers .bisa-diklik > .btn {
+  order: 10;
+  animation: hargaMuncul .28s ease both; animation-delay: .43s;
+}
+@keyframes hargaMuncul {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+/* Warna lencana kelangkaan dari G.C.RARITY. Ini BUKAN warna bingkai kartu:
+   di Balatro bingkai semua Joker sama, warnanya hanya di lencana dan partikel. */
+.rar-common    { color: #009dff; }
+.rar-uncommon  { color: #4BC292; }
+.rar-rare      { color: #fe5f55; }
+.rar-legendary { color: #b26cbb; }
+@media (prefers-reduced-motion: reduce) {
+  #shop-offers .tile-harga, #shop-offers .bisa-diklik > .btn { animation: none; }
+}

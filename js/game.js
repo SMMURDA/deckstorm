@@ -1514,6 +1514,10 @@ function endRoundWin() {
 let shopSudahBerbunyi = false;
 
 function renderShop() {
+  // Tahan keadaan daftar tawaran kosong. Sebelumnya pemanggilan dengan
+  // S.offers kosong langsung melempar TypeError (Cannot read properties of
+  // null) karena kode di bawah membaca S.offers dengan asumsi selalu terisi.
+  if (!S.offers) S.offers = [];
   // Suara barang muncul sekali per render toko, sebagai penanda pendengaran
   // bahwa tokonya sudah terisi. Dipasang di sini, bukan di dalam loop tawaran,
   // supaya tidak berbunyi berulang untuk setiap barang.
@@ -1554,6 +1558,13 @@ function renderShop() {
           // keterangan yang sama dengan yang dipakai di tangan dan koleksi.
           tile.classList.add("bisa-diklik");
           tile.title = "Ketuk untuk keterangan";
+          // Kotak harga diletakkan DI ATAS kartu, mengikuti aturan Balatro
+          // (offset.y +0.38 di atas kartu, warna G.C.MONEY #f3b958). Sebelumnya
+          // harga hanya menempel di tombol beli sehingga kurang terbaca.
+          const hargaEl = document.createElement("span");
+          hargaEl.className = "tile-harga";
+          hargaEl.textContent = "$" + (kartuMain ? j.cost : priceOf(j));
+          tile.insertBefore(hargaEl, tile.firstChild);
           tile.onclick = (ev) => {
             if (ev.target.closest("button")) return;   // tombol Buy ditangani sendiri
             AudioFX.play("select");
